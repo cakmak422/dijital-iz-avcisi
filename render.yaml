@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: dijital-iz-avcisi-api
+    runtime: python
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt && playwright install --with-deps chromium"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-5.2
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dijital-iz-avcisi-db
+          property: connectionString
+      - key: ENABLE_PLAYWRIGHT_FALLBACK
+        value: "true"
+
+databases:
+  - name: dijital-iz-avcisi-db
+    databaseName: dijital_iz_avcisi
+    user: dijital_iz_avcisi
