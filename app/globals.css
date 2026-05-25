@@ -23,6 +23,33 @@ input {
   font: inherit;
 }
 
+textarea {
+  font: inherit;
+}
+
 html {
   scroll-behavior: smooth;
+}
+
+.cyber-grid {
+  background-image:
+    linear-gradient(rgba(14, 165, 233, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 165, 233, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cyan-300/35 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-cyan-300/25 dark:focus-visible:ring-offset-slate-950;
+}
+
+.btn-primary {
+  @apply focus-ring inline-flex min-h-11 items-center justify-center rounded-md bg-slate-900 px-5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-cyan-700 hover:shadow-md disabled:cursor-not-allowed disabled:bg-slate-300 disabled:hover:translate-y-0 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100 dark:disabled:bg-white/20 dark:disabled:text-slate-400;
+}
+
+.btn-secondary {
+  @apply focus-ring inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-100 hover:shadow-md dark:border-white/15 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10;
+}
+
+.premium-card {
+  @apply rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300/70 hover:shadow-md dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10;
 }

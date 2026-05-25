@@ -1,3 +1,7 @@
+"use client";
+
+import { EditableContent } from "@/components/admin/content/EditableContent";
+
 export function AboutSection() {
   const analyzedSignals = [
     "Yorum yogunlugu",
@@ -19,9 +23,7 @@ export function AboutSection() {
         <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200">Hakkimizda</p>
           <h1 className="mt-3 text-4xl font-bold tracking-normal sm:text-5xl">Siber farkindalik ve alisveris guvenligi icin sade risk analizi.</h1>
-          <p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">
-            Dijital Iz Avcisi, cevrim ici alisverislerde kullanicilarin urun ve satici risk sinyallerini daha hizli gorebilmesi icin gelistirilen AI destekli analiz platformudur.
-          </p>
+          <EditableContent as="p" className="mt-4 leading-7 text-slate-600 dark:text-slate-300" contentKey="home.about.text" />
           <p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">
             Platform; sahte yorum, manipule puan, guven vermeyen satici profili ve fake magaza gibi gercek sorunlari teknik detaylara bogmadan anlasilir hale getirmeyi hedefler.
           </p>

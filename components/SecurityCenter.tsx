@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { EditableContent } from "@/components/admin/content/EditableContent";
 import { getFeaturedSecurityNotice, securityNotices, SecurityNoticeRisk } from "@/lib/securityCenter";
 
 const riskStyles: Record<SecurityNoticeRisk, string> = {
@@ -34,6 +37,7 @@ export function SecurityCenter() {
               <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-200">Dijital Guvenlik Merkezi</p>
               <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">{featured.title}</h1>
               <p className="mt-4 leading-7 text-slate-300">{featured.content}</p>
+              <EditableContent as="p" className="mt-3 text-sm leading-6 text-cyan-50/85" contentKey="home.securityCenter.description" />
             </div>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link className="flex min-h-11 items-center justify-center rounded-md bg-cyan-300 px-5 font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-cyan-200" href="/sorgu-paneli?module=message">

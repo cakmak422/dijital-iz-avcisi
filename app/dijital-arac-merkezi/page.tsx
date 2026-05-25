@@ -73,6 +73,11 @@ export default function DigitalToolsPage() {
 function ToolCard({ compact = false, tool }: { compact?: boolean; tool: (typeof primaryDigitalTools)[number] }) {
   const content = (
     <>
+      <div className="mb-4 h-16 rounded-lg border border-cyan-200/60 bg-gradient-to-br from-slate-950 via-cyan-950 to-emerald-950 p-3 text-white dark:border-cyan-300/20">
+        <span className="flex h-10 w-10 items-center justify-center rounded-md border border-white/15 bg-white/10 text-xs font-bold">
+          {tool.title.slice(0, 2).toUpperCase()}
+        </span>
+      </div>
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cyan-700 dark:text-cyan-200">{tool.category}</p>

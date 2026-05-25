@@ -18,6 +18,7 @@ type Module = {
   shortTitle: string;
   description: string;
   status: string;
+  icon: string;
   inputLabel: string;
   placeholder: string;
   checks: string[];
@@ -30,6 +31,7 @@ const modules: Module[] = [
     shortTitle: "Urun",
     description: "Trendyol, Hepsiburada, N11 ve Amazon TR urun linkleri icin satici, yorum ve fiyat sinyallerini inceler.",
     status: "Aktif MVP",
+    icon: "UR",
     inputLabel: "Urun linki",
     placeholder: "https://www.trendyol.com/...",
     checks: ["Satici adi", "Puan", "Yorum sayisi", "Fiyat", "Sahte yorum paterni", "Guven skoru"]
@@ -40,6 +42,7 @@ const modules: Module[] = [
     shortTitle: "Phishing",
     description: "URL icin marka taklidi, guvensiz protokol, kisa link ve supheli alan adi paternlerini inceler.",
     status: "Aktif MVP",
+    icon: "PH",
     inputLabel: "Supheli URL",
     placeholder: "https://ornek-link.com/login",
     checks: ["HTTPS kontrolu", "Marka taklidi", "Kisa link", "Alan adi paterni", "Oltalama sinyali", "AI ozeti"]
@@ -50,6 +53,7 @@ const modules: Module[] = [
     shortTitle: "Site",
     description: "Domain, SSL, redirect, typo domain ve phishing paternleri icin sade bir risk ozeti uretir.",
     status: "Yakinda",
+    icon: "SG",
     inputLabel: "URL veya domain",
     placeholder: "ornek-site.com",
     checks: ["Domain yasi", "SSL sertifikasi", "WHOIS", "Phishing riski", "Redirect kontrolu", "Blacklist kontrolu"]
@@ -60,6 +64,7 @@ const modules: Module[] = [
     shortTitle: "IP",
     description: "IP adresinin ulke, ASN, abuse kaydi ve veri merkezi/VPN sinyallerini degerlendirir.",
     status: "Yakinda",
+    icon: "IP",
     inputLabel: "IP adresi",
     placeholder: "8.8.8.8",
     checks: ["Ulke", "ASN", "Hosting firmasi", "VPN/TOR olasiligi", "Abuse kayitlari", "Veri merkezi sinyali"]
@@ -70,6 +75,7 @@ const modules: Module[] = [
     shortTitle: "SMS",
     description: "Korku dili, aciliyet baskisi, kurum taklidi ve sahte kargo paternlerini AI ile aciklar.",
     status: "Aktif MVP",
+    icon: "SM",
     inputLabel: "SMS veya mesaj metni",
     placeholder: "Kargonuz bekletiliyor, hemen odeme yapin...",
     checks: ["Aciliyet baskisi", "Kurum taklidi", "Phishing paterni", "Sahte kargo", "Risk seviyesi", "Kullanici onerisi"]
@@ -177,15 +183,15 @@ export function AnalysisWorkspace() {
   }
 
   return (
-    <section className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[360px_1fr] lg:px-8">
-      <aside className="grid h-fit gap-3 lg:sticky lg:top-6">
+    <section className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[360px_1fr] lg:px-8">
+      <aside className="grid h-fit gap-3 lg:sticky lg:top-24">
         {modules.map((module) => {
           const active = module.id === activeModule;
           return (
             <button
-              className={`rounded-lg border p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+              className={`focus-ring rounded-lg border p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
                 active
-                  ? "border-slate-900 bg-white dark:border-white dark:bg-white/10"
+                  ? "border-cyan-500 bg-white shadow-cyan-950/10 dark:border-cyan-300 dark:bg-cyan-300/10"
                   : "border-slate-200 bg-white/80 hover:border-slate-300 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
               }`}
               key={module.id}
@@ -193,7 +199,12 @@ export function AnalysisWorkspace() {
               type="button"
             >
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-base font-bold">{module.title}</h2>
+                <div className="flex items-center gap-3">
+                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-xs font-bold ${active ? "bg-slate-900 text-white dark:bg-white dark:text-slate-950" : "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-200"}`}>
+                    {module.icon}
+                  </span>
+                  <h2 className="text-base font-bold">{module.title}</h2>
+                </div>
                 <span className="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500 dark:border-white/10 dark:text-slate-300">
                   {module.status}
                 </span>
@@ -248,7 +259,7 @@ function AnalyzerPanel({
 }) {
   return (
     <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-white/10 dark:bg-white/5">
+      <div className="premium-card p-5">
         <div className="border-b border-slate-200 pb-4 dark:border-white/10">
           <p className="text-sm font-semibold uppercase tracking-[0.12em] text-blue-700 dark:text-blue-200">{activeModule.shortTitle} paneli</p>
           <h1 className="mt-2 text-2xl font-bold">{activeModule.title}</h1>
@@ -262,7 +273,7 @@ function AnalyzerPanel({
           {activeModule.id === "message" ? (
             <textarea
               id="analysis-input"
-              className="min-h-36 resize-y rounded-md border border-slate-300 bg-white px-4 py-3 text-base text-slate-950 outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:ring-blue-400/20"
+              className="min-h-36 resize-y rounded-md border border-slate-300 bg-white px-4 py-3 text-base text-slate-950 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:ring-cyan-400/20"
               placeholder={activeModule.placeholder}
               value={url}
               onChange={(event) => setUrl(event.target.value)}
@@ -270,7 +281,7 @@ function AnalyzerPanel({
           ) : (
             <input
               id="analysis-input"
-              className="min-h-12 rounded-md border border-slate-300 bg-white px-4 text-base text-slate-950 outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:ring-blue-400/20"
+              className="min-h-12 rounded-md border border-slate-300 bg-white px-4 text-base text-slate-950 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:ring-cyan-400/20"
               placeholder={activeModule.placeholder}
               value={url}
               onChange={(event) => setUrl(event.target.value)}
@@ -278,7 +289,7 @@ function AnalyzerPanel({
           )}
           {error ? <p className="text-sm font-medium text-red-700 dark:text-red-300">{error}</p> : null}
           <button
-            className="min-h-12 rounded-md bg-slate-900 px-5 font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:disabled:bg-white/20 dark:disabled:text-slate-400"
+            className="btn-primary min-h-12 text-base"
             disabled={activeModule.id === "product" || activeModule.id === "phishing" || activeModule.id === "message" ? !canAnalyze : false}
             type="submit"
           >
@@ -324,7 +335,7 @@ function ResultPanel({
 }) {
   if (isLoading) {
     return (
-      <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+      <section className="premium-card p-5">
         <div className="h-5 w-40 animate-pulse rounded bg-slate-200 dark:bg-white/10" />
         <div className="mt-6 grid gap-4">
           <div className="h-24 animate-pulse rounded-md bg-slate-100 dark:bg-white/10" />
@@ -345,8 +356,13 @@ function ResultPanel({
 
   if (!result) {
     return (
-      <section className="flex min-h-[420px] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white/70 p-6 text-center dark:border-white/15 dark:bg-white/5">
-        <div>
+      <section className="relative flex min-h-[420px] items-center justify-center overflow-hidden rounded-lg border border-dashed border-slate-300 bg-white/70 p-6 text-center dark:border-white/15 dark:bg-white/5">
+        <div className="cyber-grid absolute inset-0 opacity-70" />
+        <div className="absolute h-44 w-44 rounded-full bg-cyan-300/20 blur-3xl dark:bg-cyan-300/10" />
+        <div className="relative">
+          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full border border-cyan-200 bg-cyan-50 text-xl font-bold text-cyan-800 shadow-sm dark:border-cyan-300/25 dark:bg-cyan-300/10 dark:text-cyan-100">
+            DI
+          </div>
           <p className="text-lg font-semibold">Analiz sonucu burada gorunecek.</p>
           <p className="mt-2 max-w-md text-slate-600 dark:text-slate-300">
             Sorgu panelinden bir analiz turu secip URL girdiginde sonuc burada gorunur.
@@ -357,7 +373,7 @@ function ResultPanel({
   }
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+    <section className="premium-card p-5">
       <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-white/10">
         <div>
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{result.marketplace}</p>
@@ -388,7 +404,7 @@ function ResultPanel({
 
 function PhishingResultPanel({ result }: { result: PhishingResult }) {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+    <section className="premium-card p-5">
       <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-white/10">
         <div>
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Phishing Kontrolu</p>
@@ -417,7 +433,7 @@ function PhishingResultPanel({ result }: { result: PhishingResult }) {
 
 function MessageResultPanel({ result }: { result: MessageResult }) {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+    <section className="premium-card p-5">
       <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-white/10">
         <div>
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">SMS / Mesaj Analizi</p>
@@ -465,7 +481,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 function HistoryPanel({ history }: { history: AnalysisHistoryItem[] }) {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+    <section className="premium-card p-5">
       <div className="flex flex-col gap-1 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:justify-between dark:border-white/10">
         <div>
           <h2 className="text-xl font-bold">Analiz gecmisi</h2>

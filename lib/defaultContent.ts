@@ -1,0 +1,110 @@
+import { EditableContent, EditableContentGroup } from "@/types/content";
+
+const initialUpdatedAt = "2026-05-25T00:00:00.000Z";
+
+export const defaultEditableContent: EditableContent[] = [
+  {
+    id: "content-home-hero-title",
+    key: "home.hero.title",
+    title: "Hero basligi",
+    content: "Dijital tehditleri sade risk sinyallerine donustur.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-hero-description",
+    key: "home.hero.description",
+    title: "Hero aciklamasi",
+    content: "Sahte site, phishing link, riskli satici, supheli SMS ve dijital risk sinyallerini herkesin anlayacagi guven raporlarina ceviren AI destekli analiz platformu.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-about-text",
+    key: "home.about.text",
+    title: "Hakkimizda metni",
+    content: "Dijital Iz Avcisi, cevrim ici alisverislerde kullanicilarin urun ve satici risk sinyallerini daha hizli gorebilmesi icin gelistirilen AI destekli analiz platformudur.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-cyber-news-title",
+    key: "home.cyberNews.title",
+    title: "Siber Gündem basligi",
+    content: "Guncel dijital risk notlari.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-cyber-news-description",
+    key: "home.cyberNews.description",
+    title: "Siber Gündem aciklamasi",
+    content: "Turkiye odakli kisa, net ve aksiyon alinabilir guvenlik bultenleri.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-security-center-description",
+    key: "home.securityCenter.description",
+    title: "Dijital Guvenlik Merkezi aciklamasi",
+    content: "Kisa, net ve uygulanabilir risk uyarilariyla dijital tehditleri daha okunabilir hale getirir.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-footer-description",
+    key: "home.footer.description",
+    title: "Footer aciklamasi",
+    content: "AI destekli analizler bilgilendirme amaclidir. Platform kesin suclama yapmaz; riskli davranis, phishing paterni ve supheli sinyal dilini kullanir.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-contact-intro-text",
+    key: "contact.intro.text",
+    title: "Iletisim alani metni",
+    content: "Supheli link, sahte SMS ornegi, hatali analiz bildirimi veya yeni ozellik onerilerini bu form uzerinden paylasabilirsiniz.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-announcement-banner",
+    key: "home.announcement.banner",
+    title: "Ana sayfa duyuru banneri",
+    content: "Demo bulten: Sahte kargo SMS'leri ve marka taklidi yapan linkler icin analiz panelini kullanarak risk sinyallerini kontrol edin.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-today-cyber-event-text",
+    key: "home.todayCyberEvent.text",
+    title: "Bugunun Siber Olayi metni",
+    content: "Bu olay, dijital guvenlikte tek bir teknik acigin genis olcekli toplumsal ve kurumsal etkilere yol acabilecegini gosterir.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  }
+];
+
+export const editableContentGroups: EditableContentGroup[] = [
+  {
+    id: "homepage",
+    title: "Ana sayfa",
+    description: "Hero, duyuru, siber gundem ve guvenlik merkezi metinleri.",
+    keys: [
+      "home.hero.title",
+      "home.hero.description",
+      "home.announcement.banner",
+      "home.securityCenter.description",
+      "home.cyberNews.title",
+      "home.cyberNews.description",
+      "home.todayCyberEvent.text",
+      "home.footer.description"
+    ]
+  },
+  {
+    id: "corporate",
+    title: "Kurumsal sayfalar",
+    description: "Hakkimizda ve iletisim alanlarinda kullanilan metinler.",
+    keys: ["home.about.text", "contact.intro.text"]
+  }
+];

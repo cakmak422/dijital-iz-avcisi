@@ -56,6 +56,15 @@ export default function AdminPage() {
           <div className="mx-auto grid max-w-7xl gap-5 xl:grid-cols-[1fr_420px]">
             <div className="grid gap-5">
               <AdminCard title="Son analizler" items={recentAnalyses.map((item) => `${item.type}: ${item.target} - ${item.result}`)} />
+              <article className="rounded-lg border border-cyan-200 bg-cyan-50 p-5 shadow-sm dark:border-cyan-400/30 dark:bg-cyan-400/10">
+                <h2 className="text-xl font-bold">Icerik duzenleme sistemi</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-cyan-50">
+                  Hero, hakkimizda, duyuru, siber gundem ve footer metinlerini panel uzerinden yonetin.
+                </p>
+                <Link className="mt-4 inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100" href="/admin/content">
+                  Icerik panelini ac
+                </Link>
+              </article>
               <UsersTable />
               <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
                 <h2 className="text-xl font-bold">Parser sağlık durumu</h2>
