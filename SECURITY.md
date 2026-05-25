@@ -62,6 +62,16 @@ Future URL and product analysis engines must:
 
 Analysis engines must never access internal infrastructure.
 
+Current cyber-event source fetching uses an explicit outbound allowlist:
+
+- `cisa.gov`
+- `www.cisa.gov`
+- `nist.gov`
+- `nvd.nist.gov`
+- `raw.githubusercontent.com`
+
+Remote event images are rendered only from a separate image allowlist and must never accept `javascript:` or `data:` payloads.
+
 ## Cloudflare Checklist
 
 1. Create a Cloudflare account.

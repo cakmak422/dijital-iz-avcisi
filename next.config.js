@@ -33,6 +33,22 @@ function buildContentSecurityPolicy() {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "www.cisa.gov" },
+      { protocol: "https", hostname: "cisa.gov" },
+      { protocol: "https", hostname: "nist.gov" },
+      { protocol: "https", hostname: "nvd.nist.gov" },
+      { protocol: "https", hostname: "www.mitre.org" },
+      { protocol: "https", hostname: "www.cloudflare.com" },
+      { protocol: "https", hostname: "www.microsoft.com" },
+      { protocol: "https", hostname: "www.kaspersky.com" },
+      { protocol: "https", hostname: "www.crowdstrike.com" },
+      { protocol: "https", hostname: "www.wired.com" },
+      { protocol: "https", hostname: "www.bleepingcomputer.com" },
+      { protocol: "https", hostname: "therecord.media" }
+    ]
+  },
   async headers() {
     return [
       {

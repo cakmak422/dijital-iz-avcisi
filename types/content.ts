@@ -45,7 +45,8 @@ export type ManagedContentType =
   | "blog"
   | "banner"
   | "tool"
-  | "useful-link";
+  | "useful-link"
+  | "cyber-event-settings";
 
 export type ManagedContentDataMode = "demo" | "real" | "hidden";
 

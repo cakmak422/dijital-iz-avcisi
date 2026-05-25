@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -10,8 +11,8 @@ import { FeedbackForm } from "@/components/FeedbackForm";
 import { ParserHealth } from "@/components/ParserHealth";
 import { SecurityCenter } from "@/components/SecurityCenter";
 import { EditableContent } from "@/components/admin/content/EditableContent";
-import { usePublishedManagedContent } from "@/lib/contentStore";
-import { getTodayCyberEvent } from "@/lib/cyberArchive";
+import { useManagedContentItems, usePublishedManagedContent } from "@/lib/contentStore";
+import type { CyberEvent } from "@/types/cyberEvent";
 
 type Theme = "light" | "dark";
 
@@ -212,32 +213,105 @@ function StatsBand() {
 }
 
 function TodayCyberEvent() {
-  const event = getTodayCyberEvent();
+  const eventSettings = useManagedContentItems().find((item) => item.type === "cyber-event-settings");
+  const [event, setEvent] = useState<CyberEvent | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadEvent() {
+      setIsLoading(true);
+      setError("");
+      try {
+        const response = await fetch("/api/cyber-event", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Cyber event source failed");
+        }
+        const data = (await response.json()) as { event: CyberEvent };
+        if (mounted) {
+          setEvent(data.event);
+        }
+      } catch {
+        if (mounted) {
+          setError("Kaynak verisi alinamadi. Lutfen daha sonra tekrar deneyin.");
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadEvent();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (eventSettings?.status === "hidden") {
+    return null;
+  }
+
+  const imageUrl = event?.imageUrl || eventSettings?.imageUrl || "";
+  const imageAlt = event?.imageAlt || eventSettings?.altText || event?.title || "Siber olay gorseli";
 
   return (
     <section className="border-b border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-        <CyberEventVisual category={event.category} title={event.title} tone={event.visualTone} year={event.year} />
+        {imageUrl ? (
+          <div className="relative min-h-[260px] overflow-hidden rounded-lg border border-slate-200 bg-slate-100 shadow-lg shadow-slate-900/10 dark:border-white/10 dark:bg-white/5">
+            <Image alt={imageAlt} className="object-cover" fill loading="lazy" sizes="(min-width: 1024px) 45vw, 100vw" src={imageUrl} />
+          </div>
+        ) : (
+          <CyberEventVisual category={event?.category || "CISA KEV"} title={event?.title || "Canli kaynak verisi yukleniyor"} tone="breach" year={event?.year || new Date().getFullYear().toString()} />
+        )}
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200">
             Bugunun Siber Olayi
           </p>
           <h2 className="mt-2 text-3xl font-bold">Siber Kirilma Noktalari</h2>
-          <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-400">{event.dateLabel}</p>
-          <p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">{event.summary}</p>
-          <EditableContent as="p" className="mt-3 leading-7 text-slate-600 dark:text-slate-300" contentKey="home.todayCyberEvent.text" />
+          {isLoading ? <p className="mt-4 rounded-md border border-cyan-200 bg-cyan-50 p-3 text-sm font-semibold text-cyan-800 dark:border-cyan-400/30 dark:bg-cyan-400/10 dark:text-cyan-100">Canli kaynak verisi yukleniyor...</p> : null}
+          {error ? <p className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700 dark:border-red-400/30 dark:bg-red-400/10 dark:text-red-100">{error}</p> : null}
+          {event ? (
+            <>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className={`rounded-md border px-2 py-1 text-xs font-bold ${event.isLiveData ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-100" : "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100"}`}>
+                  {event.isLiveData ? "Canli kaynak verisi" : "Kaynak verisi alinamadi, yedek bilgilendirme gosteriliyor."}
+                </span>
+                {event.cveId ? <span className="rounded-md border border-slate-200 px-2 py-1 text-xs font-bold text-slate-600 dark:border-white/10 dark:text-slate-300">{event.cveId}</span> : null}
+                {event.publishedAt ? <span className="rounded-md border border-slate-200 px-2 py-1 text-xs font-bold text-slate-600 dark:border-white/10 dark:text-slate-300">Yayin: {event.publishedAt}</span> : null}
+                {event.updatedAt ? <span className="rounded-md border border-slate-200 px-2 py-1 text-xs font-bold text-slate-600 dark:border-white/10 dark:text-slate-300">Guncel: {event.updatedAt}</span> : null}
+              </div>
+              <h3 className="mt-4 text-2xl font-bold">{event.title}</h3>
+              <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-400">{event.category}</p>
+              <p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">{event.summary}</p>
+              <div className="mt-4 grid gap-2 text-sm text-slate-600 dark:text-slate-300 sm:grid-cols-2">
+                {event.vendor ? <p><span className="font-bold">Vendor: </span>{event.vendor}</p> : null}
+                {event.product ? <p><span className="font-bold">Product: </span>{event.product}</p> : null}
+                {event.severity ? <p><span className="font-bold">Severity: </span>{event.severity}</p> : null}
+                <p><span className="font-bold">Kaynak: </span>{event.sourceName}</p>
+              </div>
+            </>
+          ) : null}
+          {!event && !isLoading ? <EditableContent as="p" className="mt-3 leading-7 text-slate-600 dark:text-slate-300" contentKey="home.todayCyberEvent.text" /> : null}
           <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">
             <span className="font-bold">Etkisi: </span>
-            {event.impact}
+            {event?.impact || "Kaynak verisi yuklenirken etki ozeti hazirlaniyor."}
           </div>
           <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            <Link className="flex min-h-11 items-center justify-center rounded-md bg-slate-900 px-5 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200" href={`/siber-arsiv#${event.slug}`}>
+            <a className="flex min-h-11 items-center justify-center rounded-md bg-slate-900 px-5 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200" href={event?.sourceUrl || "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"} rel="noreferrer" target="_blank">
               Detayini Oku
-            </Link>
-            <a className="flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-100 dark:border-white/15 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10" href={event.sourceUrl} rel="noreferrer" target="_blank">
-              Kaynak: {event.sourceName}
+            </a>
+            <a className="flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-100 dark:border-white/15 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10" href={event?.sourceUrl || "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"} rel="noreferrer" target="_blank">
+              Kaynak: {event?.sourceName || "CISA KEV Catalog"}
             </a>
           </div>
+          <p className="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">
+            Gorsel kaynagi: {event?.imageSource || "Kategori bazli fallback cyber visual"} | Gorsel tipi: {event?.imageType || "fallback"}
+          </p>
         </div>
       </div>
     </section>

@@ -626,6 +626,29 @@ export const defaultManagedContent: ManagedContentItem[] = [
     sourceLabel: "CISA"
   },
   {
+    id: "mc-cyber-event-settings",
+    type: "cyber-event-settings",
+    title: "Siber Kirilma Noktalari ayarlari",
+    subtitle: "automatic",
+    description:
+      "Otomatik canlı veri modu acik. Kategori filtresi: KEV. Manuel moda gecmek icin durum veya kategori alanlarini admin panelden guncelleyin.",
+    body:
+      "Kaynak verisi alinamazsa yedek bilgilendirme acikca etiketlenir. Gercek yayinda son secilen olay PostgreSQL/Supabase tablosunda saklanmalidir.",
+    category: "KEV",
+    tags: ["auto-live", "kev", "fallback"],
+    imageUrl: "",
+    altText: "Siber olay ayarlari",
+    icon: "AUTO",
+    ctaLabel: "Canli veriyi yenile",
+    ctaHref: "/api/cyber-event",
+    status: "published",
+    order: 1,
+    isFeatured: true,
+    createdAt: initialUpdatedAt,
+    updatedAt: initialUpdatedAt,
+    dataMode: "real"
+  },
+  {
     id: "mc-about-main",
     type: "about",
     title: "Siber farkindalik ve alisveris guvenligi icin sade risk analizi.",

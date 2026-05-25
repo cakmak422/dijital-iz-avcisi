@@ -28,7 +28,8 @@ const contentTypes: { label: string; value: ManagedContentType }[] = [
   { label: "Duyuru", value: "announcement" },
   { label: "Gorsel afis", value: "banner" },
   { label: "Dijital arac", value: "tool" },
-  { label: "Faydali link", value: "useful-link" }
+  { label: "Faydali link", value: "useful-link" },
+  { label: "Siber olay ayarlari", value: "cyber-event-settings" }
 ];
 
 const statusLabels: Record<ManagedContentStatus, string> = {
