@@ -2,6 +2,10 @@
 
 AI destekli alisveris guvenlik analizi icin MVP demo.
 
+> WARNING:
+> Current mock authentication is NOT secure and MUST NOT be considered production authentication.
+> Production release requires real backend validation, database-backed sessions, server-side authorization, and HttpOnly Secure cookies.
+
 Kullanici Trendyol, Hepsiburada veya N11 urun linki yapistirir. Sistem urun, satici, yorum sinyalleri ve guven skorunu tek ekranda gosterir.
 
 ## MVP Kapsami

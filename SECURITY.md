@@ -2,10 +2,46 @@
 
 ## Current Status
 
+> WARNING:
+> Current mock authentication is NOT secure and MUST NOT be considered production authentication.
+> Production auth requires backend validation, database-backed sessions, server-side authorization, and HttpOnly Secure cookies.
+
 - Production UI does not expose demo admin credentials, demo user credentials, OTP debug codes, API keys, tokens, or admin passwords.
 - Internal console routes are protected by Next.js proxy middleware and require an admin role cookie before rendering.
 - Client-side mock auth is not a production authentication system. Real deployment must use backend sessions or signed JWT cookies.
 - If any password or admin credential was previously committed to Git history, treat it as exposed and rotate it before public release.
+
+## Threat Model
+
+Current primary threat assumptions:
+
+- Credential stuffing
+- Brute force attacks
+- Automated scraping abuse
+- Fake account creation
+- Spam analysis submissions
+- XSS attempts
+- CSRF attempts
+- SSRF attempts from future URL analysis features
+- Admin panel probing
+- Bot traffic and reconnaissance scanning
+- Public endpoint abuse
+- Dependency supply-chain risks
+
+Future production deployment must continuously reassess the threat model as new analysis features are introduced.
+
+## SSRF Protection Requirements
+
+Future URL and product analysis engines must:
+
+- Block localhost and private IP ranges
+- Block internal network access
+- Restrict unsupported protocols
+- Validate outbound requests
+- Enforce DNS rebinding protections
+- Use outbound allowlists when possible
+
+Analysis engines must never access internal infrastructure.
 
 ## Cloudflare Checklist
 
@@ -117,3 +153,36 @@ Recommended automation:
 - Patch known vulnerable or deprecated packages quickly.
 
 Current repo includes `.github/dependabot.yml` for weekly npm and backend pip checks.
+
+## Supply Chain Security
+
+Third-party dependencies introduce supply-chain risk.
+
+Mitigations should include:
+
+- Dependency pinning
+- Lockfile verification
+- Automated vulnerability scanning
+- Restricted dependency additions
+- Review before introducing new packages
+
+## Incident Response
+
+If a security incident occurs:
+
+1. Rotate secrets immediately
+2. Disable affected services
+3. Preserve logs
+4. Assess scope of compromise
+5. Notify affected administrators
+6. Patch root cause
+7. Reissue credentials if needed
+
+## Backup and Recovery
+
+Production deployment should include:
+
+- Automated database backups
+- GitHub repository redundancy
+- Environment variable backup procedures
+- Disaster recovery documentation

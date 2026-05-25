@@ -6,6 +6,8 @@ from typing import Any
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
+from app.services.ssrf_guard import validate_outbound_url
+
 
 @dataclass
 class TrendyolProductData:
@@ -84,6 +86,7 @@ class TrendyolParser:
         )
 
     def _fetch_html(self, url: str) -> str:
+        validate_outbound_url(url)
         try:
             import requests
 

@@ -4,6 +4,8 @@ from html import unescape
 from typing import Any, Iterable
 from urllib.request import Request, urlopen
 
+from app.services.ssrf_guard import validate_outbound_url
+
 
 DEFAULT_HEADERS = {
     "User-Agent": (
@@ -36,6 +38,7 @@ NEGATIVE_KEYWORDS = [
 def fetch_soup(url: str, timeout: int = 12) -> Any:
     from bs4 import BeautifulSoup
 
+    validate_outbound_url(url)
     html = _fetch_html(url, timeout)
     return BeautifulSoup(html, "html.parser")
 
@@ -44,6 +47,7 @@ def fetch_rendered_soup(url: str, wait_selector: str | None = None, timeout_ms: 
     from bs4 import BeautifulSoup
     from playwright.sync_api import sync_playwright
 
+    validate_outbound_url(url)
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page(
@@ -202,6 +206,7 @@ def collect_review_snippets(soup: Any, selectors: list[str], limit: int = 24) ->
 
 
 def _fetch_html(url: str, timeout: int) -> str:
+    validate_outbound_url(url)
     try:
         import requests
 
