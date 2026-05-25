@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
+import { usePublishedManagedContent } from "@/lib/contentStore";
 import { primaryDigitalTools, roadmapDigitalTools, statusLabels, ToolStatus } from "@/lib/digitalTools";
 
 const statusStyles: Record<ToolStatus, string> = {
@@ -9,6 +12,19 @@ const statusStyles: Record<ToolStatus, string> = {
 };
 
 export default function DigitalToolsPage() {
+  const cmsTools = usePublishedManagedContent("tool");
+  const primaryTools = cmsTools.length
+    ? cmsTools.map((tool) => ({
+        title: tool.title,
+        category: tool.category,
+        status: tool.status === "published" ? "active" as const : "planned" as const,
+        priority: "core" as const,
+        description: tool.description,
+        checks: tool.body ? tool.body.split(",").map((item) => item.trim()).filter(Boolean) : tool.tags,
+        href: tool.ctaHref || undefined
+      }))
+    : primaryDigitalTools;
+
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
@@ -46,7 +62,7 @@ export default function DigitalToolsPage() {
             <h2 className="mt-2 text-3xl font-bold">Cekirdek servisler.</h2>
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            {primaryDigitalTools.map((tool) => (
+            {primaryTools.map((tool) => (
               <ToolCard key={tool.title} tool={tool} />
             ))}
           </div>

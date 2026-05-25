@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { AdminGate } from "@/components/AdminGate";
 import { BrandLogo } from "@/components/BrandLogo";
+import { ManagedContentPanel } from "@/components/admin/content/ManagedContentPanel";
 import { ContentSection } from "@/components/admin/content/ContentSection";
 import { editableContentGroups } from "@/lib/defaultContent";
 import { useEditableContentItems } from "@/lib/contentStore";
@@ -39,6 +40,7 @@ export default function OpsConsoleContentPage() {
 
         <section className="px-4 py-10 sm:px-6 lg:px-8">
           <div className="mx-auto grid max-w-7xl gap-10">
+            <ManagedContentPanel />
             {editableContentGroups.map((group) => (
               <ContentSection group={group} items={items} key={group.id} />
             ))}

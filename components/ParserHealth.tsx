@@ -1,4 +1,7 @@
+"use client";
+
 import { parserHealthItems } from "@/lib/content";
+import { usePublishedManagedContent } from "@/lib/contentStore";
 
 const statusStyles: Record<string, string> = {
   aktif: "bg-emerald-500",
@@ -8,6 +11,18 @@ const statusStyles: Record<string, string> = {
 };
 
 export function ParserHealth({ compact = false }: { compact?: boolean }) {
+  const cmsItems = usePublishedManagedContent("parser-health");
+  const visibleItems = cmsItems.length
+    ? cmsItems.map((item) => ({
+        platform: item.title,
+        status: item.subtitle,
+        lastTest: item.detail || item.updatedAt.slice(0, 10),
+        successRate: Number(item.value) || 0,
+        note: item.description,
+        dataMode: item.dataMode
+      }))
+    : parserHealthItems.map((item) => ({ ...item, dataMode: "demo" as const }));
+
   return (
     <section className={compact ? "" : "border-b border-slate-200 bg-slate-50 px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8"}>
       <div className={compact ? "" : "mx-auto max-w-7xl"}>
@@ -18,7 +33,7 @@ export function ParserHealth({ compact = false }: { compact?: boolean }) {
           </div>
         ) : null}
         <div className={compact ? "grid gap-3" : "mt-6 grid gap-3 md:grid-cols-3"}>
-          {parserHealthItems.map((item) => (
+          {visibleItems.map((item) => (
             <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5" key={item.platform}>
               <div className="flex items-center justify-between gap-3">
                 <h3 className="font-bold">{item.platform}</h3>

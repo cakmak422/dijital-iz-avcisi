@@ -14,7 +14,7 @@ export function LoginForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setSuccess("");
@@ -33,9 +33,26 @@ export function LoginForm() {
       return;
     }
 
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: cleanIdentifier, password: cleanPassword })
+      });
+
+      if (response.ok) {
+        const data = (await response.json()) as { redirectTo?: string };
+        setSuccess("Giris basarili. Yonetim paneline yonlendiriliyorsunuz.");
+        window.setTimeout(() => router.push(data.redirectTo ?? "/ops-console"), 650);
+        return;
+      }
+    } catch {
+      // Local demo user fallback continues below. Do not log credentials.
+    }
+
     const user = loginDemoUser(cleanIdentifier, cleanPassword);
     if (!user) {
-      setError("Giris bilgileri eslesmedi veya e-posta dogrulamasi tamamlanmamis.");
+      setError("Giriş bilgileri eşleşmedi.");
       return;
     }
 

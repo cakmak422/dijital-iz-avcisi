@@ -25,3 +25,64 @@ export type EditableContentGroup = {
   description: string;
   keys: EditableContentKey[];
 };
+
+export type ManagedContentStatus = "published" | "draft" | "hidden";
+
+export type ManagedContentType =
+  | "hero"
+  | "navbar"
+  | "stat"
+  | "cyber-news"
+  | "parser-health"
+  | "cyber-archive"
+  | "how-it-works"
+  | "guide"
+  | "about"
+  | "contact"
+  | "legal"
+  | "footer"
+  | "announcement"
+  | "blog"
+  | "banner"
+  | "tool"
+  | "useful-link"
+  | "cyber-event-settings";
+
+export type ManagedContentDataMode = "demo" | "real" | "hidden";
+
+export type ManagedContentItem = {
+  id: string;
+  type: ManagedContentType;
+  title: string;
+  subtitle: string;
+  description: string;
+  body: string;
+  category: string;
+  tags: string[];
+  imageUrl: string;
+  altText: string;
+  icon: string;
+  ctaLabel: string;
+  ctaHref: string;
+  status: ManagedContentStatus;
+  order: number;
+  isFeatured: boolean;
+  createdAt: string;
+  updatedAt: string;
+  dataMode?: ManagedContentDataMode;
+  value?: string;
+  detail?: string;
+  riskLevel?: "safe" | "caution" | "risk" | "info";
+  readTime?: string;
+  publishedAt?: string;
+  sourceLabel?: string;
+};
+
+export type ContentAuditEvent = {
+  id: string;
+  action: "create" | "update" | "delete" | "hide" | "publish" | "draft" | "reset" | "feature" | "reorder";
+  itemId: string;
+  itemTitle: string;
+  actor: string;
+  createdAt: string;
+};

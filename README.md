@@ -159,6 +159,42 @@ Bu repo uc deploy dosyasi icerir:
 
 Detayli env checklist'i icin `DEPLOYMENT.md` dosyasina bak.
 
+## Hostinger Node Deploy Notu
+
+Hostinger uzerinde Node.js uygulamasi icin:
+
+- Node.js surumu: `20.x` veya ustu
+- Build komutu: `npm install && npm run build`
+- Start komutu: `npm start`
+- Startup file gerekiyorsa: `server.js`
+- Port: Hostinger'in verdigi `PORT` environment variable kullanilmali
+
+Canli sunucuda `.next` klasorunu Windows makineden elle yuklemek yerine build'i Hostinger/GitHub Actions tarafinda calistirmak daha sagliklidir. Elle yuklenen Windows build ciktisi Linux ortaminda 503 hatasina yol acabilir.
+
+## Gunluk Siber Olay Otomasyonu
+
+Ana sayfadaki "Bugunun Siber Olayi" karti `/api/cyber-event` endpoint'i uzerinden CISA Known Exploited Vulnerabilities katalog verisini kullanir. Endpoint sonucu 30-60 dakika araliginda cachelenir ve kaynak alinamazsa acikca etiketlenmis fallback bilgi dondurur.
+
+Korunmus cron endpoint'i:
+
+```bash
+GET /api/cron/daily-cyber-event
+Authorization: Bearer CRON_SECRET
+```
+
+GitHub Actions icin `.github/workflows/daily-cyber-event.yml` dosyasi eklendi. Her gece 00:00 Turkiye saati icin `21:00 UTC` cron kullanir. Repository secrets:
+
+- `SITE_URL=https://dijitalizavcisi.com`
+- `CRON_SECRET=hostingdeki-secret-ile-ayni`
+
+Hostinger cron desteklemiyorsa alternatifler:
+
+- GitHub Actions scheduled workflow
+- Cloudflare Cron Trigger
+- cron-job.org gibi dis cron servisleri
+
+Kalici otomatik yayin icin veritabani gerekir. LocalStorage veya serverless bellek, gece otomatik haber yayinini guvenilir sekilde saklayamaz. Sonraki adim Supabase/PostgreSQL tablosunda `daily_cyber_events` kaydi tutmaktir.
+
 Public demo icin pratik akıs:
 
 1. Backend'i Render veya Railway'e deploy et.

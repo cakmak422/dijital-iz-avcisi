@@ -9,7 +9,32 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null | undefined>(undefined);
 
   useEffect(() => {
-    setUser(getCurrentDemoUser());
+    let mounted = true;
+
+    async function checkAdminSession() {
+      try {
+        const response = await fetch("/api/auth/me", { cache: "no-store" });
+        if (response.ok) {
+          const data = (await response.json()) as { user: User | null };
+          if (mounted && data.user?.role === "admin") {
+            setUser(data.user);
+            return;
+          }
+        }
+      } catch {
+        // Client demo fallback only; production admin state must come from server session.
+      }
+
+      if (mounted) {
+        setUser(getCurrentDemoUser());
+      }
+    }
+
+    checkAdminSession();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (user === undefined) {

@@ -11,6 +11,25 @@
 - Client-side mock auth is not a production authentication system. Real deployment must use backend sessions or signed JWT cookies.
 - If any password or admin credential was previously committed to Git history, treat it as exposed and rotate it before public release.
 
+## Temporary Admin Bootstrap
+
+The current MVP can enable a temporary admin bootstrap through server-side environment variables only:
+
+```env
+ADMIN_BOOTSTRAP_ENABLED=true
+ADMIN_EMAIL=admin@example.invalid
+ADMIN_PASSWORD=change-me-on-hosting
+AUTH_SECRET=change-me-on-hosting
+```
+
+- These values must never be rendered in the UI.
+- These values must never be hardcoded in client-side code.
+- `ADMIN_PASSWORD` must be a strong secret managed only by the hosting provider environment variables.
+- The bootstrap admin is treated as email-verified and receives a server-created `HttpOnly`, `Secure`, `SameSite=Lax` signed session cookie.
+- This is a temporary MVP bridge, not final production authentication.
+
+Production authentication must replace this with backend validation, password hashing, database-backed users, server-side authorization checks, and signed `HttpOnly Secure` sessions.
+
 ## Threat Model
 
 Current primary threat assumptions:
@@ -42,6 +61,16 @@ Future URL and product analysis engines must:
 - Use outbound allowlists when possible
 
 Analysis engines must never access internal infrastructure.
+
+Current cyber-event source fetching uses an explicit outbound allowlist:
+
+- `cisa.gov`
+- `www.cisa.gov`
+- `nist.gov`
+- `nvd.nist.gov`
+- `raw.githubusercontent.com`
+
+Remote event images are rendered only from a separate image allowlist and must never accept `javascript:` or `data:` payloads.
 
 ## Cloudflare Checklist
 
