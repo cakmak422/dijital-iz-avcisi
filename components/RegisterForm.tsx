@@ -4,6 +4,8 @@ import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { saveDemoUser } from "@/lib/auth";
 import { sendOtpEmail } from "@/lib/email";
+import { checkClientRateLimit } from "@/lib/rateLimit";
+import { isValidEmail, sanitizeText } from "@/lib/sanitize";
 import { User } from "@/lib/users";
 
 type RegisterStep = "form" | "otp" | "done";
@@ -33,7 +35,20 @@ const initialForm: RegistrationForm = {
 const OTP_TTL_MS = 5 * 60 * 1000;
 const RESEND_SECONDS = 60;
 const MAX_ATTEMPTS = 5;
-const showDemoOtp = process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_SHOW_DEMO_OTP === "true";
+const showDemoOtp = process.env.NODE_ENV === "development";
+
+function cleanForm(form: RegistrationForm): RegistrationForm {
+  return {
+    username: sanitizeText(form.username, 40),
+    email: sanitizeText(form.email, 120).toLowerCase(),
+    firstName: sanitizeText(form.firstName, 60),
+    lastName: sanitizeText(form.lastName, 60),
+    birthDate: sanitizeText(form.birthDate, 20),
+    phone: sanitizeText(form.phone, 30),
+    password: form.password.trim().slice(0, 128),
+    passwordRepeat: form.passwordRepeat.trim().slice(0, 128)
+  };
+}
 
 export function RegisterForm() {
   const [form, setForm] = useState<RegistrationForm>(initialForm);
@@ -62,39 +77,53 @@ export function RegisterForm() {
     event.preventDefault();
     setError("");
 
-    if (!form.username || !form.email || !form.firstName || !form.lastName || !form.birthDate || !form.phone || !form.password) {
-      setError("Lütfen tüm kayıt alanlarını doldurun.");
+    const rate = checkClientRateLimit("register-form", 4, 60_000);
+    if (!rate.allowed) {
+      setError(`Cok fazla kayit denemesi. Lutfen ${rate.retryAfterSeconds} saniye sonra tekrar deneyin.`);
       return;
     }
 
-    if (form.password.length < 8) {
-      setError("Şifre en az 8 karakter olmalıdır.");
+    const cleaned = cleanForm(form);
+    setForm(cleaned);
+
+    if (!cleaned.username || !cleaned.email || !cleaned.firstName || !cleaned.lastName || !cleaned.birthDate || !cleaned.phone || !cleaned.password) {
+      setError("Lutfen tum kayit alanlarini doldurun.");
       return;
     }
 
-    if (form.password !== form.passwordRepeat) {
-      setError("Şifre ve şifre tekrar alanları eşleşmiyor.");
+    if (!isValidEmail(cleaned.email)) {
+      setError("Gecerli bir e-posta adresi girin.");
       return;
     }
 
-    await issueOtp();
+    if (cleaned.password.length < 8) {
+      setError("Sifre en az 8 karakter olmalidir.");
+      return;
+    }
+
+    if (cleaned.password !== cleaned.passwordRepeat) {
+      setError("Sifre ve sifre tekrar alanlari eslesmiyor.");
+      return;
+    }
+
+    await issueOtp(cleaned.email);
     setStep("otp");
   }
 
-  async function issueOtp() {
+  async function issueOtp(email: string) {
     const code = String(Math.floor(100000 + Math.random() * 900000));
     setOtpCode(code);
     setExpiresAt(Date.now() + OTP_TTL_MS);
     setAttempts(0);
     setOtpInput("");
     setResendLeft(RESEND_SECONDS);
-    await sendOtpEmail(form.email, code);
+    await sendOtpEmail(email, code);
   }
 
   async function handleResend() {
     if (resendLeft > 0) return;
     setError("");
-    await issueOtp();
+    await issueOtp(cleanForm(form).email);
   }
 
   function handleVerify(event: FormEvent<HTMLFormElement>) {
@@ -102,29 +131,30 @@ export function RegisterForm() {
     setError("");
 
     if (Date.now() > expiresAt) {
-      setError("Kod süresi doldu. Lütfen yeni kod isteyin.");
+      setError("Kod suresi doldu. Lutfen yeni kod isteyin.");
       return;
     }
 
     if (attempts >= MAX_ATTEMPTS) {
-      setError("En fazla 5 yanlış deneme hakkı kullanıldı. Lütfen kodu tekrar gönderin.");
+      setError("En fazla 5 yanlis deneme hakki kullanildi. Lutfen kodu tekrar gonderin.");
       return;
     }
 
     if (otpInput !== otpCode) {
       setAttempts((value) => value + 1);
-      setError(`Doğrulama kodu hatalı. Kalan deneme: ${Math.max(0, MAX_ATTEMPTS - attempts - 1)}`);
+      setError(`Dogrulama kodu hatali. Kalan deneme: ${Math.max(0, MAX_ATTEMPTS - attempts - 1)}`);
       return;
     }
 
+    const cleaned = cleanForm(form);
     const user: User = {
       id: `usr-${Date.now()}`,
-      username: form.username,
-      email: form.email,
-      firstName: form.firstName,
-      lastName: form.lastName,
-      birthDate: form.birthDate,
-      phone: form.phone,
+      username: cleaned.username,
+      email: cleaned.email,
+      firstName: cleaned.firstName,
+      lastName: cleaned.lastName,
+      birthDate: cleaned.birthDate,
+      phone: cleaned.phone,
       role: "user",
       isEmailVerified: true,
       createdAt: new Date().toLocaleDateString("tr-TR"),
@@ -132,24 +162,23 @@ export function RegisterForm() {
     };
 
     setCreatedUser(user);
-    saveDemoUser(user, form.password);
+    saveDemoUser(user, cleaned.password);
     setStep("done");
   }
 
   function updateField(field: keyof RegistrationForm, value: string) {
-    setForm((current) => ({ ...current, [field]: value }));
+    const maxLength = field === "password" || field === "passwordRepeat" ? 128 : field === "email" ? 120 : 80;
+    setForm((current) => ({ ...current, [field]: value.slice(0, maxLength) }));
   }
 
   if (step === "done" && createdUser) {
     return (
       <section className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 text-emerald-900 shadow-sm dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-100">
-        <p className="text-sm font-semibold uppercase tracking-[0.14em]">E-posta doğrulandı</p>
-        <h2 className="mt-2 text-2xl font-bold">Üyeliğiniz başarıyla oluşturuldu.</h2>
-        <p className="mt-3 leading-7">
-          {createdUser.email} adresi doğrulandı. Kullanıcı durumu <span className="font-bold">active</span> olarak ayarlandı.
-        </p>
+        <p className="text-sm font-semibold uppercase tracking-[0.14em]">E-posta dogrulandi</p>
+        <h2 className="mt-2 text-2xl font-bold">Uyeliginiz basariyla olusturuldu.</h2>
+        <p className="mt-3 leading-7">E-posta adresiniz dogrulandi. Kullanici durumu <span className="font-bold">active</span> olarak ayarlandi.</p>
         <Link className="mt-5 inline-flex rounded-md bg-slate-900 px-5 py-3 font-semibold text-white transition hover:bg-cyan-700" href="/giris-yap">
-          Giriş Yap
+          Giris Yap
         </Link>
       </section>
     );
@@ -159,36 +188,36 @@ export function RegisterForm() {
     <section className="grid gap-5 lg:grid-cols-[1fr_360px]">
       <form className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5" onSubmit={handleSendCode}>
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Kayıt Ol</p>
-          <h2 className="mt-2 text-2xl font-bold">E-posta doğrulamalı üyelik.</h2>
+          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Kayit Ol</p>
+          <h2 className="mt-2 text-2xl font-bold">E-posta dogrulamali uyelik.</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-            Telefon numarasına SMS kodu gönderilmez. Doğrulama, kayıt sırasında girilen e-posta adresi üzerinden yapılır.
+            Telefon numarasina SMS kodu gonderilmez. Dogrulama, kayit sirasinda girilen e-posta adresi uzerinden yapilir.
           </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Kullanıcı adı" value={form.username} onChange={(value) => updateField("username", value)} />
+          <Field label="Kullanici adi" value={form.username} onChange={(value) => updateField("username", value)} />
           <Field label="E-posta" type="email" value={form.email} onChange={(value) => updateField("email", value)} />
           <Field label="Ad" value={form.firstName} onChange={(value) => updateField("firstName", value)} />
           <Field label="Soyad" value={form.lastName} onChange={(value) => updateField("lastName", value)} />
-          <Field label="Doğum tarihi" type="date" value={form.birthDate} onChange={(value) => updateField("birthDate", value)} />
-          <Field label="Telefon numarası" type="tel" value={form.phone} onChange={(value) => updateField("phone", value)} />
-          <Field label="Şifre" type="password" value={form.password} onChange={(value) => updateField("password", value)} />
-          <Field label="Şifre tekrar" type="password" value={form.passwordRepeat} onChange={(value) => updateField("passwordRepeat", value)} />
+          <Field label="Dogum tarihi" type="date" value={form.birthDate} onChange={(value) => updateField("birthDate", value)} />
+          <Field label="Telefon numarasi" type="tel" value={form.phone} onChange={(value) => updateField("phone", value)} />
+          <Field label="Sifre" type="password" value={form.password} onChange={(value) => updateField("password", value)} />
+          <Field label="Sifre tekrar" type="password" value={form.passwordRepeat} onChange={(value) => updateField("passwordRepeat", value)} />
         </div>
 
         {error ? <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p> : null}
 
         <button className="min-h-11 rounded-md bg-slate-900 px-5 font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100" type="submit">
-          E-posta Doğrulama Kodu Gönder
+          E-posta Dogrulama Kodu Gonder
         </button>
       </form>
 
       <aside className="grid h-fit gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
         <div>
-          <h3 className="font-bold">Doğrulama durumu</h3>
+          <h3 className="font-bold">Dogrulama durumu</h3>
           <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-            Kod gönderildiğinde kullanıcı demo ortamında <span className="font-semibold">pending</span> kabul edilir. Kod doğru girilirse durum <span className="font-semibold">active</span> olur.
+            Kod gonderildiginde kullanici demo ortaminda <span className="font-semibold">pending</span> kabul edilir. Kod dogru girilirse durum <span className="font-semibold">active</span> olur.
           </p>
         </div>
 
@@ -196,17 +225,17 @@ export function RegisterForm() {
           <form className="grid gap-3" onSubmit={handleVerify}>
             {showDemoOtp ? (
               <div className="rounded-md border border-cyan-200 bg-cyan-50 p-3 text-sm text-cyan-900 dark:border-cyan-400/30 dark:bg-cyan-400/10 dark:text-cyan-100">
-                <p className="font-bold">Demo E-posta OTP Kodu</p>
+                <p className="font-bold">Development OTP Kodu</p>
                 <p className="mt-1 text-2xl font-bold tracking-[0.25em]">{otpCode}</p>
-                <p className="mt-2 text-xs">Canlı sistemde OTP kodu kesinlikle ekranda gösterilmemelidir.</p>
+                <p className="mt-2 text-xs">Canli sistemde OTP kodu ekranda gosterilmez.</p>
               </div>
             ) : (
               <div className="rounded-md border border-cyan-200 bg-cyan-50 p-3 text-sm text-cyan-900 dark:border-cyan-400/30 dark:bg-cyan-400/10 dark:text-cyan-100">
-                E-posta doğrulama kodu gönderildi. Canlı ortamda kod yalnızca e-posta kutusunda görünür.
+                E-posta dogrulama kodu gonderildi. Canli ortamda kod yalnizca e-posta kutusunda gorunur.
               </div>
             )}
             <label className="text-sm font-semibold" htmlFor="otp-code">
-              E-posta adresinize gönderilen 6 haneli doğrulama kodunu girin
+              E-posta adresinize gonderilen 6 haneli dogrulama kodunu girin
             </label>
             <input
               className="min-h-11 rounded-md border border-slate-300 bg-white px-3 text-center text-lg font-bold tracking-[0.22em] dark:border-white/10 dark:bg-slate-950"
@@ -214,19 +243,19 @@ export function RegisterForm() {
               inputMode="numeric"
               maxLength={6}
               value={otpInput}
-              onChange={(event) => setOtpInput(event.target.value.replace(/\D/g, ""))}
+              onChange={(event) => setOtpInput(event.target.value.replace(/\D/g, "").slice(0, 6))}
             />
-            <p className="text-xs text-slate-500 dark:text-slate-400">Kod geçerlilik süresi: {remainingSeconds} saniye. Yanlış deneme: {attempts}/{MAX_ATTEMPTS}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Kod gecerlilik suresi: {remainingSeconds} saniye. Yanlis deneme: {attempts}/{MAX_ATTEMPTS}</p>
             <button className="min-h-11 rounded-md bg-slate-900 px-4 font-semibold text-white dark:bg-white dark:text-slate-950" type="submit">
-              Kodu Doğrula
+              Kodu Dogrula
             </button>
             <button className="min-h-11 rounded-md border border-slate-300 px-4 font-semibold disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10" disabled={resendLeft > 0} onClick={handleResend} type="button">
-              {resendLeft > 0 ? `Kodu tekrar gönder (${resendLeft})` : "Kodu tekrar gönder"}
+              {resendLeft > 0 ? `Kodu tekrar gonder (${resendLeft})` : "Kodu tekrar gonder"}
             </button>
           </form>
         ) : (
           <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">
-            Formu doldurup e-posta doğrulama kodu gönderdiğinizde OTP alanı burada açılır.
+            Formu doldurup e-posta dogrulama kodu gonderdiginizde OTP alani burada acilir.
           </p>
         )}
       </aside>

@@ -4,6 +4,8 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { loginDemoUser } from "@/lib/auth";
+import { checkClientRateLimit } from "@/lib/rateLimit";
+import { sanitizeText } from "@/lib/sanitize";
 
 export function LoginForm() {
   const router = useRouter();
@@ -17,12 +19,21 @@ export function LoginForm() {
     setError("");
     setSuccess("");
 
-    if (!identifier.trim() || !password) {
+    const rate = checkClientRateLimit("login-form", 6, 60_000);
+    if (!rate.allowed) {
+      setError(`Cok fazla giris denemesi. Lutfen ${rate.retryAfterSeconds} saniye sonra tekrar deneyin.`);
+      return;
+    }
+
+    const cleanIdentifier = sanitizeText(identifier, 120);
+    const cleanPassword = password.trim().slice(0, 128);
+
+    if (!cleanIdentifier || !cleanPassword) {
       setError("E-posta/kullanici adi ve sifre alanlarini doldurun.");
       return;
     }
 
-    const user = loginDemoUser(identifier, password);
+    const user = loginDemoUser(cleanIdentifier, cleanPassword);
     if (!user) {
       setError("Giris bilgileri eslesmedi veya e-posta dogrulamasi tamamlanmamis.");
       return;

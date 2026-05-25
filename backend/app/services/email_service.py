@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 
 from app.core.config import get_settings
+from app.services.logging_policy import fingerprint
 
 logger = logging.getLogger("dijital_iz_avcisi.email")
 
@@ -11,7 +12,7 @@ def send_otp_email(email: str, code: str) -> dict:
     settings = get_settings()
 
     if not settings.resend_api_key:
-        logger.info("Mock OTP e-mail queued for %s", email)
+        logger.info("mock_otp_email_queued email_fp=%s", fingerprint(email))
         return {
             "provider": "mock",
             "delivered": True,

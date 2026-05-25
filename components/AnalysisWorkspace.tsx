@@ -9,6 +9,8 @@ import {
   fetchAnalysisHistory,
   RiskLevel
 } from "@/lib/api";
+import { checkClientRateLimit } from "@/lib/rateLimit";
+import { isLikelyUrl, sanitizeMultiline, sanitizeText } from "@/lib/sanitize";
 
 type ModuleId = "product" | "phishing" | "site" | "ip" | "message";
 
@@ -147,13 +149,27 @@ export function AnalysisWorkspace() {
     event.preventDefault();
     setError("");
 
+    const rate = checkClientRateLimit(`analysis-${activeModule}`, 10, 60_000);
+    if (!rate.allowed) {
+      setError(`Cok fazla analiz denemesi. Lutfen ${rate.retryAfterSeconds} saniye sonra tekrar deneyin.`);
+      return;
+    }
+
+    const sanitizedInput = activeModule === "message" ? sanitizeMultiline(url, 1500) : sanitizeText(url, 500);
+    setUrl(sanitizedInput);
+
     if (activeModule !== "product" && activeModule !== "phishing" && activeModule !== "message") {
       setError("Bu sorgu paneli yakinda aktif olacak. Simdilik urun analizi calisiyor.");
       return;
     }
 
-    if (!url.trim()) {
-      setError("Analiz icin bir URL yapistirin.");
+    if (!sanitizedInput) {
+      setError(activeModule === "message" ? "Analiz icin bir mesaj metni girin." : "Analiz icin bir URL yapistirin.");
+      return;
+    }
+
+    if ((activeModule === "product" || activeModule === "phishing") && !isLikelyUrl(sanitizedInput)) {
+      setError("Gecerli bir URL girin.");
       return;
     }
 
@@ -164,19 +180,19 @@ export function AnalysisWorkspace() {
 
     if (activeModule === "phishing") {
       await new Promise((resolve) => setTimeout(resolve, 350));
-      setPhishingResult(analyzePhishingUrl(url.trim()));
+      setPhishingResult(analyzePhishingUrl(sanitizedInput));
       setIsLoading(false);
       return;
     }
 
     if (activeModule === "message") {
       await new Promise((resolve) => setTimeout(resolve, 350));
-      setMessageResult(analyzeMessageText(url.trim()));
+      setMessageResult(analyzeMessageText(sanitizedInput));
       setIsLoading(false);
       return;
     }
 
-    const analysis = await analyzeProduct(url.trim());
+    const analysis = await analyzeProduct(sanitizedInput);
     setResult(analysis);
     await refreshHistory();
     setIsLoading(false);
