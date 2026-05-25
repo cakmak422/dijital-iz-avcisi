@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { fetchLiveCyberEvent } from "@/lib/cyberEventSource";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 let lastCronState: {
   updatedAt?: string;
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
       lastError: "Live source could not be fetched; existing published content should be preserved.",
       updatedAt: new Date().toISOString()
     };
-    return NextResponse.json({ ok: false, state: lastCronState, event }, { status: 503 });
+    return NextResponse.json({ ok: false, state: lastCronState, event, message: "Live source unavailable; existing content preserved." });
   }
 
   lastCronState = {

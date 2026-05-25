@@ -42,6 +42,7 @@ const allowedImageHosts = new Set([
 ]);
 
 let cachedEvent: { event: CyberEvent; expiresAt: number } | null = null;
+const fetchTimeoutMs = 3500;
 
 export function sanitizeExternalUrl(value: string, allowedHosts: Set<string>) {
   try {
@@ -137,13 +138,16 @@ export async function fetchLiveCyberEvent({ bypassCache = false }: { bypassCache
   }
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), fetchTimeoutMs);
     const response = await fetch(safeUrl, {
       headers: {
         Accept: "application/json",
         "User-Agent": "Dijital-Iz-Avcisi/1.0"
       },
+      signal: controller.signal,
       next: { revalidate: 3600 }
-    });
+    }).finally(() => clearTimeout(timeout));
 
     if (!response.ok) {
       return getFallbackCyberEvent();
@@ -166,5 +170,6 @@ export async function fetchLiveCyberEvent({ bypassCache = false }: { bypassCache
 export const cyberEventSourcePolicy = {
   allowedFetchHosts: Array.from(allowedFetchHosts),
   allowedImageHosts: Array.from(allowedImageHosts),
-  cacheSeconds: 3600
+  cacheSeconds: 3600,
+  fetchTimeoutMs
 };
