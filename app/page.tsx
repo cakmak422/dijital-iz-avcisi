@@ -10,6 +10,7 @@ import { FeedbackForm } from "@/components/FeedbackForm";
 import { ParserHealth } from "@/components/ParserHealth";
 import { SecurityCenter } from "@/components/SecurityCenter";
 import { EditableContent } from "@/components/admin/content/EditableContent";
+import { usePublishedManagedContent } from "@/lib/contentStore";
 import { getTodayCyberEvent } from "@/lib/cyberArchive";
 
 type Theme = "light" | "dark";
@@ -69,12 +70,7 @@ function Navbar({
   setTheme: (theme: Theme) => void;
 }) {
   const pathname = usePathname();
-  const navItems = [
-    { href: "/hakkimizda", label: "Hakkimizda" },
-    { href: "/siber-arsiv", label: "Siber Arsiv" },
-    { href: "/sorgu-paneli", label: "Sorgu Paneli" },
-    { href: "/dijital-arac-merkezi", label: "Dijital Arac Merkezi" }
-  ];
+  const navItems = usePublishedManagedContent("navbar");
 
   return (
     <header className="sticky top-0 z-30 border-b border-cyan-900/10 bg-white/88 shadow-sm shadow-cyan-950/5 backdrop-blur-xl dark:border-cyan-300/10 dark:bg-slate-950/88">
@@ -102,10 +98,10 @@ function Navbar({
 
         <div className="flex gap-2 overflow-x-auto pb-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
           {navItems.map((item) => {
-            const active = pathname === item.href;
+            const active = pathname === item.ctaHref;
             return (
-              <Link className={`focus-ring shrink-0 rounded-md border px-3 py-2 shadow-sm transition hover:border-cyan-500/45 hover:bg-cyan-50 hover:text-cyan-950 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50 ${active ? "border-cyan-500/40 bg-cyan-50 text-cyan-950 dark:border-cyan-300/30 dark:bg-cyan-300/15 dark:text-cyan-50" : "border-cyan-900/12 bg-white dark:border-cyan-300/15 dark:bg-cyan-300/5"}`} href={item.href} key={item.href}>
-                {item.label}
+              <Link className={`focus-ring shrink-0 rounded-md border px-3 py-2 shadow-sm transition hover:border-cyan-500/45 hover:bg-cyan-50 hover:text-cyan-950 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50 ${active ? "border-cyan-500/40 bg-cyan-50 text-cyan-950 dark:border-cyan-300/30 dark:bg-cyan-300/15 dark:text-cyan-50" : "border-cyan-900/12 bg-white dark:border-cyan-300/15 dark:bg-cyan-300/5"}`} href={item.ctaHref || "/"} key={item.id}>
+                {item.ctaLabel || item.title}
               </Link>
             );
           })}
@@ -119,6 +115,8 @@ function Navbar({
 }
 
 function Hero() {
+  const hero = usePublishedManagedContent("hero")[0];
+
   return (
     <section className="relative overflow-hidden border-b border-slate-200 bg-white dark:border-white/10 dark:bg-slate-950">
       <div className="cyber-grid absolute inset-0 opacity-70" />
@@ -126,13 +124,17 @@ function Hero() {
       <div className="relative mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 sm:px-6 sm:py-12 lg:grid-cols-[1fr_380px] lg:px-8 lg:py-14">
         <div className="max-w-4xl">
           <p className="w-fit rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-blue-700 dark:border-blue-400/30 dark:bg-blue-400/10 dark:text-blue-200">
-            Vatandaslar icin AI destekli dijital guvenlik
+            {hero?.subtitle || "Vatandaslar icin AI destekli dijital guvenlik"}
           </p>
-          <EditableContent as="h1" className="mt-5 max-w-4xl text-4xl font-bold tracking-normal text-slate-950 sm:text-5xl lg:text-6xl dark:text-white" contentKey="home.hero.title" />
-          <EditableContent as="p" className="mt-5 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300" contentKey="home.hero.description" />
+          <h1 className="mt-5 max-w-4xl text-4xl font-bold tracking-normal text-slate-950 sm:text-5xl lg:text-6xl dark:text-white">
+            {hero?.title || <EditableContent as="span" contentKey="home.hero.title" />}
+          </h1>
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">
+            {hero?.description || <EditableContent as="span" contentKey="home.hero.description" />}
+          </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <Link className="btn-primary min-h-12 text-base" href="/sorgu-paneli">
-              Sorgu Panelini Ac
+            <Link className="btn-primary min-h-12 text-base" href={hero?.ctaHref || "/sorgu-paneli"}>
+              {hero?.ctaLabel || "Sorgu Panelini Ac"}
             </Link>
             <Link className="btn-secondary min-h-12 text-base" href="/siber-arsiv">
               Siber Arsivi Incele
@@ -170,25 +172,38 @@ function Hero() {
 }
 
 function AnnouncementBanner() {
+  const announcement = usePublishedManagedContent("announcement")[0];
+  if (!announcement) {
+    return null;
+  }
+
   return (
     <section className="border-b border-cyan-900/10 bg-cyan-50 px-4 py-3 dark:border-cyan-300/10 dark:bg-cyan-400/10 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm font-semibold uppercase tracking-[0.12em] text-cyan-800 dark:text-cyan-100">Duyuru</p>
-        <EditableContent as="p" className="text-sm leading-6 text-slate-700 dark:text-cyan-50 sm:text-right" contentKey="home.announcement.banner" />
+        <p className="text-sm font-semibold uppercase tracking-[0.12em] text-cyan-800 dark:text-cyan-100">{announcement.subtitle || announcement.title}</p>
+        <p className="text-sm leading-6 text-slate-700 dark:text-cyan-50 sm:text-right">
+          {announcement.description}
+          {announcement.dataMode === "demo" ? <span className="ml-2 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-bold text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">Demo veri</span> : null}
+        </p>
       </div>
     </section>
   );
 }
 
 function StatsBand() {
+  const stats = usePublishedManagedContent("stat");
+
   return (
     <section className="border-b border-slate-200 bg-slate-50 px-4 py-6 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-3 sm:grid-cols-3">
-        {platformStats.map((stat) => (
-            <article className="premium-card p-5" key={stat.label}>
-            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{stat.label}</p>
+        {stats.map((stat) => (
+            <article className="premium-card p-5" key={stat.id}>
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{stat.title}</p>
+              {stat.dataMode === "demo" ? <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-bold text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">Demo veri</span> : null}
+            </div>
             <p className="mt-2 text-3xl font-bold text-slate-950 dark:text-white">{stat.value}</p>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{stat.detail}</p>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{stat.detail || stat.description}</p>
           </article>
         ))}
       </div>
@@ -230,6 +245,8 @@ function TodayCyberEvent() {
 }
 
 function HowItWorks() {
+  const steps = usePublishedManagedContent("how-it-works");
+
   return (
     <section className="border-b border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
@@ -241,13 +258,13 @@ function HowItWorks() {
           </p>
         </div>
         <div className="mt-6 grid gap-3 md:grid-cols-3">
-          {howItWorks.map((step, index) => (
-            <article className="premium-card bg-slate-50 p-5 dark:bg-white/5" key={step.title}>
+          {steps.map((step) => (
+            <article className="premium-card bg-slate-50 p-5 dark:bg-white/5" key={step.id}>
               <span className="flex h-11 w-11 items-center justify-center rounded-md bg-slate-900 text-sm font-bold text-white shadow-sm shadow-cyan-950/20 dark:bg-white dark:text-slate-950">
-                {step.icon}
+                {step.icon || step.subtitle}
               </span>
               <h3 className="mt-4 text-lg font-bold">{step.title}</h3>
-              <p className="mt-2 leading-7 text-slate-600 dark:text-slate-300">{step.body}</p>
+              <p className="mt-2 leading-7 text-slate-600 dark:text-slate-300">{step.description}</p>
             </article>
           ))}
         </div>
@@ -257,6 +274,7 @@ function HowItWorks() {
 }
 
 function GuidesPreview() {
+  const cmsGuides = usePublishedManagedContent("guide");
   const guides = [
     {
       title: "Sahte site nasil anlasilir?",
@@ -284,6 +302,18 @@ function GuidesPreview() {
     }
   ];
 
+  const visibleGuides = cmsGuides.length
+    ? cmsGuides.map((guide) => ({
+        id: guide.id,
+        title: guide.title,
+        category: guide.category,
+        summary: guide.description,
+        readTime: guide.readTime || "3 dk",
+        ctaHref: guide.ctaHref || "/siber-arsiv",
+        ctaLabel: guide.ctaLabel || "Rehberi Oku"
+      }))
+    : guides.map((guide) => ({ ...guide, id: guide.title, ctaHref: "/siber-arsiv", ctaLabel: "Rehberi Oku" }));
+
   return (
     <section id="rehberler" className="border-t border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[320px_1fr]">
@@ -295,8 +325,8 @@ function GuidesPreview() {
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          {guides.map((guide, index) => (
-            <article className="premium-card overflow-hidden bg-slate-50 dark:bg-white/5" key={guide.title}>
+          {visibleGuides.map((guide, index) => (
+            <article className="premium-card overflow-hidden bg-slate-50 dark:bg-white/5" key={guide.id}>
               <div className={`h-20 bg-gradient-to-br ${index % 2 === 0 ? "from-cyan-950 via-slate-900 to-emerald-900" : "from-slate-950 via-blue-950 to-cyan-900"} p-4 text-white`}>
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-cyan-200/20 bg-white/10 text-sm font-bold">{index + 1}</span>
               </div>
@@ -307,9 +337,9 @@ function GuidesPreview() {
                 </div>
                 <h3 className="mt-3 font-bold">{guide.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{guide.summary}</p>
-                <button className="mt-4 rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold transition hover:bg-white dark:border-white/10 dark:hover:bg-white/10" type="button">
-                  Rehberi Oku
-                </button>
+                <Link className="mt-4 inline-flex rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold transition hover:bg-white dark:border-white/10 dark:hover:bg-white/10" href={guide.ctaHref}>
+                  {guide.ctaLabel}
+                </Link>
               </div>
             </article>
           ))}
@@ -320,14 +350,18 @@ function GuidesPreview() {
 }
 
 function Footer() {
+  const footer = usePublishedManagedContent("footer")[0];
+
   return (
     <footer className="border-t border-slate-200 bg-slate-950 px-4 py-10 text-white sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1.25fr_0.8fr_0.8fr_1fr]">
         <div>
-          <p className="text-lg font-bold">Dijital Iz Avcisi</p>
-          <EditableContent as="p" className="mt-2 max-w-2xl text-sm leading-6 text-slate-300" contentKey="home.footer.description" />
+          <p className="text-lg font-bold">{footer?.title || "Dijital Iz Avcisi"}</p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+            {footer?.description || <EditableContent as="span" contentKey="home.footer.description" />}
+          </p>
           <p className="mt-4 rounded-md border border-amber-300/20 bg-amber-300/10 p-3 text-xs leading-5 text-amber-100">
-            Platform bilgilendirme amaciyla risk sinyalleri uretir; kesin hukum veya suc isnadi olusturmaz.
+            {footer?.body || "Platform bilgilendirme amaciyla risk sinyalleri uretir; kesin hukum veya suc isnadi olusturmaz."}
           </p>
         </div>
         <nav className="grid gap-2 text-sm text-slate-300">

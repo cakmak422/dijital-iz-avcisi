@@ -1,9 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ContactForm } from "@/components/ContactForm";
 import { EditableContent } from "@/components/admin/content/EditableContent";
+import { usePublishedManagedContent } from "@/lib/contentStore";
 
 export default function ContactPage() {
+  const contact = usePublishedManagedContent("contact")[0];
+
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
@@ -17,9 +22,11 @@ export default function ContactPage() {
 
       <section className="border-b border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Iletisim</p>
-          <h1 className="mt-3 text-4xl font-bold">Oneri, bildirim ve is birligi.</h1>
-          <EditableContent as="p" className="mt-4 leading-8 text-slate-600 dark:text-slate-300" contentKey="contact.intro.text" />
+          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">{contact?.subtitle || "Iletisim"}</p>
+          <h1 className="mt-3 text-4xl font-bold">{contact?.title || "Oneri, bildirim ve is birligi."}</h1>
+          <p className="mt-4 leading-8 text-slate-600 dark:text-slate-300">
+            {contact?.description || <EditableContent as="span" contentKey="contact.intro.text" />}
+          </p>
         </div>
       </section>
 

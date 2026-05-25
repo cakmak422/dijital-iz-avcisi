@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { EditableContent } from "@/components/admin/content/EditableContent";
+import { usePublishedManagedContent } from "@/lib/contentStore";
 import { getFeaturedSecurityNotice, securityNotices, SecurityNoticeRisk } from "@/lib/securityCenter";
 
 const riskStyles: Record<SecurityNoticeRisk, string> = {
@@ -19,7 +20,18 @@ const visualStyles: Record<SecurityNoticeRisk, string> = {
 };
 
 export function SecurityCenter() {
-  const featured = getFeaturedSecurityNotice();
+  const announcements = usePublishedManagedContent("announcement");
+  const notices = announcements.length
+    ? announcements.map((notice) => ({
+        title: notice.title,
+        category: notice.category,
+        risk: (notice.riskLevel === "risk" ? "high" : notice.riskLevel === "caution" ? "medium" : notice.riskLevel === "safe" ? "low" : "info") as SecurityNoticeRisk,
+        badge: notice.subtitle || "Bilgi",
+        content: notice.description,
+        imageLabel: notice.altText || notice.title
+      }))
+    : securityNotices;
+  const featured = notices[0] ?? getFeaturedSecurityNotice();
 
   return (
     <section className="border-b border-cyan-900/10 bg-slate-950 px-4 py-8 text-white sm:px-6 lg:px-8">
@@ -51,7 +63,7 @@ export function SecurityCenter() {
         </article>
 
         <div className="grid gap-3">
-          {securityNotices.map((notice) => (
+          {notices.map((notice) => (
             <article className="rounded-lg border border-white/10 bg-white/[0.04] p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300/30 hover:bg-white/[0.07]" key={notice.title}>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className={`rounded-md border px-2 py-1 text-xs font-bold ${riskStyles[notice.risk]}`}>{notice.badge}</span>

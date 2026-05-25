@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { EditableContent } from "@/components/admin/content/EditableContent";
+import { usePublishedManagedContent } from "@/lib/contentStore";
 import { posts, ContentRiskLevel } from "@/lib/content";
 
 const riskStyles: Record<ContentRiskLevel, string> = {
@@ -19,6 +20,22 @@ const riskLabels: Record<ContentRiskLevel, string> = {
 };
 
 export function CyberNewsCenter() {
+  const cmsPosts = usePublishedManagedContent("cyber-news");
+  const visiblePosts = cmsPosts.length
+    ? cmsPosts.map((post) => ({
+        id: post.id,
+        title: post.title,
+        category: post.category,
+        summary: post.description,
+        riskLevel: post.riskLevel ?? "info",
+        date: post.publishedAt ?? post.updatedAt.slice(0, 10),
+        readTime: post.readTime ?? "3 dk",
+        ctaHref: post.ctaHref || "/dijital-arac-merkezi",
+        ctaLabel: post.ctaLabel || "Detayi Incele",
+        dataMode: post.dataMode
+      }))
+    : posts.map((post) => ({ ...post, readTime: "3 dk", ctaHref: "/dijital-arac-merkezi", ctaLabel: "Detayi Incele", dataMode: "demo" as const }));
+
   return (
     <section className="border-b border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
@@ -33,7 +50,7 @@ export function CyberNewsCenter() {
           </Link>
         </div>
         <div className="mt-6 grid gap-3 md:grid-cols-3">
-          {posts.map((post, index) => (
+          {visiblePosts.map((post, index) => (
             <article className="group overflow-hidden rounded-lg border border-slate-200 bg-slate-50 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-white hover:shadow-md dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10" key={post.id}>
               <div className={`h-24 bg-gradient-to-br ${index === 0 ? "from-red-950 via-slate-950 to-cyan-950" : index === 1 ? "from-amber-950 via-slate-950 to-blue-950" : "from-cyan-950 via-slate-950 to-emerald-950"} p-4 text-white`}>
                 <div className="flex items-center justify-between">
@@ -46,13 +63,14 @@ export function CyberNewsCenter() {
                   <span className={`rounded-md border px-2 py-1 text-xs font-bold ${riskStyles[post.riskLevel]}`}>{riskLabels[post.riskLevel]}</span>
                   <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{post.date}</span>
                 </div>
+                {post.dataMode === "demo" ? <span className="mt-3 inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-bold text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">Demo veri</span> : null}
                 <h3 className="mt-4 text-lg font-bold">{post.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{post.summary}</p>
                 <div className="mt-4 flex items-center justify-between gap-3">
-                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">3 dk okuma</span>
-                  <button className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition group-hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:group-hover:bg-cyan-100" type="button">
-                    Detayi Incele
-                  </button>
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{post.readTime} okuma</span>
+                  <Link className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition group-hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:group-hover:bg-cyan-100" href={post.ctaHref}>
+                    {post.ctaLabel}
+                  </Link>
                 </div>
               </div>
             </article>

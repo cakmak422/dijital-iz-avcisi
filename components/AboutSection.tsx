@@ -1,8 +1,10 @@
 "use client";
 
 import { EditableContent } from "@/components/admin/content/EditableContent";
+import { usePublishedManagedContent } from "@/lib/contentStore";
 
 export function AboutSection() {
+  const about = usePublishedManagedContent("about")[0];
   const analyzedSignals = [
     "Yorum yogunlugu",
     "Satici gecmisi",
@@ -22,15 +24,17 @@ export function AboutSection() {
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200">Hakkimizda</p>
-          <h1 className="mt-3 text-4xl font-bold tracking-normal sm:text-5xl">Siber farkindalik ve alisveris guvenligi icin sade risk analizi.</h1>
-          <EditableContent as="p" className="mt-4 leading-7 text-slate-600 dark:text-slate-300" contentKey="home.about.text" />
+          <h1 className="mt-3 text-4xl font-bold tracking-normal sm:text-5xl">{about?.title || "Siber farkindalik ve alisveris guvenligi icin sade risk analizi."}</h1>
+          <p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">
+            {about?.description || <EditableContent as="span" contentKey="home.about.text" />}
+          </p>
           <p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">
             Platform; sahte yorum, manipule puan, guven vermeyen satici profili ve fake magaza gibi gercek sorunlari teknik detaylara bogmadan anlasilir hale getirmeyi hedefler.
           </p>
           <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-950/60">
             <h2 className="font-bold">Hukuki guven metni</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-              Sistem kesin hukum vermez. Sunulan sonuclar risk sinyalleri ve veri analizi temelinde olusturulan bilgilendirme ciktilaridir.
+              {about?.body || "Sistem kesin hukum vermez. Sunulan sonuclar risk sinyalleri ve veri analizi temelinde olusturulan bilgilendirme ciktilaridir."}
             </p>
           </div>
         </div>

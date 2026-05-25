@@ -1,10 +1,28 @@
+"use client";
+
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberEventVisual } from "@/components/CyberEventVisual";
+import { usePublishedManagedContent } from "@/lib/contentStore";
 import { getCyberArchiveEvents, getTodayCyberEvent } from "@/lib/cyberArchive";
 
 export default function CyberArchivePage() {
-  const events = getCyberArchiveEvents();
+  const cmsEvents = usePublishedManagedContent("cyber-archive");
+  const events = cmsEvents.length
+    ? cmsEvents.map((event) => ({
+        slug: event.id,
+        title: event.title,
+        category: event.category,
+        visualTone: "breach" as const,
+        year: event.publishedAt?.slice(0, 4) || "2026",
+        dateLabel: event.publishedAt || event.updatedAt.slice(0, 10),
+        summary: event.description,
+        impact: event.body || "Bu olay dijital risk farkindaligi icin onemli bir ornek olarak degerlendirilir.",
+        sourceUrl: event.ctaHref || "/siber-arsiv",
+        sourceName: event.sourceLabel || "Dijital Iz Avcisi",
+        dataMode: event.dataMode
+      }))
+    : getCyberArchiveEvents().map((event) => ({ ...event, dataMode: "demo" as const }));
   const todayEvent = getTodayCyberEvent();
 
   return (
@@ -57,6 +75,7 @@ export default function CyberArchivePage() {
                 </div>
                 <h2 className="mt-4 text-2xl font-bold">{event.title}</h2>
                 <p className="mt-3 leading-7 text-slate-600 dark:text-slate-300">{event.summary}</p>
+                {event.dataMode === "demo" ? <span className="mt-3 inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-bold text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">Demo veri</span> : null}
                 <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">
                   <span className="font-bold">Etkisi: </span>
                   {event.impact}
