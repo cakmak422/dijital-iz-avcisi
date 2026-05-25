@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 const protectedPathPattern = /^\/ops-console(\/.*)?$/;
 const legacyAdminPathPattern = /^\/admin(\/.*)?$/;
-const authApiPathPattern = /^\/api\/auth(\/.*)?$/;
-const staticPathPattern = /^\/(_next|favicon\.ico|robots\.txt|logo\.png|logo-icon\.png|apple-touch-icon\.png|dijital-iz-avcisi-logo\.png)(\/.*)?$/;
 
 function isProtectedPath(pathname: string) {
   return protectedPathPattern.test(pathname);
@@ -11,10 +9,6 @@ function isProtectedPath(pathname: string) {
 
 function isLegacyAdminPath(pathname: string) {
   return legacyAdminPathPattern.test(pathname);
-}
-
-function isMaintenanceBypassPath(pathname: string) {
-  return pathname === "/maintenance" || pathname === "/giris-yap" || authApiPathPattern.test(pathname) || staticPathPattern.test(pathname);
 }
 
 function getClientIp(request: NextRequest) {
@@ -76,42 +70,8 @@ function isIpAllowed(request: NextRequest) {
   return allowedIps.includes(getClientIp(request));
 }
 
-function isMaintenanceIpAllowed(request: NextRequest) {
-  const allowedIps = (process.env.MAINTENANCE_ALLOWED_IPS ?? "")
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  if (allowedIps.length === 0) {
-    return false;
-  }
-
-  return allowedIps.includes(getClientIp(request));
-}
-
-function withNoIndex(response: NextResponse) {
-  response.headers.set("X-Robots-Tag", "noindex, nofollow");
-  return response;
-}
-
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isMaintenanceMode = process.env.MAINTENANCE_MODE === "true";
-  const session = await verifySessionToken(request.cookies.get("__Host-dia_session")?.value);
-  const isAdminSession = session?.role === "admin";
-
-  if (isMaintenanceMode && !isMaintenanceBypassPath(pathname) && !isProtectedPath(pathname) && !isLegacyAdminPath(pathname)) {
-    if (!isAdminSession && !isMaintenanceIpAllowed(request)) {
-      const maintenanceUrl = request.nextUrl.clone();
-      maintenanceUrl.pathname = "/maintenance";
-      maintenanceUrl.search = "";
-      return withNoIndex(NextResponse.redirect(maintenanceUrl));
-    }
-  }
-
-  if (pathname === "/maintenance") {
-    return withNoIndex(NextResponse.next());
-  }
 
   if (!isProtectedPath(pathname) && !isLegacyAdminPath(pathname)) {
     return NextResponse.next();
@@ -120,6 +80,8 @@ export async function proxy(request: NextRequest) {
   if (!isIpAllowed(request)) {
     return new NextResponse("Bu alana erisim yetkiniz yok.", { status: 403 });
   }
+
+  const session = await verifySessionToken(request.cookies.get("__Host-dia_session")?.value);
 
   if (!session) {
     const loginUrl = request.nextUrl.clone();

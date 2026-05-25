@@ -174,17 +174,6 @@ Hostinger Next.js framework preset kullaniliyorsa `next.config.js` icinde `outpu
 
 Canli sunucuda `.next` klasorunu Windows makineden elle yuklemek yerine build'i Hostinger/GitHub Actions tarafinda calistirmak daha sagliklidir. Elle yuklenen Windows build ciktisi Linux ortaminda 503 hatasina yol acabilir.
 
-## Bakim Modu
-
-Gelistirme sirasinda public erisimi gecici kapatmak icin Hostinger Environment Variables:
-
-```env
-MAINTENANCE_MODE=true
-MAINTENANCE_ALLOWED_IPS=1.2.3.4,5.6.7.8
-```
-
-Bakim modunda public kullanicilar `/maintenance` sayfasina yonlendirilir. `/giris-yap`, `/api/auth/*`, statik dosyalar ve admin session ile `/ops-console` erisimi acik kalir. IP allowlist Cloudflare arkasinda `CF-Connecting-IP`, yoksa `x-forwarded-for` uzerinden okunur.
-
 ## Gunluk Siber Olay Otomasyonu
 
 Ana sayfadaki "Bugunun Siber Olayi" karti `/api/cyber-event` endpoint'i uzerinden CISA Known Exploited Vulnerabilities katalog verisini kullanir. Endpoint sonucu 30-60 dakika araliginda cachelenir ve kaynak alinamazsa acikca etiketlenmis fallback bilgi dondurur.
