@@ -18,9 +18,9 @@ export type User = {
 export const mockUsers: User[] = [
   {
     id: "usr-001",
-    username: "demo_user",
-    email: "demo@dijitalizavcisi.com",
-    firstName: "Demo",
+    username: "ornek_kullanici",
+    email: "kullanici@example.invalid",
+    firstName: "Ornek",
     lastName: "Kullanici",
     birthDate: "1998-04-12",
     phone: "+90 555 000 00 00",
@@ -41,18 +41,5 @@ export const mockUsers: User[] = [
     isEmailVerified: false,
     createdAt: "24.05.2026",
     status: "pending"
-  },
-  {
-    id: "usr-003",
-    username: "admin",
-    email: "admin@dijitalizavcisi.com",
-    firstName: "Platform",
-    lastName: "Admin",
-    birthDate: "1990-01-01",
-    phone: "+90 212 000 00 00",
-    role: "admin",
-    isEmailVerified: true,
-    createdAt: "23.05.2026",
-    status: "active"
   }
 ];

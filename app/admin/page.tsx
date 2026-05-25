@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { AdminGate } from "@/components/AdminGate";
 import { BrandLogo } from "@/components/BrandLogo";

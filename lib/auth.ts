@@ -1,4 +1,4 @@
-import { mockUsers, User } from "@/lib/users";
+import { User } from "@/lib/users";
 
 export type DemoAuthRecord = {
   user: User;
@@ -7,21 +7,14 @@ export type DemoAuthRecord = {
 
 const USERS_KEY = "dijital-iz-avcisi-demo-users";
 const SESSION_KEY = "dijital-iz-avcisi-demo-session";
-export const DEMO_ADMIN_EMAIL = "admin@dijitalizavcisi.com";
-export const DEMO_ADMIN_PASSWORD = "Gokce42+-";
-
-const seededUsers: DemoAuthRecord[] = mockUsers
-  .filter((user) => user.status === "active" && user.isEmailVerified)
-  .map((user) => ({
-    user,
-    password: user.role === "admin" ? DEMO_ADMIN_PASSWORD : "Demo12345"
-  }));
+const seededUsers: DemoAuthRecord[] = [];
 
 function normalizeSeededUsers(records: DemoAuthRecord[]) {
-  const adminSeed = seededUsers.find((record) => record.user.email.toLowerCase() === DEMO_ADMIN_EMAIL);
-  if (!adminSeed) return records;
+  const safeRecords = records.filter((record) => record.user.role !== "admin");
+  const adminSeed = seededUsers.find((record) => record.user.role === "admin");
+  if (!adminSeed) return safeRecords;
 
-  const withoutAdmin = records.filter((record) => record.user.email.toLowerCase() !== DEMO_ADMIN_EMAIL);
+  const withoutAdmin = safeRecords.filter((record) => record.user.role !== "admin");
   return [...withoutAdmin, adminSeed];
 }
 
@@ -80,7 +73,13 @@ export function getCurrentDemoUser(): User | null {
   if (!stored) return null;
 
   try {
-    return JSON.parse(stored) as User;
+    const user = JSON.parse(stored) as User;
+    if (user.role === "admin") {
+      window.localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+
+    return user;
   } catch {
     window.localStorage.removeItem(SESSION_KEY);
     return null;

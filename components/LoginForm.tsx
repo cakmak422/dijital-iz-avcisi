@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { DEMO_ADMIN_EMAIL, DEMO_ADMIN_PASSWORD, loginDemoUser } from "@/lib/auth";
+import { loginDemoUser } from "@/lib/auth";
 
 export function LoginForm() {
   const router = useRouter();
@@ -28,9 +28,8 @@ export function LoginForm() {
       return;
     }
 
-    const targetPath = user.role === "admin" ? "/admin" : "/kullanici-paneli";
-    setSuccess(user.role === "admin" ? "Admin girisi basarili. Admin paneline yonlendiriliyorsunuz." : "Giris basarili. Kullanici paneline yonlendiriliyorsunuz.");
-    window.setTimeout(() => router.push(targetPath), 650);
+    setSuccess("Giris basarili. Kullanici paneline yonlendiriliyorsunuz.");
+    window.setTimeout(() => router.push("/kullanici-paneli"), 650);
   }
 
   return (
@@ -40,7 +39,7 @@ export function LoginForm() {
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Giris Yap</p>
           <h2 className="mt-2 text-2xl font-bold">Hesabiniza giris yapin.</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-            Kayit olurken e-posta dogrulamasini tamamlayan kullanicilar demo oturum acabilir.
+            Kayit olurken e-posta dogrulamasini tamamlayan kullanicilar oturum acabilir.
           </p>
         </div>
 
@@ -72,20 +71,10 @@ export function LoginForm() {
       </form>
 
       <aside className="grid h-fit gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
-        <h3 className="font-bold">Demo hesap bilgisi</h3>
+        <h3 className="font-bold">Hesap erisimi</h3>
         <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
-          Yeni kayit olusturup OTP kodunu dogruladiginizda ayni e-posta/kullanici adi ve sifreyle giris yapabilirsiniz.
+          Hesabiniz yoksa kayit olusturabilir, e-posta dogrulamasindan sonra giris yapabilirsiniz.
         </p>
-        <div className="rounded-md border border-cyan-200 bg-cyan-50 p-3 text-sm text-cyan-900 dark:border-cyan-400/30 dark:bg-cyan-400/10 dark:text-cyan-100">
-          <p className="font-semibold">Hazir demo kullanici</p>
-          <p className="mt-1">demo@dijitalizavcisi.com</p>
-          <p>Sifre: Demo12345</p>
-        </div>
-        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">
-          <p className="font-semibold">Demo admin</p>
-          <p className="mt-1">{DEMO_ADMIN_EMAIL}</p>
-          <p>Sifre: {DEMO_ADMIN_PASSWORD}</p>
-        </div>
         <Link className="rounded-md border border-slate-300 px-4 py-2 text-center text-sm font-semibold transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/10" href="/kayit-ol">
           Yeni hesap olustur
         </Link>
