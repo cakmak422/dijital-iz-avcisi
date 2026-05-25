@@ -167,7 +167,10 @@ Hostinger uzerinde Node.js uygulamasi icin:
 - Build komutu: `npm install && npm run build`
 - Start komutu: `npm start`
 - Startup file gerekiyorsa: `server.js`
+- Cikti dizini: `.next`
 - Port: Hostinger'in verdigi `PORT` environment variable kullanilmali
+
+Hostinger Next.js framework preset kullaniliyorsa `next.config.js` icinde `output: "standalone"` acik olmamalidir. Bu proje Hostinger panelindeki `.next` cikti diziniyle uyumlu standart Next.js build modunda calisir.
 
 Canli sunucuda `.next` klasorunu Windows makineden elle yuklemek yerine build'i Hostinger/GitHub Actions tarafinda calistirmak daha sagliklidir. Elle yuklenen Windows build ciktisi Linux ortaminda 503 hatasina yol acabilir.
 
