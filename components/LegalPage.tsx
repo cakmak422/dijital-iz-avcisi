@@ -29,7 +29,7 @@ export function LegalPage({
       <section className="border-b border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Bilgilendirme</p>
-          <h1 className="mt-3 text-4xl font-bold">{title}</h1>
+          <h1 className="mt-3 text-3xl font-bold sm:text-4xl">{title}</h1>
           <p className="mt-4 leading-8 text-slate-600 dark:text-slate-300">{description}</p>
         </div>
       </section>

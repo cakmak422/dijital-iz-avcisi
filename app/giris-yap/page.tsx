@@ -17,7 +17,7 @@ export default function LoginPage() {
       <section className="border-b border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Oturum</p>
-          <h1 className="mt-2 text-4xl font-bold">E-posta dogrulamali giris.</h1>
+          <h1 className="mt-2 text-3xl font-bold sm:text-4xl">E-posta dogrulamali giris.</h1>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600 dark:text-slate-300">
             Kayit olup e-posta dogrulamasini tamamlayan kullanicilar guvenli oturum akisiyle giris yapabilir.
           </p>

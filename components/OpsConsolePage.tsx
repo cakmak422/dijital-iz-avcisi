@@ -42,7 +42,7 @@ export function OpsConsolePage() {
         <section className="px-4 py-10 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Yönetim vitrini</p>
-            <h1 className="mt-2 text-4xl font-bold">Platform operasyon paneli.</h1>
+            <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Platform operasyon paneli.</h1>
             <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {stats.map((stat) => (
                 <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5" key={stat.label}>

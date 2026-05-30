@@ -4,7 +4,7 @@ import Link from "next/link";
 export function BrandLogo({ subtitle }: { subtitle?: string }) {
   return (
     <Link className="flex min-w-0 items-center gap-3" href="/" aria-label="Dijital Iz Avcisi">
-      <span className="relative h-11 w-36 shrink-0 overflow-hidden rounded-md border border-slate-200 bg-slate-900 shadow-sm dark:border-white/10">
+      <span className="relative h-10 w-28 shrink-0 overflow-hidden rounded-md border border-slate-200 bg-slate-900 shadow-sm dark:border-white/10 sm:h-11 sm:w-36">
         <Image
           alt="Dijital Iz Avcisi logosu"
           className="h-full w-full object-cover object-left"

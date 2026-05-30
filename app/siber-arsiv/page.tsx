@@ -24,7 +24,7 @@ export default function CyberArchivePage() {
           </div>
           <div className="max-w-3xl py-6">
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200">Siber Tarih & Dijital Tehdit Arsivi</p>
-            <h1 className="mt-3 text-4xl font-bold sm:text-5xl">Siber Kirilma Noktalari</h1>
+            <h1 className="mt-3 text-3xl font-bold sm:text-4xl lg:text-5xl">Siber Kirilma Noktalari</h1>
             <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-300">
               Tarihte iz birakan siber olaylari; kaynak, etki ve guvenlik dersiyle birlikte sade bir arsivde topluyoruz.
             </p>

@@ -11,6 +11,7 @@ import { ParserHealth } from "@/components/ParserHealth";
 import { SecurityCenter } from "@/components/SecurityCenter";
 import { EditableContent } from "@/components/admin/content/EditableContent";
 import { getTodayCyberEvent } from "@/lib/cyberArchive";
+import { useDeviceType } from "@/lib/useDeviceType";
 
 type Theme = "light" | "dark";
 
@@ -69,6 +70,9 @@ function Navbar({
   setTheme: (theme: Theme) => void;
 }) {
   const pathname = usePathname();
+  const deviceType = useDeviceType();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isDesktop = deviceType === "desktop";
   const navItems = [
     { href: "/hakkimizda", label: "Hakkimizda" },
     { href: "/siber-arsiv", label: "Siber Arsiv" },
@@ -83,10 +87,10 @@ function Navbar({
           <BrandLogo subtitle="AI guvenlik platformu" />
 
           <div className="flex items-center gap-2">
-            <Link className="focus-ring hidden rounded-md border border-cyan-900/12 px-3 py-2 text-sm font-semibold transition hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10 sm:inline-flex" href="/giris-yap">
+            <Link className="focus-ring hidden rounded-md border border-cyan-900/12 px-3 py-2 text-sm font-semibold transition hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10 lg:inline-flex" href="/giris-yap">
               Giriş Yap
             </Link>
-            <Link className="focus-ring hidden rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100 sm:inline-flex" href="/kayit-ol">
+            <Link className="focus-ring hidden rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100 lg:inline-flex" href="/kayit-ol">
               Kayıt Ol
             </Link>
             <button
@@ -97,21 +101,38 @@ function Navbar({
             >
               {theme === "dark" ? "L" : "D"}
             </button>
+            <button
+              aria-expanded={menuOpen}
+              aria-label="Menuyu ac veya kapat"
+              className="focus-ring flex h-10 w-10 items-center justify-center rounded-md border border-cyan-900/15 bg-white text-sm font-bold text-slate-700 shadow-sm transition hover:border-cyan-500/40 hover:bg-cyan-50 hover:text-cyan-900 dark:border-cyan-300/15 dark:bg-cyan-300/5 dark:text-cyan-100 dark:hover:bg-cyan-300/10 lg:hidden"
+              onClick={() => setMenuOpen((value) => !value)}
+              type="button"
+            >
+              {menuOpen ? "X" : "☰"}
+            </button>
           </div>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
+        <div className={`${isDesktop || menuOpen ? "grid" : "hidden"} gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 lg:flex lg:overflow-visible lg:pb-0`}>
           {navItems.map((item) => {
             const active = pathname === item.href;
             return (
-              <Link className={`focus-ring shrink-0 rounded-md border px-3 py-2 shadow-sm transition hover:border-cyan-500/45 hover:bg-cyan-50 hover:text-cyan-950 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50 ${active ? "border-cyan-500/40 bg-cyan-50 text-cyan-950 dark:border-cyan-300/30 dark:bg-cyan-300/15 dark:text-cyan-50" : "border-cyan-900/12 bg-white dark:border-cyan-300/15 dark:bg-cyan-300/5"}`} href={item.href} key={item.href}>
+              <Link className={`focus-ring flex min-h-11 items-center rounded-md border px-3 py-2 shadow-sm transition hover:border-cyan-500/45 hover:bg-cyan-50 hover:text-cyan-950 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50 lg:shrink-0 ${active ? "border-cyan-500/40 bg-cyan-50 text-cyan-950 dark:border-cyan-300/30 dark:bg-cyan-300/15 dark:text-cyan-50" : "border-cyan-900/12 bg-white dark:border-cyan-300/15 dark:bg-cyan-300/5"}`} href={item.href} key={item.href} onClick={() => setMenuOpen(false)}>
                 {item.label}
               </Link>
             );
           })}
-          <a className="focus-ring shrink-0 rounded-md border border-cyan-900/12 bg-white px-3 py-2 shadow-sm transition hover:border-cyan-500/45 hover:bg-cyan-50 hover:text-cyan-950 dark:border-cyan-300/15 dark:bg-cyan-300/5 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50" href="#rehberler">
+          <a className="focus-ring flex min-h-11 items-center rounded-md border border-cyan-900/12 bg-white px-3 py-2 shadow-sm transition hover:border-cyan-500/45 hover:bg-cyan-50 hover:text-cyan-950 dark:border-cyan-300/15 dark:bg-cyan-300/5 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50 lg:shrink-0" href="#rehberler" onClick={() => setMenuOpen(false)}>
             Rehberler
           </a>
+          <div className="grid gap-2 border-t border-slate-200 pt-2 dark:border-white/10 lg:hidden">
+            <Link className="focus-ring flex min-h-11 items-center justify-center rounded-md border border-cyan-900/12 px-3 py-2 text-sm font-semibold transition hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10" href="/giris-yap" onClick={() => setMenuOpen(false)}>
+              Giris Yap
+            </Link>
+            <Link className="focus-ring flex min-h-11 items-center justify-center rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100" href="/kayit-ol" onClick={() => setMenuOpen(false)}>
+              Kayit Ol
+            </Link>
+          </div>
         </div>
       </nav>
     </header>
@@ -128,13 +149,13 @@ function Hero() {
           <p className="w-fit rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-blue-700 dark:border-blue-400/30 dark:bg-blue-400/10 dark:text-blue-200">
             Vatandaslar icin AI destekli dijital guvenlik
           </p>
-          <EditableContent as="h1" className="mt-5 max-w-4xl text-4xl font-bold tracking-normal text-slate-950 sm:text-5xl lg:text-6xl dark:text-white" contentKey="home.hero.title" />
-          <EditableContent as="p" className="mt-5 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300" contentKey="home.hero.description" />
+          <EditableContent as="h1" className="mt-5 max-w-4xl text-3xl font-bold tracking-normal text-slate-950 sm:text-4xl lg:text-6xl dark:text-white" contentKey="home.hero.title" />
+          <EditableContent as="p" className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg sm:leading-8" contentKey="home.hero.description" />
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <Link className="btn-primary min-h-12 text-base" href="/sorgu-paneli">
+            <Link className="btn-primary min-h-12 w-full text-base sm:w-auto" href="/sorgu-paneli">
               Sorgu Panelini Ac
             </Link>
-            <Link className="btn-secondary min-h-12 text-base" href="/siber-arsiv">
+            <Link className="btn-secondary min-h-12 w-full text-base sm:w-auto" href="/siber-arsiv">
               Siber Arsivi Incele
             </Link>
           </div>

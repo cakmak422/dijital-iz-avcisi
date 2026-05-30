@@ -18,8 +18,8 @@ export default function ContactPage() {
       <section className="border-b border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Iletisim</p>
-          <h1 className="mt-3 text-4xl font-bold">Oneri, bildirim ve is birligi.</h1>
-          <EditableContent as="p" className="mt-4 leading-8 text-slate-600 dark:text-slate-300" contentKey="contact.intro.text" />
+          <h1 className="mt-3 text-3xl font-bold sm:text-4xl">Oneri, bildirim ve is birligi.</h1>
+          <EditableContent as="p" className="mt-4 leading-7 text-slate-600 dark:text-slate-300 sm:leading-8" contentKey="contact.intro.text" />
         </div>
       </section>
 

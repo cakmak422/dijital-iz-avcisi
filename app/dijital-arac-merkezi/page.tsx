@@ -24,8 +24,8 @@ export default function DigitalToolsPage() {
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[1fr_360px] lg:items-end">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Dijital Arac Merkezi</p>
-            <h1 className="mt-3 max-w-4xl text-4xl font-bold sm:text-5xl">Tek panelden guvenlik kontrolleri.</h1>
-            <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600 dark:text-slate-300">
+            <h1 className="mt-3 max-w-4xl text-3xl font-bold sm:text-4xl lg:text-5xl">Tek panelden guvenlik kontrolleri.</h1>
+            <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg sm:leading-8">
               Link, domain, QR, veri sizintisi ve mahremiyet kontrollerini planli bir servis merkezi altinda topluyoruz.
               Ilk hedef kalabalik bir link listesi degil, guvenilir ve sade arac deneyimi.
             </p>
