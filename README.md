@@ -80,7 +80,11 @@ Frontend icin `.env.example`, backend icin `backend/.env.example` dosyalarini te
 Frontend:
 
 ```bash
+# Development
 NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+
+# Production
+NEXT_PUBLIC_API_URL=https://dijital-iz-avcisi-api.onrender.com
 ```
 
 Backend:
@@ -163,7 +167,7 @@ Public demo icin pratik akıs:
 
 1. Backend'i Render veya Railway'e deploy et.
 2. Backend env degerlerini gir: `OPENAI_API_KEY`, `OPENAI_MODEL`, `DATABASE_URL`, `ENABLE_PLAYWRIGHT_FALLBACK`.
-3. Backend URL'ini Vercel'de `NEXT_PUBLIC_API_URL` olarak gir.
+3. Backend URL'ini frontend hosting ortaminda `NEXT_PUBLIC_API_URL` olarak gir.
 4. Frontend'i Vercel'e deploy et.
 5. Vercel domaininden gercek urun linkleriyle test et.
 

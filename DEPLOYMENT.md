@@ -56,11 +56,73 @@ ENABLE_PLAYWRIGHT_FALLBACK=true
 3. Env degeri:
 
 ```text
-NEXT_PUBLIC_API_URL=https://YOUR_BACKEND_URL
+NEXT_PUBLIC_API_URL=https://dijital-iz-avcisi-api.onrender.com
 ```
 
 4. Deploy et.
 5. Vercel domaininde bir Trendyol, Hepsiburada ve N11 linkiyle analiz dene.
+
+## Frontend: Hostinger / Production Env
+
+Canli sitede frontend asla `127.0.0.1` backend adresine gitmemeli. Hostinger frontend environment variable:
+
+```text
+NEXT_PUBLIC_API_URL=https://dijital-iz-avcisi-api.onrender.com
+```
+
+Development ortaminda:
+
+```text
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+```
+
+`NEXT_PUBLIC_API_URL` build zamaninda frontend bundle icine girer. Degistirdikten sonra frontend yeniden deploy edilmelidir.
+
+## Backend: Hostinger / Python FastAPI
+
+Render uzerindeki canli API adresi:
+
+```text
+https://dijital-iz-avcisi-api.onrender.com
+```
+
+Hostinger Python app ayarlari:
+
+- Working directory: `backend`
+- Python version: `3.11` veya `3.12`
+- Install command: `pip install -r requirements.txt`
+- Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- Health check: `https://dijital-iz-avcisi-api.onrender.com/health`
+
+Backend environment variables:
+
+```text
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-5.2
+DATABASE_URL=
+ENABLE_PLAYWRIGHT_FALLBACK=true
+```
+
+FastAPI CORS allowed origins:
+
+```text
+http://127.0.0.1:3000
+http://localhost:3000
+https://dijitalizavcisi.com
+https://www.dijitalizavcisi.com
+```
+
+Deploy sonrasi kontrol:
+
+```bash
+curl https://dijital-iz-avcisi-api.onrender.com/health
+```
+
+Beklenen sonuc:
+
+```json
+{"status":"ok"}
+```
 
 ## Parser Success Measurement
 

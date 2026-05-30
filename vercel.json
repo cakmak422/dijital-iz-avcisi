@@ -4,6 +4,6 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://YOUR_BACKEND_URL"
+    "NEXT_PUBLIC_API_URL": "https://dijital-iz-avcisi-api.onrender.com"
   }
 }
