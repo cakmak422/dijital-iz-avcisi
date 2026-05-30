@@ -32,6 +32,62 @@ export type AnalysisHistoryItem = {
   created_at: string;
 };
 
+export type SiteSafetyResult = {
+  risk_score: number;
+  risk_level: RiskLevel;
+  citizen_summary: string;
+  technical_findings: { severity: RiskLevel; title: string; detail: string }[];
+  url_analysis: {
+    normalized_url: string;
+    domain: string;
+    final_url: string | null;
+    redirect_chain: { url: string; status_code: number | null }[];
+    https: boolean;
+    http_status: number | null;
+    is_short_link: boolean;
+    suspicious_keywords: string[];
+    typo_signals: string[];
+  };
+  domain_info: {
+    created_at: string | null;
+    expires_at: string | null;
+    domain_age_days: number | null;
+    registrar: string | null;
+    abuse_contact: string | null;
+    notes: string[];
+  };
+  dns_info: {
+    a: string[];
+    aaaa: string[];
+    mx: string[];
+    ns: string[];
+    txt: string[];
+    nameservers: string[];
+    notes: string[];
+  };
+  mail_security: {
+    has_spf: boolean;
+    has_dmarc: boolean;
+    has_dkim_signal: boolean;
+    spoofing_risk: RiskLevel;
+    notes: string[];
+  };
+  ssl_info: {
+    valid: boolean;
+    expires_at: string | null;
+    issuer: string | null;
+    days_remaining: number | null;
+    notes: string[];
+  };
+  ip_info: {
+    ip: string | null;
+    country: string | null;
+    asn: string | null;
+    hosting: string | null;
+    notes: string[];
+  };
+};
+
 const fallbackResult: AnalysisResult = {
   product_name: "Demo urun analizi",
   seller_name: "Ornek Satici",
@@ -95,6 +151,24 @@ export async function fetchAnalysisHistory(): Promise<AnalysisHistoryItem[]> {
   } catch {
     return [];
   }
+}
+
+export async function analyzeSiteSafety(url: string): Promise<SiteSafetyResult> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+
+  const response = await fetch(`${apiUrl}/api/site-safety/analyze`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ url })
+  });
+
+  if (!response.ok) {
+    throw new Error("Site safety request failed");
+  }
+
+  return (await response.json()) as SiteSafetyResult;
 }
 
 function detectMarketplace(url: string) {

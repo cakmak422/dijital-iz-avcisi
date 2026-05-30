@@ -4,10 +4,12 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   analyzeProduct,
+  analyzeSiteSafety,
   AnalysisHistoryItem,
   AnalysisResult,
   fetchAnalysisHistory,
-  RiskLevel
+  RiskLevel,
+  SiteSafetyResult
 } from "@/lib/api";
 import { checkClientRateLimit } from "@/lib/rateLimit";
 import { isLikelyUrl, sanitizeMultiline, sanitizeText } from "@/lib/sanitize";
@@ -53,12 +55,12 @@ const modules: Module[] = [
     id: "site",
     title: "Site Guvenlik Kontrolu",
     shortTitle: "Site",
-    description: "Domain, SSL, redirect, typo domain ve phishing paternleri icin sade bir risk ozeti uretir.",
-    status: "Yakinda",
+    description: "Domain, SSL, DNS, RDAP, mail guvenligi ve redirect sinyallerinden sade bir OSINT raporu uretir.",
+    status: "Aktif MVP",
     icon: "SG",
     inputLabel: "URL veya domain",
     placeholder: "ornek-site.com",
-    checks: ["Domain yasi", "SSL sertifikasi", "WHOIS", "Phishing riski", "Redirect kontrolu", "Blacklist kontrolu"]
+    checks: ["Domain yasi", "SSL sertifikasi", "DNS kayitlari", "RDAP/WHOIS", "Mail guvenligi", "Redirect kontrolu"]
   },
   {
     id: "ip",
@@ -130,6 +132,7 @@ export function AnalysisWorkspace() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [phishingResult, setPhishingResult] = useState<PhishingResult | null>(null);
   const [messageResult, setMessageResult] = useState<MessageResult | null>(null);
+  const [siteResult, setSiteResult] = useState<SiteSafetyResult | null>(null);
   const [history, setHistory] = useState<AnalysisHistoryItem[]>([]);
   const [error, setError] = useState("");
 
@@ -158,7 +161,7 @@ export function AnalysisWorkspace() {
     const sanitizedInput = activeModule === "message" ? sanitizeMultiline(url, 1500) : sanitizeText(url, 500);
     setUrl(sanitizedInput);
 
-    if (activeModule !== "product" && activeModule !== "phishing" && activeModule !== "message") {
+    if (activeModule !== "product" && activeModule !== "phishing" && activeModule !== "message" && activeModule !== "site") {
       setError("Bu sorgu paneli yakinda aktif olacak. Simdilik urun analizi calisiyor.");
       return;
     }
@@ -168,7 +171,7 @@ export function AnalysisWorkspace() {
       return;
     }
 
-    if ((activeModule === "product" || activeModule === "phishing") && !isLikelyUrl(sanitizedInput)) {
+    if ((activeModule === "product" || activeModule === "phishing" || activeModule === "site") && !isLikelyUrl(sanitizedInput)) {
       setError("Gecerli bir URL girin.");
       return;
     }
@@ -177,6 +180,7 @@ export function AnalysisWorkspace() {
     setResult(null);
     setPhishingResult(null);
     setMessageResult(null);
+    setSiteResult(null);
 
     if (activeModule === "phishing") {
       await new Promise((resolve) => setTimeout(resolve, 350));
@@ -189,6 +193,17 @@ export function AnalysisWorkspace() {
       await new Promise((resolve) => setTimeout(resolve, 350));
       setMessageResult(analyzeMessageText(sanitizedInput));
       setIsLoading(false);
+      return;
+    }
+
+    if (activeModule === "site") {
+      try {
+        setSiteResult(await analyzeSiteSafety(sanitizedInput));
+      } catch {
+        setError("Site guvenlik analizi su anda tamamlanamadi. Backend baglantisini ve OSINT servislerini kontrol edin.");
+      } finally {
+        setIsLoading(false);
+      }
       return;
     }
 
@@ -240,6 +255,7 @@ export function AnalysisWorkspace() {
           messageResult={messageResult}
           onSubmit={handleAnalyze}
           phishingResult={phishingResult}
+          siteResult={siteResult}
           result={result}
           setUrl={setUrl}
           url={url}
@@ -259,6 +275,7 @@ function AnalyzerPanel({
   onSubmit,
   result,
   phishingResult,
+  siteResult,
   setUrl,
   url
 }: {
@@ -270,6 +287,7 @@ function AnalyzerPanel({
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   result: AnalysisResult | null;
   phishingResult: PhishingResult | null;
+  siteResult: SiteSafetyResult | null;
   setUrl: (url: string) => void;
   url: string;
 }) {
@@ -306,7 +324,7 @@ function AnalyzerPanel({
           {error ? <p className="text-sm font-medium text-red-700 dark:text-red-300">{error}</p> : null}
           <button
             className="btn-primary min-h-12 text-base"
-            disabled={activeModule.id === "product" || activeModule.id === "phishing" || activeModule.id === "message" ? !canAnalyze : false}
+            disabled={activeModule.id === "product" || activeModule.id === "phishing" || activeModule.id === "message" || activeModule.id === "site" ? !canAnalyze : false}
             type="submit"
           >
             {isLoading
@@ -314,8 +332,10 @@ function AnalyzerPanel({
               : activeModule.id === "product"
                 ? "Urunu Analiz Et"
                 : activeModule.id === "phishing"
-                  ? "URL'yi Kontrol Et"
-                  : activeModule.id === "message"
+                ? "URL'yi Kontrol Et"
+                : activeModule.id === "site"
+                  ? "Siteyi Analiz Et"
+                : activeModule.id === "message"
                     ? "Mesaji Analiz Et"
                   : "Yakinda Aktif"}
           </button>
@@ -331,7 +351,7 @@ function AnalyzerPanel({
         </div>
       </div>
 
-      <ResultPanel activeModule={activeModule} messageResult={messageResult} phishingResult={phishingResult} result={result} isLoading={isLoading} />
+      <ResultPanel activeModule={activeModule} messageResult={messageResult} phishingResult={phishingResult} siteResult={siteResult} result={result} isLoading={isLoading} />
     </section>
   );
 }
@@ -340,12 +360,14 @@ function ResultPanel({
   activeModule,
   messageResult,
   phishingResult,
+  siteResult,
   result,
   isLoading
 }: {
   activeModule: Module;
   messageResult: MessageResult | null;
   phishingResult: PhishingResult | null;
+  siteResult: SiteSafetyResult | null;
   result: AnalysisResult | null;
   isLoading: boolean;
 }) {
@@ -368,6 +390,10 @@ function ResultPanel({
 
   if (activeModule.id === "message" && messageResult) {
     return <MessageResultPanel result={messageResult} />;
+  }
+
+  if (activeModule.id === "site" && siteResult) {
+    return <SiteSafetyResultPanel result={siteResult} />;
   }
 
   if (!result) {
@@ -474,6 +500,134 @@ function MessageResultPanel({ result }: { result: MessageResult }) {
       </div>
     </section>
   );
+}
+
+function SiteSafetyResultPanel({ result }: { result: SiteSafetyResult }) {
+  return (
+    <section className="premium-card p-5">
+      <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-white/10">
+        <div>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Site Guvenlik Kontrolu</p>
+          <h2 className="mt-1 break-words text-2xl font-bold">{result.url_analysis.domain}</h2>
+          <p className="mt-2 break-words text-sm text-slate-600 dark:text-slate-300">{result.url_analysis.normalized_url}</p>
+        </div>
+        <div className={`rounded-lg border px-4 py-3 text-center ${riskStyles[result.risk_level]}`}>
+          <p className="text-sm font-semibold">Risk Skoru</p>
+          <p className="text-3xl font-bold">{result.risk_score}</p>
+          <p className="text-sm font-semibold">{riskLabels[result.risk_level]}</p>
+        </div>
+      </div>
+
+      <p className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 leading-7 text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+        {result.citizen_summary}
+      </p>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Metric label="HTTP durum" value={result.url_analysis.http_status?.toString() ?? "Yok"} />
+        <Metric label="Domain yasi" value={result.domain_info.domain_age_days !== null ? `${result.domain_info.domain_age_days} gun` : "Bilinmiyor"} />
+        <Metric label="SSL" value={result.ssl_info.valid ? "Gecerli" : "Kontrol gerekli"} />
+        <Metric label="Mail guvenligi" value={result.mail_security.spoofing_risk === "safe" ? "Iyi" : result.mail_security.spoofing_risk === "caution" ? "Dikkat" : "Risk"} />
+      </div>
+
+      <div className="mt-5 grid gap-3 lg:grid-cols-2">
+        <InfoPanel
+          title="Domain bilgileri"
+          rows={[
+            ["Registrar", result.domain_info.registrar ?? "Bilinmiyor"],
+            ["Kayit tarihi", result.domain_info.created_at ?? "Bilinmiyor"],
+            ["Bitis tarihi", result.domain_info.expires_at ?? "Bilinmiyor"],
+            ["Abuse contact", result.domain_info.abuse_contact ?? "Yok"]
+          ]}
+        />
+        <InfoPanel
+          title="SSL guvenligi"
+          rows={[
+            ["Durum", result.ssl_info.valid ? "Gecerli" : "Kontrol gerekli"],
+            ["Issuer", result.ssl_info.issuer ?? "Bilinmiyor"],
+            ["Bitis", result.ssl_info.expires_at ?? "Bilinmiyor"],
+            ["Kalan gun", result.ssl_info.days_remaining !== null ? result.ssl_info.days_remaining.toString() : "Bilinmiyor"]
+          ]}
+        />
+        <InfoPanel
+          title="DNS ozeti"
+          rows={[
+            ["A", result.dns_info.a.slice(0, 3).join(", ") || "Yok"],
+            ["AAAA", result.dns_info.aaaa.slice(0, 2).join(", ") || "Yok"],
+            ["MX", result.dns_info.mx.slice(0, 2).join(", ") || "Yok"],
+            ["NS", result.dns_info.ns.slice(0, 2).join(", ") || "Yok"]
+          ]}
+        />
+        <InfoPanel
+          title="Mail guvenligi"
+          rows={[
+            ["SPF", yesNo(result.mail_security.has_spf)],
+            ["DMARC", yesNo(result.mail_security.has_dmarc)],
+            ["DKIM sinyali", yesNo(result.mail_security.has_dkim_signal)],
+            ["Spoofing riski", riskLabels[result.mail_security.spoofing_risk]]
+          ]}
+        />
+        <InfoPanel
+          title="IP bilgileri"
+          rows={[
+            ["IP", result.ip_info.ip ?? "Bilinmiyor"],
+            ["Ulke", result.ip_info.country ?? "Bilinmiyor"],
+            ["ASN", result.ip_info.asn ?? "Bilinmiyor"],
+            ["Hosting", result.ip_info.hosting ?? "Bilinmiyor"]
+          ]}
+        />
+        <InfoPanel
+          title="URL bulgulari"
+          rows={[
+            ["Final URL", result.url_analysis.final_url ?? "Yok"],
+            ["Redirect", result.url_analysis.redirect_chain.length ? `${result.url_analysis.redirect_chain.length} adim` : "Yok"],
+            ["Kisa link", yesNo(result.url_analysis.is_short_link)],
+            ["Supheli kelime", result.url_analysis.suspicious_keywords.join(", ") || "Yok"]
+          ]}
+        />
+      </div>
+
+      <details className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+        <summary className="cursor-pointer font-bold">Teknik detaylar ve bulgular</summary>
+        <div className="mt-4 grid gap-3">
+          {result.technical_findings.length ? (
+            result.technical_findings.map((finding) => (
+              <article className={`rounded-md border p-3 text-sm ${riskStyles[finding.severity]}`} key={`${finding.title}-${finding.detail}`}>
+                <p className="font-bold">{finding.title}</p>
+                <p className="mt-1 leading-6">{finding.detail}</p>
+              </article>
+            ))
+          ) : (
+            <p className="text-sm text-slate-600 dark:text-slate-300">Belirgin teknik risk bulgusu listelenmedi.</p>
+          )}
+          {[...result.dns_info.notes, ...result.domain_info.notes, ...result.ssl_info.notes, ...result.mail_security.notes, ...result.ip_info.notes].map((note) => (
+            <p className="rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-600 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300" key={note}>
+              {note}
+            </p>
+          ))}
+        </div>
+      </details>
+    </section>
+  );
+}
+
+function InfoPanel({ rows, title }: { rows: [string, string][]; title: string }) {
+  return (
+    <article className="rounded-lg border border-slate-200 bg-slate-50 p-4 shadow-sm dark:border-white/10 dark:bg-white/5">
+      <h3 className="font-bold">{title}</h3>
+      <div className="mt-3 grid gap-2">
+        {rows.map(([label, value]) => (
+          <div className="grid gap-1 text-sm" key={label}>
+            <p className="font-semibold text-slate-500 dark:text-slate-400">{label}</p>
+            <p className="break-words text-slate-800 dark:text-slate-100">{value}</p>
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function yesNo(value: boolean) {
+  return value ? "Var" : "Yok";
 }
 
 function DecisionPanel({ body, footer, title }: { body: string; footer: string; title: string }) {
