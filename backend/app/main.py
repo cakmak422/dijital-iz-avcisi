@@ -5,6 +5,7 @@ from app.db.database import init_db
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.routes.analysis import router as analysis_router
 from app.routes.auth import router as auth_router
+from app.routes.exif_analysis import router as exif_analysis_router
 from app.routes.ip_intelligence import router as ip_intelligence_router
 from app.routes.site_safety import router as site_safety_router
 from app.services.parser_health_service import parser_health_snapshot
@@ -31,6 +32,7 @@ app.add_middleware(RateLimitMiddleware)
 
 app.include_router(analysis_router, prefix="/api", tags=["analysis"])
 app.include_router(auth_router, prefix="/api", tags=["auth"])
+app.include_router(exif_analysis_router, prefix="/api", tags=["exif"])
 app.include_router(ip_intelligence_router, prefix="/api", tags=["ip-intelligence"])
 app.include_router(site_safety_router, prefix="/api", tags=["site-safety"])
 

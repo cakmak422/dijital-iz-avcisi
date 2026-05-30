@@ -119,6 +119,23 @@ export type IpIntelligenceResult = {
   risk_score_breakdown: { label: string; points: number; detail: string }[];
 };
 
+export type ExifAnalysisResult = {
+  file_name: string;
+  file_size: number;
+  image_width: number | null;
+  image_height: number | null;
+  camera_make: string | null;
+  camera_model: string | null;
+  software: string | null;
+  datetime_original: string | null;
+  gps_present: boolean;
+  gps_latitude: number | null;
+  gps_longitude: number | null;
+  privacy_risk: "safe" | "caution";
+  citizen_summary: string;
+  technical_findings: { severity: "safe" | "caution"; title: string; detail: string }[];
+};
+
 const fallbackResult: AnalysisResult = {
   product_name: "Demo urun analizi",
   seller_name: "Ornek Satici",
@@ -218,6 +235,36 @@ export async function analyzeIpIntelligence(ip: string): Promise<IpIntelligenceR
   }
 
   return (await response.json()) as IpIntelligenceResult;
+}
+
+export async function analyzeExifImage(file: File): Promise<ExifAnalysisResult> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+  const lowerName = file.name.toLowerCase();
+  const hasJpegExtension = lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg");
+  const hasJpegType = file.type === "image/jpeg";
+  if (!hasJpegExtension && !hasJpegType) {
+    throw new Error(`Sadece JPG/JPEG destekleniyor. Secilen dosya: ${file.name}, type: ${file.type || "yok"}`);
+  }
+
+  console.log("exif_upload_request", {
+    name: file.name,
+    size: file.size,
+    type: file.type
+  });
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${apiUrl}/api/exif/analyze`, {
+    method: "POST",
+    body: formData
+  });
+
+  if (!response.ok) {
+    throw new Error("EXIF analysis request failed");
+  }
+
+  return (await response.json()) as ExifAnalysisResult;
 }
 
 function detectMarketplace(url: string) {

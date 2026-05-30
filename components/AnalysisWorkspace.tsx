@@ -3,11 +3,13 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
+  analyzeExifImage,
   analyzeIpIntelligence,
   analyzeProduct,
   analyzeSiteSafety,
   AnalysisHistoryItem,
   AnalysisResult,
+  ExifAnalysisResult,
   fetchAnalysisHistory,
   IpIntelligenceResult,
   RiskLevel,
@@ -16,7 +18,7 @@ import {
 import { checkClientRateLimit } from "@/lib/rateLimit";
 import { isLikelyUrl, sanitizeMultiline, sanitizeText } from "@/lib/sanitize";
 
-type ModuleId = "product" | "phishing" | "site" | "ip" | "message";
+type ModuleId = "product" | "phishing" | "site" | "exif" | "ip" | "message";
 
 type Module = {
   id: ModuleId;
@@ -63,6 +65,17 @@ const modules: Module[] = [
     inputLabel: "URL veya domain",
     placeholder: "ornek-site.com",
     checks: ["Domain yasi", "SSL sertifikasi", "DNS kayitlari", "RDAP/WHOIS", "Mail guvenligi", "Redirect kontrolu"]
+  },
+  {
+    id: "exif",
+    title: "Fotograf EXIF Analizi",
+    shortTitle: "EX",
+    description: "Fotograftaki cekim tarihi, cihaz modeli, GPS konumu ve gizlilik risklerini analiz eder.",
+    status: "Yakinda",
+    icon: "EX",
+    inputLabel: "Fotograf dosyasi",
+    placeholder: "",
+    checks: ["Cekim tarihi", "Cihaz modeli", "GPS konumu", "Yazilim bilgisi", "Gizlilik riski", "Metadata durumu"]
   },
   {
     id: "ip",
@@ -152,16 +165,20 @@ export function AnalysisWorkspace() {
   const [messageResult, setMessageResult] = useState<MessageResult | null>(null);
   const [siteResult, setSiteResult] = useState<SiteSafetyResult | null>(null);
   const [ipResult, setIpResult] = useState<IpIntelligenceResult | null>(null);
+  const [exifResult, setExifResult] = useState<ExifAnalysisResult | null>(null);
+  const [selectedExifFile, setSelectedExifFile] = useState<File | null>(null);
   const [history, setHistory] = useState<AnalysisHistoryItem[]>([]);
   const [error, setError] = useState("");
 
   const currentModule = modules.find((module) => module.id === activeModule) ?? modules[0];
   const canAnalyze = useMemo(() => {
     const trimmed = url.trim();
-    if (isLoading || !trimmed) return false;
+    if (isLoading) return false;
+    if (activeModule === "exif") return Boolean(selectedExifFile);
+    if (!trimmed) return false;
     if (activeModule === "ip") return isLikelyIpInput(trimmed);
     return trimmed.length > 8;
-  }, [activeModule, isLoading, url]);
+  }, [activeModule, isLoading, selectedExifFile, url]);
 
   useEffect(() => {
     refreshHistory();
@@ -184,6 +201,28 @@ export function AnalysisWorkspace() {
 
     const sanitizedInput = activeModule === "message" ? sanitizeMultiline(url, 1500) : sanitizeText(url, 500);
     setUrl(sanitizedInput);
+
+    if (activeModule === "exif") {
+      if (!selectedExifFile) {
+        setError("Analiz icin bir JPG/JPEG fotograf secin.");
+        return;
+      }
+      setIsLoading(true);
+      setResult(null);
+      setPhishingResult(null);
+      setMessageResult(null);
+      setSiteResult(null);
+      setIpResult(null);
+      setExifResult(null);
+      try {
+        setExifResult(await analyzeExifImage(selectedExifFile));
+      } catch (error) {
+        setError(error instanceof Error ? error.message : "EXIF analizi tamamlanamadi. JPG/JPEG dosyasi sectiginizden emin olun.");
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
 
     if (activeModule !== "product" && activeModule !== "phishing" && activeModule !== "message" && activeModule !== "site" && activeModule !== "ip") {
       setError("Bu sorgu paneli yakinda aktif olacak. Simdilik urun analizi calisiyor.");
@@ -211,6 +250,7 @@ export function AnalysisWorkspace() {
     setMessageResult(null);
     setSiteResult(null);
     setIpResult(null);
+    setExifResult(null);
 
     if (activeModule === "phishing") {
       await new Promise((resolve) => setTimeout(resolve, 350));
@@ -295,11 +335,14 @@ export function AnalysisWorkspace() {
           isLoading={isLoading}
           messageResult={messageResult}
           ipResult={ipResult}
+          exifResult={exifResult}
           onSubmit={handleAnalyze}
           phishingResult={phishingResult}
           siteResult={siteResult}
           result={result}
           setUrl={setUrl}
+          selectedExifFile={selectedExifFile}
+          setSelectedExifFile={setSelectedExifFile}
           url={url}
         />
         <HistoryPanel history={history} />
@@ -315,11 +358,14 @@ function AnalyzerPanel({
   isLoading,
   messageResult,
   ipResult,
+  exifResult,
   onSubmit,
   result,
   phishingResult,
   siteResult,
   setUrl,
+  selectedExifFile,
+  setSelectedExifFile,
   url
 }: {
   activeModule: Module;
@@ -328,11 +374,14 @@ function AnalyzerPanel({
   isLoading: boolean;
   messageResult: MessageResult | null;
   ipResult: IpIntelligenceResult | null;
+  exifResult: ExifAnalysisResult | null;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   result: AnalysisResult | null;
   phishingResult: PhishingResult | null;
   siteResult: SiteSafetyResult | null;
   setUrl: (url: string) => void;
+  selectedExifFile: File | null;
+  setSelectedExifFile: (file: File | null) => void;
   url: string;
 }) {
   return (
@@ -348,7 +397,32 @@ function AnalyzerPanel({
           <label className="text-sm font-semibold text-slate-700 dark:text-slate-200" htmlFor="analysis-input">
             {activeModule.inputLabel}
           </label>
-          {activeModule.id === "message" ? (
+          {activeModule.id === "exif" ? (
+            <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-5 text-center dark:border-white/15 dark:bg-white/5">
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Dosya yukleme alani</p>
+              <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                JPG/JPEG aktif. PNG ve HEIC icin hazirlik.
+              </p>
+              <input
+                accept=".jpg,.jpeg,image/jpeg"
+                className="mt-4 block w-full cursor-pointer rounded-md border border-slate-300 bg-white text-sm text-slate-700 file:mr-4 file:border-0 file:bg-slate-900 file:px-4 file:py-3 file:text-sm file:font-semibold file:text-white dark:border-white/10 dark:bg-slate-950 dark:text-slate-200 dark:file:bg-white dark:file:text-slate-950"
+                id="analysis-input"
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null;
+                  if (file) {
+                    console.log("exif_file_selected", {
+                      name: file.name,
+                      size: file.size,
+                      type: file.type
+                    });
+                  }
+                  setSelectedExifFile(file);
+                }}
+                type="file"
+              />
+              {selectedExifFile ? <p className="mt-2 break-words text-xs text-slate-500 dark:text-slate-400">{selectedExifFile.name}</p> : null}
+            </div>
+          ) : activeModule.id === "message" ? (
             <textarea
               id="analysis-input"
               className="min-h-36 resize-y rounded-md border border-slate-300 bg-white px-4 py-3 text-base text-slate-950 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:ring-cyan-400/20"
@@ -368,7 +442,7 @@ function AnalyzerPanel({
           {error ? <p className="text-sm font-medium text-red-700 dark:text-red-300">{error}</p> : null}
           <button
             className="btn-primary min-h-12 text-base"
-            disabled={activeModule.id === "product" || activeModule.id === "phishing" || activeModule.id === "message" || activeModule.id === "site" || activeModule.id === "ip" ? !canAnalyze : false}
+            disabled={activeModule.id === "product" || activeModule.id === "phishing" || activeModule.id === "message" || activeModule.id === "site" || activeModule.id === "ip" || activeModule.id === "exif" ? !canAnalyze : false}
             type="submit"
           >
             {isLoading
@@ -381,6 +455,8 @@ function AnalyzerPanel({
                   ? "Siteyi Analiz Et"
                 : activeModule.id === "ip"
                   ? "IP'yi Analiz Et"
+                : activeModule.id === "exif"
+                  ? "EXIF'i Analiz Et"
                 : activeModule.id === "message"
                     ? "Mesaji Analiz Et"
                   : "Yakinda Aktif"}
@@ -397,7 +473,7 @@ function AnalyzerPanel({
         </div>
       </div>
 
-      <ResultPanel activeModule={activeModule} messageResult={messageResult} ipResult={ipResult} phishingResult={phishingResult} siteResult={siteResult} result={result} isLoading={isLoading} />
+      <ResultPanel activeModule={activeModule} messageResult={messageResult} ipResult={ipResult} exifResult={exifResult} phishingResult={phishingResult} siteResult={siteResult} result={result} isLoading={isLoading} />
     </section>
   );
 }
@@ -406,6 +482,7 @@ function ResultPanel({
   activeModule,
   messageResult,
   ipResult,
+  exifResult,
   phishingResult,
   siteResult,
   result,
@@ -414,6 +491,7 @@ function ResultPanel({
   activeModule: Module;
   messageResult: MessageResult | null;
   ipResult: IpIntelligenceResult | null;
+  exifResult: ExifAnalysisResult | null;
   phishingResult: PhishingResult | null;
   siteResult: SiteSafetyResult | null;
   result: AnalysisResult | null;
@@ -446,6 +524,10 @@ function ResultPanel({
 
   if (activeModule.id === "ip" && ipResult) {
     return <IpIntelligenceResultPanel result={ipResult} />;
+  }
+
+  if (activeModule.id === "exif") {
+    return exifResult ? <ExifResultPanel result={exifResult} /> : <ExifPreviewPanel />;
   }
 
   if (!result) {
@@ -550,6 +632,97 @@ function MessageResultPanel({ result }: { result: MessageResult }) {
         <DecisionPanel title="Gorulen sinyaller" body={result.signals.join(" ")} footer={`${result.signals.length} mesaj sinyali degerlendirildi.`} />
         <DecisionPanel title="Kullanici onerisi" body={result.recommendation} footer="Kesin hukum degil, bilgilendirme amacli risk degerlendirmesidir." />
       </div>
+    </section>
+  );
+}
+
+function ExifPreviewPanel() {
+  return (
+    <section className="premium-card p-5">
+      <div className="border-b border-slate-200 pb-5 dark:border-white/10">
+        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Yakinda</p>
+        <h2 className="mt-1 text-2xl font-bold">Fotograf EXIF Analizi</h2>
+        <p className="mt-2 leading-7 text-slate-600 dark:text-slate-300">
+          Fotograf dosyalarindaki EXIF metadata bilgilerini okuyarak cekim tarihi, cihaz modeli, konum ve paylasim risklerini sade bir rapor haline getirir.
+        </p>
+      </div>
+
+      <div className="mt-5 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-5 text-center dark:border-white/15 dark:bg-white/5">
+        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Dosya yukleme hazirligi</p>
+        <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+          Desteklenen format hazirligi: JPG, JPEG, PNG, HEIC. Bu MVP adiminda dosya yuklenmez ve analiz yapilmaz.
+        </p>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {["Cekim tarihi", "Cihaz modeli", "GPS konumu", "Yazilim bilgisi", "Gizlilik riski", "Metadata durumu"].map((item) => (
+          <article className="rounded-md border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5" key={item}>
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{item}</p>
+            <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">Yakinda analiz edilecek</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ExifResultPanel({ result }: { result: ExifAnalysisResult }) {
+  const metadataStatus = getExifMetadataStatus(result);
+  const photoTypeSignal = getPhotoTypeSignal(result);
+
+  return (
+    <section className="premium-card p-5">
+      <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-white/10">
+        <div>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Fotograf EXIF Analizi</p>
+          <h2 className="mt-1 break-words text-2xl font-bold">{result.file_name}</h2>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+            {result.image_width && result.image_height ? `${result.image_width} x ${result.image_height}` : "Gorsel boyutu okunamadi"} · {formatBytes(result.file_size)}
+          </p>
+        </div>
+        <div className={`rounded-lg border px-4 py-3 text-center ${riskStyles[result.privacy_risk]}`}>
+          <p className="text-sm font-semibold">Gizlilik Riski</p>
+          <p className="text-xl font-bold">{result.privacy_risk === "caution" ? "Dikkat" : "Guvenli"}</p>
+          <p className="text-sm font-semibold">GPS {result.gps_present ? "Var" : "Yok"}</p>
+        </div>
+      </div>
+
+      <p className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 leading-7 text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+        {result.citizen_summary}
+      </p>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <CompactMetric label="Cekim tarihi" value={formatExifDate(result.datetime_original)} />
+        <CompactMetric label="Marka" value={result.camera_make ?? "Veri Yok"} />
+        <CompactMetric label="Model" value={result.camera_model ?? "Veri Yok"} />
+        <CompactMetric label="Firmware / Yazilim" value={result.software ?? "Veri Yok"} />
+        <CompactMetric label="GPS durumu" value={result.gps_present ? "Konum verisi var" : "Konum verisi yok"} />
+        <CompactMetric label="Gizlilik riski" value={result.privacy_risk === "caution" ? "Dikkat" : "Guvenli"} />
+        <CompactMetric label="Metadata durumu" value={metadataStatus} />
+        <CompactMetric label="Fotograf turu sinyali" value={photoTypeSignal} />
+      </div>
+
+      {result.gps_present ? (
+        <InfoPanel
+          title="GPS koordinatlari"
+          rows={[
+            ["Enlem", result.gps_latitude?.toString() ?? "Yok"],
+            ["Boylam", result.gps_longitude?.toString() ?? "Yok"]
+          ]}
+        />
+      ) : null}
+
+      <details className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+        <summary className="cursor-pointer font-bold">Teknik bulgular</summary>
+        <div className="mt-4 grid gap-3">
+          {result.technical_findings.map((finding) => (
+            <article className={`rounded-md border p-3 text-sm ${riskStyles[finding.severity]}`} key={`${finding.title}-${finding.detail}`}>
+              <p className="font-bold">{finding.title}</p>
+              <p className="mt-1 leading-6">{finding.detail}</p>
+            </article>
+          ))}
+        </div>
+      </details>
     </section>
   );
 }
@@ -825,6 +998,44 @@ function privacyLabel(value: IpIntelligenceResult["privacy_signals"]["vpn_proxy_
   if (value === "possible") return "Olasi";
   if (value === "low") return "Dusuk";
   return "Bilinmiyor";
+}
+
+function formatBytes(value: number) {
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function formatExifDate(value: string | null) {
+  if (!value) return "Tespit Edilemedi";
+  const match = value.match(/^(\d{4}):(\d{2}):(\d{2})\s+(.+)$/);
+  if (!match) return value;
+  return `${match[3]}.${match[2]}.${match[1]} ${match[4]}`;
+}
+
+function getExifMetadataStatus(result: ExifAnalysisResult) {
+  const presentFields = [
+    result.camera_make,
+    result.camera_model,
+    result.software,
+    result.datetime_original,
+    result.gps_present ? "gps" : null
+  ].filter(Boolean).length;
+
+  if (presentFields >= 2) return "EXIF mevcut";
+  if (presentFields === 1) return "Sinirli metadata";
+  return "Metadata bulunamadi";
+}
+
+function getPhotoTypeSignal(result: ExifAnalysisResult) {
+  if (result.camera_make || result.camera_model) {
+    return "Kamera fotografi olabilir";
+  }
+  const lowResolution = Boolean(result.image_width && result.image_height && result.image_width <= 1280 && result.image_height <= 1280);
+  if (lowResolution && getExifMetadataStatus(result) === "Metadata bulunamadi") {
+    return "Ekran goruntusu veya duzenlenmis gorsel olabilir";
+  }
+  return "Kaynak turu net degil";
 }
 
 function DecisionPanel({ body, footer, title }: { body: string; footer: string; title: string }) {
