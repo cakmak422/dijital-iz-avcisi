@@ -89,6 +89,36 @@ export type SiteSafetyResult = {
   };
 };
 
+export type IpIntelligenceResult = {
+  input: string;
+  ip: string | null;
+  valid: boolean;
+  is_public: boolean;
+  risk_score: number | null;
+  risk_level: RiskLevel;
+  citizen_summary: string;
+  technical_findings: { severity: RiskLevel; title: string; detail: string }[];
+  ip_info: {
+    country: string | null;
+    asn: string | null;
+    organization: string | null;
+    network_name: string | null;
+    abuse_contact: string | null;
+  };
+  infrastructure: {
+    provider: string | null;
+    is_cdn: boolean;
+    is_hosting: boolean;
+    is_datacenter: boolean;
+  };
+  privacy_signals: {
+    vpn_proxy_possibility: "unknown" | "low" | "possible";
+    tor_exit_node: "not_checked";
+    notes: string[];
+  };
+  risk_score_breakdown: { label: string; points: number; detail: string }[];
+};
+
 const fallbackResult: AnalysisResult = {
   product_name: "Demo urun analizi",
   seller_name: "Ornek Satici",
@@ -170,6 +200,24 @@ export async function analyzeSiteSafety(url: string): Promise<SiteSafetyResult> 
   }
 
   return (await response.json()) as SiteSafetyResult;
+}
+
+export async function analyzeIpIntelligence(ip: string): Promise<IpIntelligenceResult> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+
+  const response = await fetch(`${apiUrl}/api/ip-intelligence/analyze`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ ip })
+  });
+
+  if (!response.ok) {
+    throw new Error("IP intelligence request failed");
+  }
+
+  return (await response.json()) as IpIntelligenceResult;
 }
 
 function detectMarketplace(url: string) {

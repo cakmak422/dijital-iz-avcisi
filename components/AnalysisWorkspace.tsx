@@ -3,11 +3,13 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
+  analyzeIpIntelligence,
   analyzeProduct,
   analyzeSiteSafety,
   AnalysisHistoryItem,
   AnalysisResult,
   fetchAnalysisHistory,
+  IpIntelligenceResult,
   RiskLevel,
   SiteSafetyResult
 } from "@/lib/api";
@@ -67,7 +69,7 @@ const modules: Module[] = [
     title: "IP Istihbarati",
     shortTitle: "IP",
     description: "IP adresinin ulke, ASN, hosting, proxy/VPN/Tor ve kotuye kullanim sinyallerini degerlendirir.",
-    status: "Yakinda",
+    status: "Aktif MVP",
     icon: "IP",
     inputLabel: "IP adresi",
     placeholder: "8.8.8.8",
@@ -99,6 +101,12 @@ const modules: Module[] = [
 const riskLabels: Record<RiskLevel, string> = {
   safe: "Guvenli",
   caution: "Dikkatli Ol",
+  risk: "Riskli"
+};
+
+const ipRiskLabels: Record<RiskLevel, string> = {
+  safe: "Dusuk Risk",
+  caution: "Dikkat",
   risk: "Riskli"
 };
 
@@ -143,11 +151,17 @@ export function AnalysisWorkspace() {
   const [phishingResult, setPhishingResult] = useState<PhishingResult | null>(null);
   const [messageResult, setMessageResult] = useState<MessageResult | null>(null);
   const [siteResult, setSiteResult] = useState<SiteSafetyResult | null>(null);
+  const [ipResult, setIpResult] = useState<IpIntelligenceResult | null>(null);
   const [history, setHistory] = useState<AnalysisHistoryItem[]>([]);
   const [error, setError] = useState("");
 
   const currentModule = modules.find((module) => module.id === activeModule) ?? modules[0];
-  const canAnalyze = useMemo(() => url.trim().length > 8 && !isLoading, [url, isLoading]);
+  const canAnalyze = useMemo(() => {
+    const trimmed = url.trim();
+    if (isLoading || !trimmed) return false;
+    if (activeModule === "ip") return isLikelyIpInput(trimmed);
+    return trimmed.length > 8;
+  }, [activeModule, isLoading, url]);
 
   useEffect(() => {
     refreshHistory();
@@ -171,7 +185,7 @@ export function AnalysisWorkspace() {
     const sanitizedInput = activeModule === "message" ? sanitizeMultiline(url, 1500) : sanitizeText(url, 500);
     setUrl(sanitizedInput);
 
-    if (activeModule !== "product" && activeModule !== "phishing" && activeModule !== "message" && activeModule !== "site") {
+    if (activeModule !== "product" && activeModule !== "phishing" && activeModule !== "message" && activeModule !== "site" && activeModule !== "ip") {
       setError("Bu sorgu paneli yakinda aktif olacak. Simdilik urun analizi calisiyor.");
       return;
     }
@@ -186,11 +200,17 @@ export function AnalysisWorkspace() {
       return;
     }
 
+    if (activeModule === "ip" && !isLikelyIpInput(sanitizedInput)) {
+      setError("Gecerli bir IP adresi girin.");
+      return;
+    }
+
     setIsLoading(true);
     setResult(null);
     setPhishingResult(null);
     setMessageResult(null);
     setSiteResult(null);
+    setIpResult(null);
 
     if (activeModule === "phishing") {
       await new Promise((resolve) => setTimeout(resolve, 350));
@@ -211,6 +231,17 @@ export function AnalysisWorkspace() {
         setSiteResult(await analyzeSiteSafety(sanitizedInput));
       } catch {
         setError("Site guvenlik analizi su anda tamamlanamadi. Backend baglantisini ve OSINT servislerini kontrol edin.");
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    if (activeModule === "ip") {
+      try {
+        setIpResult(await analyzeIpIntelligence(sanitizedInput));
+      } catch {
+        setError("IP istihbarati analizi su anda tamamlanamadi. Backend baglantisini ve RDAP servislerini kontrol edin.");
       } finally {
         setIsLoading(false);
       }
@@ -263,6 +294,7 @@ export function AnalysisWorkspace() {
           error={error}
           isLoading={isLoading}
           messageResult={messageResult}
+          ipResult={ipResult}
           onSubmit={handleAnalyze}
           phishingResult={phishingResult}
           siteResult={siteResult}
@@ -282,6 +314,7 @@ function AnalyzerPanel({
   error,
   isLoading,
   messageResult,
+  ipResult,
   onSubmit,
   result,
   phishingResult,
@@ -294,6 +327,7 @@ function AnalyzerPanel({
   error: string;
   isLoading: boolean;
   messageResult: MessageResult | null;
+  ipResult: IpIntelligenceResult | null;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   result: AnalysisResult | null;
   phishingResult: PhishingResult | null;
@@ -334,7 +368,7 @@ function AnalyzerPanel({
           {error ? <p className="text-sm font-medium text-red-700 dark:text-red-300">{error}</p> : null}
           <button
             className="btn-primary min-h-12 text-base"
-            disabled={activeModule.id === "product" || activeModule.id === "phishing" || activeModule.id === "message" || activeModule.id === "site" ? !canAnalyze : false}
+            disabled={activeModule.id === "product" || activeModule.id === "phishing" || activeModule.id === "message" || activeModule.id === "site" || activeModule.id === "ip" ? !canAnalyze : false}
             type="submit"
           >
             {isLoading
@@ -345,6 +379,8 @@ function AnalyzerPanel({
                 ? "URL'yi Kontrol Et"
                 : activeModule.id === "site"
                   ? "Siteyi Analiz Et"
+                : activeModule.id === "ip"
+                  ? "IP'yi Analiz Et"
                 : activeModule.id === "message"
                     ? "Mesaji Analiz Et"
                   : "Yakinda Aktif"}
@@ -361,7 +397,7 @@ function AnalyzerPanel({
         </div>
       </div>
 
-      <ResultPanel activeModule={activeModule} messageResult={messageResult} phishingResult={phishingResult} siteResult={siteResult} result={result} isLoading={isLoading} />
+      <ResultPanel activeModule={activeModule} messageResult={messageResult} ipResult={ipResult} phishingResult={phishingResult} siteResult={siteResult} result={result} isLoading={isLoading} />
     </section>
   );
 }
@@ -369,6 +405,7 @@ function AnalyzerPanel({
 function ResultPanel({
   activeModule,
   messageResult,
+  ipResult,
   phishingResult,
   siteResult,
   result,
@@ -376,6 +413,7 @@ function ResultPanel({
 }: {
   activeModule: Module;
   messageResult: MessageResult | null;
+  ipResult: IpIntelligenceResult | null;
   phishingResult: PhishingResult | null;
   siteResult: SiteSafetyResult | null;
   result: AnalysisResult | null;
@@ -404,6 +442,10 @@ function ResultPanel({
 
   if (activeModule.id === "site" && siteResult) {
     return <SiteSafetyResultPanel result={siteResult} />;
+  }
+
+  if (activeModule.id === "ip" && ipResult) {
+    return <IpIntelligenceResultPanel result={ipResult} />;
   }
 
   if (!result) {
@@ -508,6 +550,100 @@ function MessageResultPanel({ result }: { result: MessageResult }) {
         <DecisionPanel title="Gorulen sinyaller" body={result.signals.join(" ")} footer={`${result.signals.length} mesaj sinyali degerlendirildi.`} />
         <DecisionPanel title="Kullanici onerisi" body={result.recommendation} footer="Kesin hukum degil, bilgilendirme amacli risk degerlendirmesidir." />
       </div>
+    </section>
+  );
+}
+
+function IpIntelligenceResultPanel({ result }: { result: IpIntelligenceResult }) {
+  return (
+    <section className="premium-card p-5">
+      <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-white/10">
+        <div>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">IP Istihbarati</p>
+          <h2 className="mt-1 break-words text-2xl font-bold">{result.ip ?? result.input}</h2>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+            {result.is_public ? "Public IP tehdit istihbarati" : "Public olmayan IP / bilgi modu"}
+          </p>
+        </div>
+        <div className={`rounded-lg border px-4 py-3 text-center ${riskStyles[result.risk_level]}`}>
+          <p className="text-sm font-semibold">Risk Skoru</p>
+          <p className="text-3xl font-bold">{result.risk_score ?? 0}</p>
+          <p className="text-sm font-semibold">{ipRiskLabels[result.risk_level]}</p>
+        </div>
+      </div>
+
+      <p className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 leading-7 text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+        {result.citizen_summary}
+      </p>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Metric label="IP" value={result.ip ?? result.input} />
+        <Metric label="Ulke" value={result.ip_info.country ?? "Bilinmiyor"} />
+        <Metric label="ASN / Handle" value={result.ip_info.asn ?? "Bilinmiyor"} />
+        <Metric label="VPN/Proxy" value={privacyLabel(result.privacy_signals.vpn_proxy_possibility)} />
+      </div>
+
+      <div className="mt-5 grid gap-3 lg:grid-cols-2">
+        <InfoPanel
+          title="IP bilgileri"
+          rows={[
+            ["Organizasyon", result.ip_info.organization ?? "Bilinmiyor"],
+            ["Network", result.ip_info.network_name ?? "Bilinmiyor"],
+            ["Abuse contact", result.ip_info.abuse_contact ?? "Yok"],
+            ["Public IP", yesNo(result.is_public)]
+          ]}
+        />
+        <InfoPanel
+          title="Altyapi sinyalleri"
+          rows={[
+            ["Saglayici", result.infrastructure.provider ?? "Bilinmiyor"],
+            ["CDN", yesNo(result.infrastructure.is_cdn)],
+            ["Hosting", yesNo(result.infrastructure.is_hosting)],
+            ["Veri merkezi", yesNo(result.infrastructure.is_datacenter)]
+          ]}
+        />
+      </div>
+
+      <details className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+        <summary className="cursor-pointer font-bold">Teknik detaylar ve risk kirilimi</summary>
+        <div className="mt-4 grid gap-3">
+          {result.risk_score_breakdown.length ? (
+            <div className="rounded-md border border-slate-200 bg-white p-3 text-sm dark:border-white/10 dark:bg-slate-950">
+              <p className="font-bold">Risk puani aciklamasi</p>
+              <div className="mt-3 grid gap-2">
+                {result.risk_score_breakdown.map((item) => (
+                  <div className="flex flex-col gap-1 rounded-md border border-slate-100 p-3 dark:border-white/10 sm:flex-row sm:items-start sm:justify-between" key={`${item.label}-${item.points}`}>
+                    <div>
+                      <p className="font-semibold text-slate-900 dark:text-white">{item.label}</p>
+                      <p className="mt-1 leading-6 text-slate-600 dark:text-slate-300">{item.detail}</p>
+                    </div>
+                    <span className="mt-2 rounded-md bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800 dark:bg-amber-300/10 dark:text-amber-200 sm:mt-0">
+                      +{item.points}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-600 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300">
+              Risk puanini artiran belirgin bir IP istihbarati maddesi bulunmadi.
+            </p>
+          )}
+
+          {result.technical_findings.map((finding) => (
+            <article className={`rounded-md border p-3 text-sm ${riskStyles[finding.severity]}`} key={`${finding.title}-${finding.detail}`}>
+              <p className="font-bold">{finding.title}</p>
+              <p className="mt-1 leading-6">{finding.detail}</p>
+            </article>
+          ))}
+
+          {result.privacy_signals.notes.map((note) => (
+            <p className="rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-600 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300" key={note}>
+              {note}
+            </p>
+          ))}
+        </div>
+      </details>
     </section>
   );
 }
@@ -662,6 +798,12 @@ function InfoPanel({ rows, title }: { rows: [string, string][]; title: string })
 
 function yesNo(value: boolean) {
   return value ? "Var" : "Yok";
+}
+
+function privacyLabel(value: IpIntelligenceResult["privacy_signals"]["vpn_proxy_possibility"]) {
+  if (value === "possible") return "Olasi";
+  if (value === "low") return "Dusuk";
+  return "Bilinmiyor";
 }
 
 function DecisionPanel({ body, footer, title }: { body: string; footer: string; title: string }) {
@@ -896,6 +1038,15 @@ function parseUserUrl(input: string): URL | null {
 
 function isIpAddress(hostname: string) {
   return /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname);
+}
+
+function isLikelyIpInput(value: string) {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "localhost") return true;
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(normalized)) {
+    return normalized.split(".").every((part) => Number(part) >= 0 && Number(part) <= 255);
+  }
+  return /^[0-9a-f:]+$/i.test(normalized) && normalized.includes(":");
 }
 
 function isShortener(hostname: string) {
