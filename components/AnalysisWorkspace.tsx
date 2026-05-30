@@ -576,11 +576,11 @@ function IpIntelligenceResultPanel({ result }: { result: IpIntelligenceResult })
         {result.citizen_summary}
       </p>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric label="IP" value={result.ip ?? result.input} />
-        <Metric label="Ulke" value={result.ip_info.country ?? "Bilinmiyor"} />
-        <Metric label="ASN / Handle" value={result.ip_info.asn ?? "Bilinmiyor"} />
-        <Metric label="VPN/Proxy" value={privacyLabel(result.privacy_signals.vpn_proxy_possibility)} />
+      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <CompactMetric label="IP" value={result.ip ?? result.input} />
+        <CompactMetric label="Ulke" value={result.ip_info.country ?? "Bilinmiyor"} />
+        <CompactMetric label="ASN / Handle" value={result.ip_info.asn ?? "Bilinmiyor"} clamp />
+        <CompactMetric label="VPN/Proxy" value={privacyLabel(result.privacy_signals.vpn_proxy_possibility)} />
       </div>
 
       <div className="mt-5 grid gap-3 lg:grid-cols-2">
@@ -793,6 +793,22 @@ function InfoPanel({ rows, title }: { rows: [string, string][]; title: string })
         ))}
       </div>
     </article>
+  );
+}
+
+function CompactMetric({ clamp = false, label, value }: { clamp?: boolean; label: string; value: string }) {
+  return (
+    <div className="min-w-0 rounded-md border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">{label}</p>
+      <p
+        className={`mt-2 min-w-0 break-words text-sm font-semibold leading-6 text-slate-900 dark:text-slate-100 ${
+          clamp ? "line-clamp-3" : ""
+        }`}
+        title={value}
+      >
+        {value}
+      </p>
+    </div>
   );
 }
 
