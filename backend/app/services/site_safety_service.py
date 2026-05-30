@@ -15,6 +15,7 @@ from app.models.site_safety import (
     IpInfo,
     MailSecurityInfo,
     RedirectHop,
+    RiskScoreItem,
     SiteSafetyResponse,
     SslInfo,
     TechnicalFinding,
@@ -82,13 +83,15 @@ def analyze_site_safety(input_url: str) -> SiteSafetyResponse:
     mail_security = _analyze_mail_security(domain, dns_info)
     ip_info = _collect_ip_info(domain, dns_info)
 
-    risk_score = _calculate_risk_score(url_analysis, domain_info, ssl_info, mail_security, findings)
+    risk_breakdown = _calculate_risk_breakdown(url_analysis, domain_info, ssl_info, mail_security, dns_info, findings)
+    risk_score = max(0, min(100, sum(item.points for item in risk_breakdown)))
     risk_level = _risk_level_from_score(risk_score)
     citizen_summary = _build_citizen_summary(domain, domain_info, ssl_info, mail_security, url_analysis)
 
     return SiteSafetyResponse(
         risk_score=risk_score,
         risk_level=risk_level,
+        risk_score_breakdown=risk_breakdown,
         citizen_summary=citizen_summary,
         technical_findings=findings,
         url_analysis=url_analysis,
@@ -125,6 +128,23 @@ def _analyze_url(url: str, domain: str, findings: list[TechnicalFinding]) -> Url
         status_code = response.status_code
         final_url = response.url
         redirect_chain = [RedirectHop(url=item.url, status_code=item.status_code) for item in response.history]
+        if status_code == 403:
+            if _is_cloudflare_response(response.headers):
+                findings.append(
+                    TechnicalFinding(
+                        severity="safe",
+                        title="Cloudflare korumasi",
+                        detail="Site 403 dondu ancak yanit Cloudflare koruma katmanindan geliyor. Bu tek basina risk sinyali olarak puanlanmadi.",
+                    )
+                )
+            else:
+                findings.append(
+                    TechnicalFinding(
+                        severity="safe",
+                        title="HTTP 403",
+                        detail="Site erisimi sinirlamis olabilir. 403 durum kodu tek basina risk puanini artirmaz.",
+                    )
+                )
     except SsrfProtectionError as exc:
         findings.append(TechnicalFinding(severity="risk", title="SSRF korumasi", detail=str(exc)))
     except requests.RequestException as exc:
@@ -258,8 +278,11 @@ def _analyze_mail_security(domain: str, dns_info: DnsInfo) -> MailSecurityInfo:
 
     has_dmarc = any("v=dmarc1" in record.lower() for record in dmarc_records)
     has_dkim_signal = any("dkim" in record.lower() or "_domainkey" in record.lower() for record in txt_records)
-    risk = "safe" if has_spf and has_dmarc else "caution" if has_spf or has_dmarc else "risk"
+    uses_mail = bool(dns_info.mx)
+    risk = "safe" if has_spf and has_dmarc else "caution" if uses_mail or has_spf or has_dmarc else "safe"
     notes = []
+    if not uses_mail:
+        notes.append("MX kaydi gorulmedi; alan adi e-posta hizmeti kullanmiyor olabilir.")
     if not has_spf:
         notes.append("SPF kaydi bulunamadi.")
     if not has_dmarc:
@@ -291,36 +314,46 @@ def _collect_ip_info(domain: str, dns_info: DnsInfo) -> IpInfo:
     )
 
 
-def _calculate_risk_score(
+def _calculate_risk_breakdown(
     url_analysis: UrlAnalysis,
     domain_info: DomainInfo,
     ssl_info: SslInfo,
     mail_security: MailSecurityInfo,
+    dns_info: DnsInfo,
     findings: list[TechnicalFinding],
-) -> int:
-    score = 0
+) -> list[RiskScoreItem]:
+    items: list[RiskScoreItem] = []
+
+    def add(label: str, points: int, detail: str) -> None:
+        if points > 0:
+            items.append(RiskScoreItem(label=label, points=points, detail=detail))
+
     if not url_analysis.https:
-        score += 18
+        add("HTTPS kullanilmiyor", 18, "URL HTTPS protokolu ile baslamiyor.")
     if not ssl_info.valid:
-        score += 18
+        add("SSL sertifikasi", 18, "SSL sertifikasi okunamadi veya gecerli gorunmuyor.")
     if domain_info.domain_age_days is not None and domain_info.domain_age_days < 30:
-        score += 22
+        add("Yeni domain", 22, f"Domain yasi {domain_info.domain_age_days} gun.")
         findings.append(TechnicalFinding(severity="caution", title="Yeni domain", detail=f"Domain yasi {domain_info.domain_age_days} gun."))
     if domain_info.created_at is None:
-        score += 8
+        add("Eksik RDAP/WHOIS tarihi", 8, "Domain kayit tarihi okunamadi.")
+
+    uses_mail = bool(dns_info.mx)
     if not mail_security.has_spf:
-        score += 10
+        add("SPF eksik", 6 if uses_mail else 2, "SPF kaydi bulunamadi." if uses_mail else "SPF yok; MX de olmadigi icin dusuk agirlikla puanlandi.")
+    if not mail_security.has_dkim_signal:
+        add("DKIM sinyali eksik", 4 if uses_mail else 0, "Genel TXT kayitlarinda DKIM sinyali gorulmedi.")
     if not mail_security.has_dmarc:
-        score += 12
+        add("DMARC eksik", 8 if uses_mail else 3, "DMARC kaydi bulunamadi." if uses_mail else "DMARC yok; MX de olmadigi icin dusuk agirlikla puanlandi.")
     if url_analysis.suspicious_keywords:
-        score += 10
+        add("Supheli kelime", 10, f"URL icinde {', '.join(url_analysis.suspicious_keywords[:5])} kelimeleri goruldu.")
     if url_analysis.redirect_chain:
-        score += min(12, len(url_analysis.redirect_chain) * 4)
+        add("Redirect zinciri", min(12, len(url_analysis.redirect_chain) * 4), f"{len(url_analysis.redirect_chain)} adet yonlendirme goruldu.")
     if url_analysis.is_short_link:
-        score += 14
+        add("Kisa link", 14, "Kisa link servisi hedef adresi gizleyebilir.")
     if url_analysis.typo_signals:
-        score += 16
-    return max(0, min(100, score))
+        add("Typo/homograf sinyali", 16, "Alan adi bilinen marka veya kurum adini andiran bir yapi tasiyor olabilir.")
+    return items
 
 
 def _risk_level_from_score(score: int) -> str:
@@ -394,6 +427,9 @@ def _age_days(value: str | None) -> int | None:
 def _detect_typo_signals(domain: str) -> list[str]:
     signals: list[str] = []
     label = domain.split(".")[0]
+    if _is_trusted_government_domain(domain):
+        return signals
+
     if any(ord(char) > 127 for char in domain):
         signals.append("Alan adinda ASCII disi karakter kullanimi var; homograf riski icin ek kontrol gerekir.")
 
@@ -405,6 +441,20 @@ def _detect_typo_signals(domain: str) -> list[str]:
             signals.append(f"{official_label} adini andiran alan adi yapisi goruldu.")
             break
     return signals
+
+
+def _is_cloudflare_response(headers: requests.structures.CaseInsensitiveDict[str]) -> bool:
+    server = headers.get("server", "")
+    return (
+        "cloudflare" in server.lower()
+        or bool(headers.get("cf-ray"))
+        or bool(headers.get("cf-cache-status"))
+        or bool(headers.get("cf-mitigated"))
+    )
+
+
+def _is_trusted_government_domain(domain: str) -> bool:
+    return domain == "gov.tr" or domain.endswith(".gov.tr")
 
 
 def _levenshtein(a: str, b: str) -> int:

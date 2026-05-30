@@ -76,9 +76,16 @@ class TechnicalFinding(BaseModel):
     detail: str
 
 
+class RiskScoreItem(BaseModel):
+    label: str
+    points: int
+    detail: str
+
+
 class SiteSafetyResponse(BaseModel):
     risk_score: int
     risk_level: RiskLevel
+    risk_score_breakdown: list[RiskScoreItem] = Field(default_factory=list)
     citizen_summary: str
     technical_findings: list[TechnicalFinding]
     url_analysis: UrlAnalysis

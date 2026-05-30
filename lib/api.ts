@@ -35,6 +35,7 @@ export type AnalysisHistoryItem = {
 export type SiteSafetyResult = {
   risk_score: number;
   risk_level: RiskLevel;
+  risk_score_breakdown?: { label: string; points: number; detail: string }[];
   citizen_summary: string;
   technical_findings: { severity: RiskLevel; title: string; detail: string }[];
   url_analysis: {

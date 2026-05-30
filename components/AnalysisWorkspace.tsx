@@ -503,6 +503,8 @@ function MessageResultPanel({ result }: { result: MessageResult }) {
 }
 
 function SiteSafetyResultPanel({ result }: { result: SiteSafetyResult }) {
+  const riskBreakdown = result.risk_score_breakdown ?? [];
+
   return (
     <section className="premium-card p-5">
       <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-white/10">
@@ -589,6 +591,28 @@ function SiteSafetyResultPanel({ result }: { result: SiteSafetyResult }) {
       <details className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
         <summary className="cursor-pointer font-bold">Teknik detaylar ve bulgular</summary>
         <div className="mt-4 grid gap-3">
+          {riskBreakdown.length ? (
+            <div className="rounded-md border border-slate-200 bg-white p-3 text-sm dark:border-white/10 dark:bg-slate-950">
+              <p className="font-bold">Risk puani aciklamasi</p>
+              <div className="mt-3 grid gap-2">
+                {riskBreakdown.map((item) => (
+                  <div className="flex flex-col gap-1 rounded-md border border-slate-100 p-3 dark:border-white/10 sm:flex-row sm:items-start sm:justify-between" key={`${item.label}-${item.points}`}>
+                    <div>
+                      <p className="font-semibold text-slate-900 dark:text-white">{item.label}</p>
+                      <p className="mt-1 leading-6 text-slate-600 dark:text-slate-300">{item.detail}</p>
+                    </div>
+                    <span className="mt-2 rounded-md bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800 dark:bg-amber-300/10 dark:text-amber-200 sm:mt-0">
+                      +{item.points}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-600 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300">
+              Risk puanini artiran belirgin bir teknik madde bulunmadi.
+            </p>
+          )}
           {result.technical_findings.length ? (
             result.technical_findings.map((finding) => (
               <article className={`rounded-md border p-3 text-sm ${riskStyles[finding.severity]}`} key={`${finding.title}-${finding.detail}`}>
