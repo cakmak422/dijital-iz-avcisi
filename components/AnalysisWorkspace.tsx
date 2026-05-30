@@ -64,13 +64,23 @@ const modules: Module[] = [
   },
   {
     id: "ip",
-    title: "IP Analizi",
+    title: "IP Istihbarati",
     shortTitle: "IP",
-    description: "IP adresinin ulke, ASN, abuse kaydi ve veri merkezi/VPN sinyallerini degerlendirir.",
+    description: "IP adresinin ulke, ASN, hosting, proxy/VPN/Tor ve kotuye kullanim sinyallerini degerlendirir.",
     status: "Yakinda",
     icon: "IP",
     inputLabel: "IP adresi",
     placeholder: "8.8.8.8",
+    // TODO: IP Istihbarati kapsami:
+    // - IP ulke bilgisi
+    // - ASN / organizasyon
+    // - Hosting saglayici
+    // - AbuseIPDB entegrasyonu
+    // - VPN / Proxy tespiti
+    // - Tor exit node kontrolu
+    // - Kara liste sinyalleri
+    // - Son raporlanma tarihi
+    // - Vatandasa sade risk yorumu
     checks: ["Ulke", "ASN", "Hosting firmasi", "VPN/TOR olasiligi", "Abuse kayitlari", "Veri merkezi sinyali"]
   },
   {
