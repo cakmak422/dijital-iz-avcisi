@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "node start-hostinger.js",
+    "start": "node .next/standalone/server.js",
     "lint": "next lint",
     "security:audit": "npm audit --audit-level=moderate"
   },
