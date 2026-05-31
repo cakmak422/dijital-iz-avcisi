@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { fetchLatestCyberNews } from "@/lib/newsFetcher";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   const cookieStore = await cookies();
   const authorization = request.headers.get("authorization") ?? "";

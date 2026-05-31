@@ -103,7 +103,8 @@ async function upsertNewsBatch(items: CyberNewsItem[]): Promise<NewsDbWriteResul
       method: "POST",
       headers: getSupabaseHeaders("resolution=ignore-duplicates,return=representation"),
       body: JSON.stringify(payload),
-      cache: "no-store"
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000)
     });
 
     if (!response.ok) {
@@ -147,7 +148,7 @@ function chunkItems<T>(items: T[], size: number) {
 }
 
 function isSupabaseConfigured() {
-  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+  return Boolean(getSupabaseBaseUrl() && process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
 async function fetchRows(query: string): Promise<CyberNewsDbRow[] | null> {
@@ -156,17 +157,32 @@ async function fetchRows(query: string): Promise<CyberNewsDbRow[] | null> {
   try {
     const response = await fetch(`${getSupabaseBaseUrl()}/rest/v1/cyber_news?${query}`, {
       headers: getSupabaseHeaders(),
-      cache: "no-store"
+      cache: "no-store",
+      signal: AbortSignal.timeout(3500)
     });
     if (!response.ok) return null;
-    return (await response.json()) as CyberNewsDbRow[];
-  } catch {
+    const data = (await response.json()) as unknown;
+    return Array.isArray(data) ? (data as CyberNewsDbRow[]) : null;
+  } catch (error) {
+    console.error("supabase_cyber_news_read_failed", {
+      error: error instanceof Error ? error.message : "Bilinmeyen Supabase okuma hatasi"
+    });
     return null;
   }
 }
 
 function getSupabaseBaseUrl() {
-  return (process.env.SUPABASE_URL ?? "").replace(/\/$/, "");
+  const rawUrl = (process.env.SUPABASE_URL ?? "").trim().replace(/\/$/, "");
+  if (!rawUrl) return "";
+
+  try {
+    const parsed = new URL(rawUrl);
+    if (!["http:", "https:"].includes(parsed.protocol)) return "";
+    return parsed.origin;
+  } catch {
+    console.error("supabase_url_invalid");
+    return "";
+  }
 }
 
 function getSupabaseHeaders(prefer?: string) {

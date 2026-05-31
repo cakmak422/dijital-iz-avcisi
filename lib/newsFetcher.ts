@@ -45,6 +45,7 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
     try {
       const response = await fetch(source.rssUrl, {
         cache: "no-store",
+        signal: AbortSignal.timeout(5000),
         headers: {
           Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.8",
           "User-Agent": "Dijital-Iz-Avcisi-NewsFetcher/1.0"
