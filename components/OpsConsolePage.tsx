@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { AdminGate } from "@/components/AdminGate";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -27,6 +28,22 @@ const statusStyles: Record<UserStatus, string> = {
 };
 
 export function OpsConsolePage() {
+  const [newsUpdateStatus, setNewsUpdateStatus] = useState("Hazir");
+
+  async function handleNewsUpdate() {
+    setNewsUpdateStatus("Haber kaynaklari kontrol ediliyor...");
+    try {
+      // CRON_SECRET client tarafina konmaz. Bu istek admin session cookie ile yetkilendirilir.
+      // TODO: Gercek production auth geldiginde bu butonu server action veya signed admin API uzerinden calistir.
+      const response = await fetch("/api/news/fetch", { method: "POST" });
+      if (!response.ok) throw new Error("Haber guncelleme istegi basarisiz oldu.");
+      const result = (await response.json()) as { found: number; inserted: number; skipped: number; failed: number };
+      setNewsUpdateStatus(`${result.found} haber bulundu, ${result.inserted} veritabanina eklendi, ${result.skipped} tekrar/atlanmis, ${result.failed} basarisiz.`);
+    } catch {
+      setNewsUpdateStatus("Haberler guncellenemedi. Kaynak veya ag erisimi kontrol edilmeli.");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
@@ -80,6 +97,7 @@ export function OpsConsolePage() {
             <div className="grid gap-5">
               <AdminCard title="Siber gündem içerikleri" items={posts.map((post) => `${post.title} - ${post.status}`)} />
               <AdminCard title="Kullanıcı geri bildirimleri" items={["Şüpheli link bildirimi", "Hatalı analiz notu", "Yeni araç önerisi"]} />
+              <NewsUpdateCard onUpdate={handleNewsUpdate} status={newsUpdateStatus} />
               <AdminCard title="Riskli link bildirimleri" items={alerts.map((alert) => `${alert.title} - ${alert.riskLevel}`)} />
             </div>
           </div>
@@ -153,6 +171,27 @@ function AdminCard({ items, title }: { items: string[]; title: string }) {
           </p>
         ))}
       </div>
+    </article>
+  );
+}
+
+function NewsUpdateCard({
+  onUpdate,
+  status
+}: {
+  onUpdate: () => void;
+  status: string;
+}) {
+  return (
+    <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+      <h2 className="text-xl font-bold">Guncel Siber Haberler</h2>
+      <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+        RSS kaynaklarini tarar, uygun haberleri cyber_news tablosuna source_url benzersizligiyle kaydeder.
+      </p>
+      <button className="btn-primary mt-4 min-h-10 px-4" onClick={onUpdate} type="button">
+        Haberleri Guncelle
+      </button>
+      <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-400">{status}</p>
     </article>
   );
 }

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Dijital Iz Avcisi siber haber gorseli</title>
+  <desc id="desc">Siber haberler icin soyut kurumsal guvenlik gorseli.</desc>
+  <rect width="1200" height="630" fill="#020617"/>
+  <path d="M0 140h1200M0 300h1200M0 460h1200M180 0v630M420 0v630M660 0v630M900 0v630" stroke="#0e7490" stroke-opacity=".22" stroke-width="2"/>
+  <circle cx="600" cy="315" r="150" fill="#083344" opacity=".72"/>
+  <circle cx="600" cy="315" r="104" fill="none" stroke="#67e8f9" stroke-opacity=".7" stroke-width="3"/>
+  <circle cx="600" cy="315" r="56" fill="none" stroke="#34d399" stroke-opacity=".72" stroke-width="3"/>
+  <path d="M600 165v-60M600 525v-60M450 315h-74M824 315h-74M494 209l-46-46M752 467l-46-46M706 209l46-46M448 467l46-46" stroke="#67e8f9" stroke-opacity=".76" stroke-width="5" stroke-linecap="round"/>
+  <rect x="72" y="72" width="268" height="76" rx="12" fill="#0f172a" stroke="#164e63"/>
+  <text x="96" y="121" fill="#e0f2fe" font-family="Arial, sans-serif" font-size="28" font-weight="700">Guncel Siber Haber</text>
+  <text x="72" y="560" fill="#bae6fd" font-family="Arial, sans-serif" font-size="34" font-weight="700">Dijital Iz Avcisi</text>
+  <text x="72" y="596" fill="#94a3b8" font-family="Arial, sans-serif" font-size="20">Kaynakli risk ozeti ve vatandas onerileri</text>
+</svg>

@@ -76,6 +76,7 @@ function Navbar({
   const navItems = [
     { href: "/hakkimizda", label: "Hakkimizda" },
     { href: "/siber-arsiv", label: "Siber Arsiv" },
+    { href: "/haberler", label: "Haberler" },
     { href: "/sorgu-paneli", label: "Sorgu Paneli" },
     { href: "/dijital-arac-merkezi", label: "Dijital Arac Merkezi" }
   ];
