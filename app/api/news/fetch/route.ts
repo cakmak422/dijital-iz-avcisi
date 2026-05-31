@@ -21,6 +21,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Yetkisiz istek." }, { status: 401 });
   }
 
-  const result = await fetchLatestCyberNews();
-  return NextResponse.json(result);
+  try {
+    const result = await fetchLatestCyberNews();
+    return NextResponse.json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Bilinmeyen haber guncelleme hatasi";
+    console.error("news_fetch_endpoint_failed", { error: message });
+    return NextResponse.json(
+      {
+        found: 0,
+        processedLimit: { perSource: 10, total: 30, processed: 0 },
+        inserted: 0,
+        skipped: 0,
+        failed: 1,
+        errors: [message],
+        items: [],
+        sources: []
+      },
+      { status: 200 }
+    );
+  }
 }

@@ -64,6 +64,40 @@ export async function upsertNewsItems(items: CyberNewsItem[]): Promise<NewsDbWri
   if (!isSupabaseConfigured()) return { ...fallbackResult, skipped: items.length };
 
   try {
+    const batches = chunkItems(items, 10);
+    const insertedItems: CyberNewsItem[] = [];
+    const errors: string[] = [];
+    let skipped = 0;
+    let failed = 0;
+
+    for (const batch of batches) {
+      const batchResult = await upsertNewsBatch(batch);
+      insertedItems.push(...batchResult.items);
+      skipped += batchResult.skipped;
+      failed += batchResult.failed;
+      errors.push(...batchResult.errors);
+    }
+
+    return {
+      inserted: insertedItems.length,
+      skipped,
+      failed,
+      items: insertedItems,
+      usingDatabase: true,
+      errors: errors.slice(0, 5)
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Bilinmeyen Supabase insert hatasi";
+    console.error("supabase_cyber_news_upsert_exception", {
+      error: errorMessage,
+      itemCount: items.length
+    });
+    return { ...fallbackResult, failed: items.length, errors: [errorMessage] };
+  }
+}
+
+async function upsertNewsBatch(items: CyberNewsItem[]): Promise<NewsDbWriteResult> {
+  try {
     const payload = items.map(toDbRow);
     const response = await fetch(`${getSupabaseBaseUrl()}/rest/v1/cyber_news?on_conflict=source_url`, {
       method: "POST",
@@ -96,12 +130,20 @@ export async function upsertNewsItems(items: CyberNewsItem[]): Promise<NewsDbWri
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Bilinmeyen Supabase insert hatasi";
-    console.error("supabase_cyber_news_upsert_exception", {
+    console.error("supabase_cyber_news_batch_exception", {
       error: errorMessage,
       itemCount: items.length
     });
     return { ...fallbackResult, failed: items.length, errors: [errorMessage] };
   }
+}
+
+function chunkItems<T>(items: T[], size: number) {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
 }
 
 function isSupabaseConfigured() {

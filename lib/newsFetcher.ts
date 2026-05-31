@@ -3,6 +3,9 @@ import { getCyberNewsItems, isRelevantCyberNews, upsertUniqueNewsItems, type Cyb
 import { summarizeCyberNews, type RawCyberNews } from "@/lib/newsSummarizer";
 import { upsertNewsItems } from "@/lib/newsDb";
 
+const MAX_ITEMS_PER_SOURCE = 10;
+const MAX_TOTAL_ITEMS = 30;
+
 export type NewsSourceFetchReport = {
   sourceId: string;
   sourceName: string;
@@ -18,6 +21,11 @@ export type NewsSourceFetchReport = {
 
 export type NewsFetchReport = {
   found: number;
+  processedLimit: {
+    perSource: number;
+    total: number;
+    processed: number;
+  };
   inserted: number;
   skipped: number;
   failed: number;
@@ -29,8 +37,11 @@ export type NewsFetchReport = {
 export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
   const fetchedItems: CyberNewsItem[] = [];
   const sourceReports: NewsSourceFetchReport[] = [];
+  let remainingCapacity = MAX_TOTAL_ITEMS;
 
   for (const source of rssSources.filter((item) => item.enabled)) {
+    if (remainingCapacity <= 0) break;
+
     try {
       const response = await fetch(source.rssUrl, {
         cache: "no-store",
@@ -43,7 +54,8 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
       const xml = await response.text();
       const parsed = response.ok ? parseRssItems(xml, source) : [];
       const accepted = filterRssItemsByKeywords(parsed, source.keywords);
-      const mapped = accepted.map((item) =>
+      const acceptedForProcessing = accepted.slice(0, Math.min(MAX_ITEMS_PER_SOURCE, remainingCapacity));
+      const mapped = acceptedForProcessing.map((item) =>
         mapRawNewsToCyberNews({
           title: item.title,
           sourceName: item.sourceName,
@@ -55,6 +67,7 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
       );
 
       fetchedItems.push(...mapped);
+      remainingCapacity = Math.max(0, MAX_TOTAL_ITEMS - fetchedItems.length);
       sourceReports.push({
         sourceId: source.id,
         sourceName: source.name,
@@ -86,6 +99,11 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
 
   return {
     found: uniqueFetched.length,
+    processedLimit: {
+      perSource: MAX_ITEMS_PER_SOURCE,
+      total: MAX_TOTAL_ITEMS,
+      processed: uniqueFetched.length
+    },
     inserted: dbResult.inserted,
     skipped: dbResult.skipped,
     failed: dbResult.failed,
