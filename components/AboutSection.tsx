@@ -1,6 +1,7 @@
 "use client";
 
 import { EditableContent } from "@/components/admin/content/EditableContent";
+import { CONTACT_EMAIL } from "@/lib/contactConfig";
 
 export function AboutSection() {
   const analyzedSignals = [
@@ -31,6 +32,9 @@ export function AboutSection() {
             <h2 className="font-bold">Hukuki guven metni</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
               Sistem kesin hukum vermez. Sunulan sonuclar risk sinyalleri ve veri analizi temelinde olusturulan bilgilendirme ciktilaridir.
+            </p>
+            <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+              Resmi iletisim adresi: <a className="font-semibold text-cyan-700 underline dark:text-cyan-200" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
             </p>
           </div>
         </div>

@@ -10,7 +10,7 @@ export function ContactForm() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSent(false);
     setError("");
@@ -37,8 +37,23 @@ export function ContactForm() {
       return;
     }
 
-    setSent(true);
-    event.currentTarget.reset();
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, topic, message })
+      });
+      const result = (await response.json()) as { ok?: boolean; error?: string };
+      if (!response.ok || !result.ok) {
+        setError(result.error || "Mesaj gonderilemedi. Lutfen daha sonra tekrar deneyin.");
+        return;
+      }
+
+      setSent(true);
+      event.currentTarget.reset();
+    } catch {
+      setError("Mesaj gonderilemedi. Lutfen daha sonra tekrar deneyin.");
+    }
   }
 
   return (
@@ -57,7 +72,7 @@ export function ContactForm() {
         Mesaji Gonder
       </button>
       {error ? <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p> : null}
-      {sent ? <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">Mesajiniz alindi. Gercek backend baglandiginda kayit altina alinacaktir.</p> : null}
+      {sent ? <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">Mesajiniz alindi. Iletisim ekibine iletilecektir.</p> : null}
     </form>
   );
 }

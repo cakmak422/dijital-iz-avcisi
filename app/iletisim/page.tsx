@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ContactForm } from "@/components/ContactForm";
 import { EditableContent } from "@/components/admin/content/EditableContent";
+import { CONTACT_EMAIL } from "@/lib/contactConfig";
 
 export default function ContactPage() {
   return (
@@ -20,6 +21,10 @@ export default function ContactPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Iletisim</p>
           <h1 className="mt-3 text-3xl font-bold sm:text-4xl">Oneri, bildirim ve is birligi.</h1>
           <EditableContent as="p" className="mt-4 leading-7 text-slate-600 dark:text-slate-300 sm:leading-8" contentKey="contact.intro.text" />
+          <div className="mt-5 rounded-lg border border-cyan-200 bg-cyan-50 p-4 text-sm leading-6 text-cyan-950 dark:border-cyan-400/30 dark:bg-cyan-400/10 dark:text-cyan-100">
+            <p className="font-bold">E-posta: <a className="underline" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></p>
+            <p className="mt-1">Iletisim, ihbar, oneri ve is birligi talepleri icin bu adres kullanilacaktir.</p>
+          </div>
         </div>
       </section>
 
