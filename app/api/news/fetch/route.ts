@@ -6,6 +6,14 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({
+      ok: false,
+      disabled: true,
+      message: "News fetch temporarily disabled in production"
+    });
+  }
+
   const cookieStore = await cookies();
   const authorization = request.headers.get("authorization") ?? "";
   const cronSecret = process.env.CRON_SECRET;
@@ -18,10 +26,8 @@ export async function POST(request: Request) {
     if (authorization !== expected && !hasAdminSession) {
       return NextResponse.json({ error: "Yetkisiz istek." }, { status: 401 });
     }
-  } else if (process.env.NODE_ENV !== "production") {
+  } else {
     console.warn("CRON_SECRET tanimli degil. /api/news/fetch development modunda korunmasiz calisiyor.");
-  } else if (!hasAdminSession) {
-    return NextResponse.json({ error: "Yetkisiz istek." }, { status: 401 });
   }
 
   try {
