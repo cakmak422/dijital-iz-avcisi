@@ -29,6 +29,7 @@ export type NewsDbWriteResult = {
   failed: number;
   items: CyberNewsItem[];
   usingDatabase: boolean;
+  errors: string[];
 };
 
 const fallbackResult: NewsDbWriteResult = {
@@ -36,7 +37,8 @@ const fallbackResult: NewsDbWriteResult = {
   skipped: 0,
   failed: 0,
   items: [],
-  usingDatabase: false
+  usingDatabase: false,
+  errors: []
 };
 
 export async function getLatestNews(limit = 3): Promise<CyberNewsItem[]> {
@@ -62,15 +64,24 @@ export async function upsertNewsItems(items: CyberNewsItem[]): Promise<NewsDbWri
   if (!isSupabaseConfigured()) return { ...fallbackResult, skipped: items.length };
 
   try {
+    const payload = items.map(toDbRow);
     const response = await fetch(`${getSupabaseBaseUrl()}/rest/v1/cyber_news?on_conflict=source_url`, {
       method: "POST",
       headers: getSupabaseHeaders("resolution=ignore-duplicates,return=representation"),
-      body: JSON.stringify(items.map(toDbRow)),
+      body: JSON.stringify(payload),
       cache: "no-store"
     });
 
     if (!response.ok) {
-      return { ...fallbackResult, failed: items.length };
+      const errorMessage = await readSupabaseError(response);
+      console.error("supabase_cyber_news_upsert_failed", {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorMessage,
+        itemCount: items.length,
+        samplePayload: payload.slice(0, 2)
+      });
+      return { ...fallbackResult, failed: items.length, errors: [errorMessage].filter(Boolean).slice(0, 5) };
     }
 
     const insertedRows = (await response.json()) as CyberNewsDbRow[];
@@ -80,10 +91,16 @@ export async function upsertNewsItems(items: CyberNewsItem[]): Promise<NewsDbWri
       skipped: Math.max(0, items.length - insertedItems.length),
       failed: 0,
       items: insertedItems,
-      usingDatabase: true
+      usingDatabase: true,
+      errors: []
     };
-  } catch {
-    return { ...fallbackResult, failed: items.length };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Bilinmeyen Supabase insert hatasi";
+    console.error("supabase_cyber_news_upsert_exception", {
+      error: errorMessage,
+      itemCount: items.length
+    });
+    return { ...fallbackResult, failed: items.length, errors: [errorMessage] };
   }
 }
 
@@ -122,6 +139,7 @@ function getSupabaseHeaders(prefer?: string) {
 
 function toDbRow(item: CyberNewsItem) {
   return {
+    // id bilerek gonderilmez; Supabase/PostgreSQL gen_random_uuid() uretir.
     title: item.title,
     slug: item.slug,
     summary: item.summary,
@@ -135,6 +153,18 @@ function toDbRow(item: CyberNewsItem) {
     fetched_at: toTimestamp(item.fetchedAt) ?? new Date().toISOString(),
     risk_level: item.riskLevel
   };
+}
+
+async function readSupabaseError(response: Response) {
+  const raw = await response.text();
+  if (!raw) return `${response.status} ${response.statusText}`;
+
+  try {
+    const parsed = JSON.parse(raw) as { message?: string; details?: string; hint?: string; code?: string };
+    return [parsed.code, parsed.message, parsed.details, parsed.hint].filter(Boolean).join(" | ");
+  } catch {
+    return raw.slice(0, 600);
+  }
 }
 
 function fromDbRow(row: CyberNewsDbRow): CyberNewsItem {
@@ -168,4 +198,3 @@ function toDateLabel(value: string | null) {
   if (Number.isNaN(date.getTime())) return value.slice(0, 10);
   return date.toISOString().slice(0, 10);
 }
-

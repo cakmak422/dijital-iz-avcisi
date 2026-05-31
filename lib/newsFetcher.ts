@@ -21,6 +21,7 @@ export type NewsFetchReport = {
   inserted: number;
   skipped: number;
   failed: number;
+  errors: string[];
   items: CyberNewsItem[];
   sources: NewsSourceFetchReport[];
 };
@@ -88,6 +89,7 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
     inserted: dbResult.inserted,
     skipped: dbResult.skipped,
     failed: dbResult.failed,
+    errors: dbResult.errors.slice(0, 5),
     items: dbResult.items.length ? dbResult.items : getCyberNewsItems(),
     sources: sourceReports
   };

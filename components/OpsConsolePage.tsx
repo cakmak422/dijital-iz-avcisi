@@ -37,8 +37,9 @@ export function OpsConsolePage() {
       // TODO: Gercek production auth geldiginde bu butonu server action veya signed admin API uzerinden calistir.
       const response = await fetch("/api/news/fetch", { method: "POST" });
       if (!response.ok) throw new Error("Haber guncelleme istegi basarisiz oldu.");
-      const result = (await response.json()) as { found: number; inserted: number; skipped: number; failed: number };
-      setNewsUpdateStatus(`${result.found} haber bulundu, ${result.inserted} veritabanina eklendi, ${result.skipped} tekrar/atlanmis, ${result.failed} basarisiz.`);
+      const result = (await response.json()) as { found: number; inserted: number; skipped: number; failed: number; errors?: string[] };
+      const errorSummary = result.errors?.length ? ` Ilk hata: ${result.errors[0]}` : "";
+      setNewsUpdateStatus(`${result.found} haber bulundu, ${result.inserted} veritabanina eklendi, ${result.skipped} tekrar/atlanmis, ${result.failed} basarisiz.${errorSummary}`);
     } catch {
       setNewsUpdateStatus("Haberler guncellenemedi. Kaynak veya ag erisimi kontrol edilmeli.");
     }
