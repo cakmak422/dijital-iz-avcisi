@@ -11,7 +11,6 @@ import { ParserHealth } from "@/components/ParserHealth";
 import { SecurityCenter } from "@/components/SecurityCenter";
 import { EditableContent } from "@/components/admin/content/EditableContent";
 import { getTodayCyberEvent } from "@/lib/cyberArchive";
-import { CONTACT_EMAIL } from "@/lib/contactConfig";
 import { useDeviceType } from "@/lib/useDeviceType";
 
 type Theme = "light" | "dark";
@@ -369,8 +368,8 @@ function Footer() {
         </nav>
         <div className="grid content-start gap-2 text-sm text-slate-300">
           <p className="font-bold text-white">Iletisim</p>
-          <a className="transition hover:text-cyan-100" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
-          <p className="text-xs leading-5 text-slate-400">Iletisim, ihbar, oneri ve is birligi talepleri bu adrese yonlendirilir.</p>
+          <a className="transition hover:text-cyan-100" href="mailto:destek@dijitalizavcisi.com">destek@dijitalizavcisi.com</a>
+          <a className="transition hover:text-cyan-100" href="mailto:ihbar@dijitalizavcisi.com">ihbar@dijitalizavcisi.com</a>
           <p className="pt-3 text-xs text-slate-500">© 2026 Dijital Iz Avcisi. Tum haklari saklidir.</p>
         </div>
       </div>
