@@ -3,10 +3,11 @@ import { cookies } from "next/headers";
 import { fetchLatestCyberNews } from "@/lib/newsFetcher";
 
 export async function POST(request: Request) {
+  const cookieStore = await cookies();
   const authorization = request.headers.get("authorization") ?? "";
   const cronSecret = process.env.CRON_SECRET;
-  const sessionCookie = cookies().get("__Host-dia_session")?.value;
-  const sessionRole = cookies().get("__Host-dia_role")?.value;
+  const sessionCookie = cookieStore.get("__Host-dia_session")?.value;
+  const sessionRole = cookieStore.get("__Host-dia_role")?.value;
   const hasAdminSession = Boolean(sessionCookie && sessionRole === "admin");
 
   if (cronSecret) {
