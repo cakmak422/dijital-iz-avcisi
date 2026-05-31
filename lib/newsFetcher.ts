@@ -1,7 +1,6 @@
 import { filterRssItemsByKeywords, parseRssItems, rssSources } from "@/lib/rssSources";
 import { getCyberNewsItems, isRelevantCyberNews, upsertUniqueNewsItems, type CyberNewsItem } from "@/lib/newsStore";
 import { summarizeCyberNews, type RawCyberNews } from "@/lib/newsSummarizer";
-import { upsertNewsItems } from "@/lib/newsDb";
 
 const MAX_ITEMS_PER_SOURCE = 10;
 const MAX_TOTAL_ITEMS = 30;
@@ -96,8 +95,6 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
   }
 
   const uniqueFetched = upsertUniqueNewsItems(fetchedItems).filter((item) => isRelevantCyberNews(`${item.title} ${item.summary} ${item.category}`));
-  const dbResult = await upsertNewsItems(uniqueFetched);
-
   return {
     found: uniqueFetched.length,
     processedLimit: {
@@ -105,11 +102,11 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
       total: MAX_TOTAL_ITEMS,
       processed: uniqueFetched.length
     },
-    inserted: dbResult.inserted,
-    skipped: dbResult.skipped,
-    failed: dbResult.failed,
-    errors: dbResult.errors.slice(0, 5),
-    items: dbResult.items.length ? dbResult.items : getCyberNewsItems(),
+    inserted: 0,
+    skipped: uniqueFetched.length,
+    failed: 0,
+    errors: ["Database write temporarily disabled in safe mode"],
+    items: getCyberNewsItems(),
     sources: sourceReports
   };
 }

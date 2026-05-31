@@ -1,8 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
-import { getAllNews } from "@/lib/newsDb";
-import { type CyberNewsRiskLevel } from "@/lib/newsStore";
+import { getCyberNewsItems, type CyberNewsRiskLevel } from "@/lib/newsStore";
 
 const riskStyles: Record<CyberNewsRiskLevel, string> = {
   Düşük: "border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -10,8 +9,8 @@ const riskStyles: Record<CyberNewsRiskLevel, string> = {
   Yüksek: "border-red-200 bg-red-50 text-red-700"
 };
 
-export default async function NewsPage() {
-  const news = await getAllNews();
+export default function NewsPage() {
+  const news = getCyberNewsItems();
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">

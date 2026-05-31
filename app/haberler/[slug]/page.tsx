@@ -2,8 +2,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BrandLogo } from "@/components/BrandLogo";
-import { getAllNews, getNewsBySlug } from "@/lib/newsDb";
-import { type CyberNewsRiskLevel } from "@/lib/newsStore";
+import { getCyberNewsBySlug, getCyberNewsItems, type CyberNewsRiskLevel } from "@/lib/newsStore";
 
 const riskStyles: Record<CyberNewsRiskLevel, string> = {
   Düşük: "border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -11,14 +10,13 @@ const riskStyles: Record<CyberNewsRiskLevel, string> = {
   Yüksek: "border-red-200 bg-red-50 text-red-700"
 };
 
-export async function generateStaticParams() {
-  const news = await getAllNews();
-  return news.map((item) => ({ slug: item.slug }));
+export function generateStaticParams() {
+  return getCyberNewsItems().map((item) => ({ slug: item.slug }));
 }
 
 export default async function NewsDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const item = await getNewsBySlug(slug);
+  const item = getCyberNewsBySlug(slug);
   if (!item) notFound();
 
   return (
