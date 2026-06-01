@@ -7,7 +7,30 @@ export type DemoAuthRecord = {
 
 const USERS_KEY = "dijital-iz-avcisi-demo-users";
 const SESSION_KEY = "dijital-iz-avcisi-demo-session";
-const seededUsers: DemoAuthRecord[] = [];
+const DEMO_SESSION_COOKIE = "dia_session";
+const DEMO_ROLE_COOKIE = "dia_role";
+
+// Demo admin is only for local/admin panel access in the current frontend MVP.
+// This is not production authentication; real deployment needs backend auth,
+// password hashing, server-side authorization, and HttpOnly Secure sessions.
+const seededUsers: DemoAuthRecord[] = [
+  {
+    user: {
+      id: "demo-admin",
+      username: process.env.NEXT_PUBLIC_DEMO_ADMIN_USERNAME ?? "admin",
+      email: process.env.NEXT_PUBLIC_DEMO_ADMIN_EMAIL ?? "admin@dijitalizavcisi.com",
+      firstName: "Demo",
+      lastName: "Admin",
+      birthDate: "1990-01-01",
+      phone: "",
+      role: "admin",
+      isEmailVerified: true,
+      createdAt: "2026-06-01",
+      status: "active"
+    },
+    password: process.env.NEXT_PUBLIC_DEMO_ADMIN_PASSWORD ?? "Gokce42+-"
+  }
+];
 
 function normalizeSeededUsers(records: DemoAuthRecord[]) {
   const safeRecords = records.filter((record) => record.user.role !== "admin");
@@ -61,6 +84,7 @@ export function loginDemoUser(identifier: string, password: string): User | null
 
   if (typeof window !== "undefined") {
     window.localStorage.setItem(SESSION_KEY, JSON.stringify(record.user));
+    setDemoSessionCookies(record.user);
   }
 
   return record.user;
@@ -74,14 +98,15 @@ export function getCurrentDemoUser(): User | null {
 
   try {
     const user = JSON.parse(stored) as User;
-    if (user.role === "admin") {
-      window.localStorage.removeItem(SESSION_KEY);
-      return null;
-    }
-
     return user;
   } catch {
     window.localStorage.removeItem(SESSION_KEY);
     return null;
   }
+}
+
+function setDemoSessionCookies(user: User) {
+  const maxAge = 60 * 60 * 8;
+  document.cookie = `${DEMO_SESSION_COOKIE}=demo-session; Path=/; SameSite=Lax; Max-Age=${maxAge}`;
+  document.cookie = `${DEMO_ROLE_COOKIE}=${user.role}; Path=/; SameSite=Lax; Max-Age=${maxAge}`;
 }
