@@ -1,6 +1,8 @@
 export type EditableContentKey =
   | "home.hero.title"
   | "home.hero.description"
+  | "about.page.title"
+  | "about.page.description"
   | "home.about.text"
   | "home.cyberNews.title"
   | "home.cyberNews.description"

@@ -28,6 +28,22 @@ export const defaultEditableContent: EditableContent[] = [
     updatedBy: "system"
   },
   {
+    id: "content-about-page-title",
+    key: "about.page.title",
+    title: "Hakkimizda sayfa basligi",
+    content: "Siber farkindalik ve alisveris guvenligi icin sade risk analizi.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-about-page-description",
+    key: "about.page.description",
+    title: "Hakkimizda alt aciklamasi",
+    content: "Dijital Iz Avcisi, cevrim ici alisverislerde kullanicilarin urun ve satici risk sinyallerini daha hizli gorebilmesi icin gelistirilen AI destekli analiz platformudur.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
     id: "content-home-cyber-news-title",
     key: "home.cyberNews.title",
     title: "Siber Gündem basligi",
@@ -105,6 +121,6 @@ export const editableContentGroups: EditableContentGroup[] = [
     id: "corporate",
     title: "Kurumsal sayfalar",
     description: "Hakkimizda ve iletisim alanlarinda kullanilan metinler.",
-    keys: ["home.about.text", "contact.intro.text"]
+    keys: ["about.page.title", "about.page.description", "home.about.text", "contact.intro.text"]
   }
 ];
