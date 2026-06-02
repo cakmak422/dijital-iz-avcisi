@@ -132,6 +132,38 @@ export const defaultEditableContent: EditableContent[] = [
     updatedBy: "system"
   },
   {
+    id: "content-home-footer-title",
+    key: "home.footer.title",
+    title: "Footer basligi",
+    content: "Dijital Iz Avcisi",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-footer-support-email",
+    key: "home.footer.supportEmail",
+    title: "Footer destek e-postasi",
+    content: "destek@dijitalizavcisi.com",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-footer-report-email",
+    key: "home.footer.reportEmail",
+    title: "Footer ihbar e-postasi",
+    content: "ihbar@dijitalizavcisi.com",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-footer-copyright",
+    key: "home.footer.copyright",
+    title: "Footer telif metni",
+    content: "© 2026 Dijital Iz Avcisi. Tum haklari saklidir.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
     id: "content-contact-intro-text",
     key: "contact.intro.text",
     title: "Iletisim alani metni",
@@ -173,6 +205,10 @@ export const editableContentGroups: EditableContentGroup[] = [
       "home.guides.title",
       "home.guides.description",
       "home.todayCyberEvent.text",
+      "home.footer.title",
+      "home.footer.supportEmail",
+      "home.footer.reportEmail",
+      "home.footer.copyright",
       "home.footer.description"
     ]
   },

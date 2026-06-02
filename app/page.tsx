@@ -10,6 +10,7 @@ import { FeedbackForm } from "@/components/FeedbackForm";
 import { ParserHealth } from "@/components/ParserHealth";
 import { SecurityCenter } from "@/components/SecurityCenter";
 import { EditableContent } from "@/components/admin/content/EditableContent";
+import { useEditableContent } from "@/lib/contentStore";
 import { getTodayCyberEvent } from "@/lib/cyberArchive";
 import { useSiteSettings } from "@/lib/siteSettingsStore";
 import { useDeviceType } from "@/lib/useDeviceType";
@@ -343,11 +344,14 @@ function GuidesPreview() {
 }
 
 function Footer() {
+  const supportEmail = useEditableContent("home.footer.supportEmail").content;
+  const reportEmail = useEditableContent("home.footer.reportEmail").content;
+
   return (
     <footer className="border-t border-slate-200 bg-slate-950 px-4 py-10 text-white sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1.25fr_0.8fr_0.8fr_1fr]">
         <div>
-          <p className="text-lg font-bold">Dijital Iz Avcisi</p>
+          <EditableContent as="p" className="text-lg font-bold" contentKey="home.footer.title" />
           <EditableContent as="p" className="mt-2 max-w-2xl text-sm leading-6 text-slate-300" contentKey="home.footer.description" />
           <p className="mt-4 rounded-md border border-amber-300/20 bg-amber-300/10 p-3 text-xs leading-5 text-amber-100">
             Platform bilgilendirme amaciyla risk sinyalleri uretir; kesin hukum veya suc isnadi olusturmaz.
@@ -369,9 +373,9 @@ function Footer() {
         </nav>
         <div className="grid content-start gap-2 text-sm text-slate-300">
           <p className="font-bold text-white">Iletisim</p>
-          <a className="transition hover:text-cyan-100" href="mailto:destek@dijitalizavcisi.com">destek@dijitalizavcisi.com</a>
-          <a className="transition hover:text-cyan-100" href="mailto:ihbar@dijitalizavcisi.com">ihbar@dijitalizavcisi.com</a>
-          <p className="pt-3 text-xs text-slate-500">© 2026 Dijital Iz Avcisi. Tum haklari saklidir.</p>
+          <a className="transition hover:text-cyan-100" href={`mailto:${supportEmail}`}>{supportEmail}</a>
+          <a className="transition hover:text-cyan-100" href={`mailto:${reportEmail}`}>{reportEmail}</a>
+          <EditableContent as="p" className="pt-3 text-xs text-slate-500" contentKey="home.footer.copyright" />
         </div>
       </div>
     </footer>

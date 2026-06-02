@@ -14,7 +14,11 @@ export type EditableContentKey =
   | "home.guides.eyebrow"
   | "home.guides.title"
   | "home.guides.description"
+  | "home.footer.title"
   | "home.footer.description"
+  | "home.footer.supportEmail"
+  | "home.footer.reportEmail"
+  | "home.footer.copyright"
   | "contact.intro.text"
   | "home.announcement.banner"
   | "home.todayCyberEvent.text";
