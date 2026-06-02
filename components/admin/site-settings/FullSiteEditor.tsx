@@ -10,6 +10,7 @@ const textFields: Array<{
   label: string;
   helper: string;
   type: "text" | "color";
+  maxLength?: number;
 }> = [
   {
     key: "siteName",
@@ -22,6 +23,20 @@ const textFields: Array<{
     label: "Logo metni",
     helper: "Logo görseli olmadığında veya metinli kullanımda görünecek ad.",
     type: "text"
+  },
+  {
+    key: "heroTitle",
+    label: "Ana sayfa hero basligi",
+    helper: "Ana sayfanin ilk ekranda gosterdigi buyuk baslik.",
+    type: "text",
+    maxLength: 160
+  },
+  {
+    key: "heroSubtitle",
+    label: "Ana sayfa hero alt aciklamasi",
+    helper: "Hero basliginin altinda gorunen kisa aciklama metni.",
+    type: "text",
+    maxLength: 320
   },
   {
     key: "favicon",
@@ -114,7 +129,7 @@ export function FullSiteEditor() {
               <div className={field.type === "color" ? "flex gap-3" : ""}>
                 <input
                   className="min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-slate-950 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:ring-cyan-400/20"
-                  maxLength={field.type === "color" ? 32 : 120}
+                  maxLength={field.maxLength ?? (field.type === "color" ? 32 : 120)}
                   onChange={(event) => updateField(field.key, event.target.value)}
                   type={field.type}
                   value={String(draft[field.key])}

@@ -44,6 +44,38 @@ export const defaultEditableContent: EditableContent[] = [
     updatedBy: "system"
   },
   {
+    id: "content-about-mission-title",
+    key: "about.mission.title",
+    title: "Misyon basligi",
+    content: "Misyonumuz",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-about-mission-text",
+    key: "about.mission.text",
+    title: "Misyon metni",
+    content: "Kullanici verisi satmadan, odeme bilgisi almadan ve sade risk dili kullanarak dijital tehditleri herkes icin daha anlasilir hale getirmek.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-about-vision-title",
+    key: "about.vision.title",
+    title: "Vizyon basligi",
+    content: "Vizyonumuz",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-about-vision-text",
+    key: "about.vision.text",
+    title: "Vizyon metni",
+    content: "Turkiye genelinde alisveris guven farkindaligini artirmak ve dijital riskleri herkes icin daha okunabilir hale getirmek.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
     id: "content-home-cyber-news-title",
     key: "home.cyberNews.title",
     title: "Siber Gündem basligi",
@@ -121,6 +153,15 @@ export const editableContentGroups: EditableContentGroup[] = [
     id: "corporate",
     title: "Kurumsal sayfalar",
     description: "Hakkimizda ve iletisim alanlarinda kullanilan metinler.",
-    keys: ["about.page.title", "about.page.description", "home.about.text", "contact.intro.text"]
+    keys: [
+      "about.page.title",
+      "about.page.description",
+      "about.mission.title",
+      "about.mission.text",
+      "about.vision.title",
+      "about.vision.text",
+      "home.about.text",
+      "contact.intro.text"
+    ]
   }
 ];

@@ -11,6 +11,7 @@ import { ParserHealth } from "@/components/ParserHealth";
 import { SecurityCenter } from "@/components/SecurityCenter";
 import { EditableContent } from "@/components/admin/content/EditableContent";
 import { getTodayCyberEvent } from "@/lib/cyberArchive";
+import { useSiteSettings } from "@/lib/siteSettingsStore";
 import { useDeviceType } from "@/lib/useDeviceType";
 
 type Theme = "light" | "dark";
@@ -141,6 +142,8 @@ function Navbar({
 }
 
 function Hero() {
+  const siteSettings = useSiteSettings();
+
   return (
     <section className="relative overflow-hidden border-b border-slate-200 bg-white dark:border-white/10 dark:bg-slate-950">
       <div className="cyber-grid absolute inset-0 opacity-70" />
@@ -150,8 +153,8 @@ function Hero() {
           <p className="w-fit rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-blue-700 dark:border-blue-400/30 dark:bg-blue-400/10 dark:text-blue-200">
             Vatandaslar icin AI destekli dijital guvenlik
           </p>
-          <EditableContent as="h1" className="mt-5 max-w-4xl text-3xl font-bold tracking-normal text-slate-950 sm:text-4xl lg:text-6xl dark:text-white" contentKey="home.hero.title" />
-          <EditableContent as="p" className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg sm:leading-8" contentKey="home.hero.description" />
+          <h1 className="mt-5 max-w-4xl text-3xl font-bold tracking-normal text-slate-950 sm:text-4xl lg:text-6xl dark:text-white">{siteSettings.heroTitle}</h1>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg sm:leading-8">{siteSettings.heroSubtitle}</p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Link className="btn-primary min-h-12 w-full text-base sm:w-auto" href="/sorgu-paneli">
               Sorgu Panelini Ac

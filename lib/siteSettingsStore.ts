@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 export type SiteSettings = {
   siteName: string;
   logoText: string;
+  heroTitle: string;
+  heroSubtitle: string;
   favicon: string;
   primaryColor: string;
   secondaryColor: string;
@@ -19,6 +21,8 @@ const changedEventName = "dijital-iz-avcisi-site-settings-changed";
 export const defaultSiteSettings: SiteSettings = {
   siteName: "Dijital Iz Avcisi",
   logoText: "Dijital Iz Avcisi",
+  heroTitle: "Dijital tehditleri sade risk sinyallerine donustur.",
+  heroSubtitle: "Sahte site, phishing link, riskli satici, supheli SMS ve dijital risk sinyallerini herkesin anlayacagi guven raporlarina ceviren AI destekli analiz platformu.",
   favicon: "/favicon.ico",
   primaryColor: "#0f172a",
   secondaryColor: "#0891b2",
@@ -35,6 +39,8 @@ function isValidSettings(value: Partial<SiteSettings>) {
   return Boolean(
     value.siteName &&
       value.logoText &&
+      value.heroTitle &&
+      value.heroSubtitle &&
       value.favicon &&
       value.primaryColor &&
       value.secondaryColor &&
