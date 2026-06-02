@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { saveContactMessage } from "@/lib/contactStore";
 import { checkClientRateLimit } from "@/lib/rateLimit";
 import { isValidEmail, sanitizeMultiline, sanitizeText } from "@/lib/sanitize";
 
@@ -34,6 +35,13 @@ export function ContactForm() {
 
     if (!isValidEmail(email)) {
       setError("Gecerli bir e-posta adresi girin.");
+      return;
+    }
+
+    try {
+      saveContactMessage({ name, email, topic, message });
+    } catch {
+      setError("Mesaj kaydedilemedi. Lutfen tekrar deneyin.");
       return;
     }
 
