@@ -172,6 +172,54 @@ export const defaultEditableContent: EditableContent[] = [
     updatedBy: "system"
   },
   {
+    id: "content-contact-page-title",
+    key: "contact.page.title",
+    title: "Iletisim sayfa basligi",
+    content: "Oneri, bildirim ve is birligi.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-contact-page-description",
+    key: "contact.page.description",
+    title: "Iletisim sayfa aciklamasi",
+    content: "Supheli link, sahte SMS ornegi, hatali analiz bildirimi veya yeni ozellik onerilerini bu form uzerinden paylasabilirsiniz.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-contact-info-title",
+    key: "contact.info.title",
+    title: "Iletisim bilgi basligi",
+    content: "Resmi iletisim",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-contact-info-description",
+    key: "contact.info.description",
+    title: "Iletisim bilgi aciklamasi",
+    content: "Iletisim, ihbar, oneri ve is birligi talepleri icin asagidaki adresleri kullanabilirsiniz.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-contact-support-email",
+    key: "contact.supportEmail",
+    title: "Iletisim destek e-postasi",
+    content: "iletisim@dijitalizavcisi.com",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-contact-report-email",
+    key: "contact.reportEmail",
+    title: "Iletisim ihbar e-postasi",
+    content: "iletisim@dijitalizavcisi.com",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
     id: "content-home-announcement-banner",
     key: "home.announcement.banner",
     title: "Ana sayfa duyuru banneri",
@@ -224,6 +272,12 @@ export const editableContentGroups: EditableContentGroup[] = [
       "about.vision.title",
       "about.vision.text",
       "home.about.text",
+      "contact.page.title",
+      "contact.page.description",
+      "contact.info.title",
+      "contact.info.description",
+      "contact.supportEmail",
+      "contact.reportEmail",
       "contact.intro.text"
     ]
   }

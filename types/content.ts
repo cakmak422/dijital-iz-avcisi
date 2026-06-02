@@ -19,6 +19,12 @@ export type EditableContentKey =
   | "home.footer.supportEmail"
   | "home.footer.reportEmail"
   | "home.footer.copyright"
+  | "contact.page.title"
+  | "contact.page.description"
+  | "contact.info.title"
+  | "contact.info.description"
+  | "contact.supportEmail"
+  | "contact.reportEmail"
   | "contact.intro.text"
   | "home.announcement.banner"
   | "home.todayCyberEvent.text";
