@@ -19,6 +19,13 @@ export type ContactMessageInput = {
   message: string;
 };
 
+export type ContactMessageStats = {
+  total: number;
+  new: number;
+  read: number;
+  archived: number;
+};
+
 const storageKey = "dijital-iz-avcisi:contact-messages:v1";
 const changedEventName = "dijital-iz-avcisi-contact-messages-changed";
 
@@ -57,8 +64,23 @@ export function getContactMessages() {
   return sortNewestFirst(parseMessages(window.localStorage.getItem(storageKey)));
 }
 
+export function getAllContactMessages() {
+  return getContactMessages();
+}
+
 export function getLatestContactMessages(limit = 5) {
   return getContactMessages().filter((message) => message.status !== "archived").slice(0, limit);
+}
+
+export function getContactMessageStats(): ContactMessageStats {
+  const messages = getContactMessages();
+
+  return {
+    total: messages.length,
+    new: messages.filter((message) => message.status === "new").length,
+    read: messages.filter((message) => message.status === "read").length,
+    archived: messages.filter((message) => message.status === "archived").length
+  };
 }
 
 export function saveContactMessage(input: ContactMessageInput) {
