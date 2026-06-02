@@ -314,9 +314,9 @@ function GuidesPreview() {
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[320px_1fr]">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200">Rehberler</p>
-          <h2 className="mt-2 text-3xl font-bold">Halkin anlayacagi guvenlik dili.</h2>
+          <h2 className="mt-2 text-3xl font-bold">Guvenlik bilgisi herkes icin.</h2>
           <p className="mt-3 leading-7 text-slate-600 dark:text-slate-300">
-            Teknik tehditleri sade, uygulanabilir ve SEO uyumlu rehberlere donusturen icerik alani.
+            Teknik tehditleri sade, uygulanabilir ve anlasilir rehberlere donusturen icerik alani.
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
