@@ -100,6 +100,30 @@ export const defaultEditableContent: EditableContent[] = [
     updatedBy: "system"
   },
   {
+    id: "content-home-guides-eyebrow",
+    key: "home.guides.eyebrow",
+    title: "Rehberler ust etiketi",
+    content: "Rehberler",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-guides-title",
+    key: "home.guides.title",
+    title: "Rehberler basligi",
+    content: "Guvenlik bilgisi herkes icin.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-guides-description",
+    key: "home.guides.description",
+    title: "Rehberler aciklamasi",
+    content: "Teknik tehditleri sade, uygulanabilir ve anlasilir rehberlere donusturen icerik alani.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
     id: "content-home-footer-description",
     key: "home.footer.description",
     title: "Footer aciklamasi",
@@ -145,6 +169,9 @@ export const editableContentGroups: EditableContentGroup[] = [
       "home.securityCenter.description",
       "home.cyberNews.title",
       "home.cyberNews.description",
+      "home.guides.eyebrow",
+      "home.guides.title",
+      "home.guides.description",
       "home.todayCyberEvent.text",
       "home.footer.description"
     ]

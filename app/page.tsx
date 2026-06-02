@@ -313,11 +313,9 @@ function GuidesPreview() {
     <section id="rehberler" className="border-t border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[320px_1fr]">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200">Rehberler</p>
-          <h2 className="mt-2 text-3xl font-bold">Guvenlik bilgisi herkes icin.</h2>
-          <p className="mt-3 leading-7 text-slate-600 dark:text-slate-300">
-            Teknik tehditleri sade, uygulanabilir ve anlasilir rehberlere donusturen icerik alani.
-          </p>
+          <EditableContent as="p" className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200" contentKey="home.guides.eyebrow" />
+          <EditableContent as="h2" className="mt-2 text-3xl font-bold" contentKey="home.guides.title" />
+          <EditableContent as="p" className="mt-3 leading-7 text-slate-600 dark:text-slate-300" contentKey="home.guides.description" />
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {guides.map((guide, index) => (
