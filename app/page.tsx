@@ -10,7 +10,9 @@ import { FeedbackForm } from "@/components/FeedbackForm";
 import { ParserHealth } from "@/components/ParserHealth";
 import { SecurityCenter } from "@/components/SecurityCenter";
 import { EditableContent } from "@/components/admin/content/EditableContent";
+import { useEditableContent } from "@/lib/contentStore";
 import { getTodayCyberEvent } from "@/lib/cyberArchive";
+import { useSiteSettings } from "@/lib/siteSettingsStore";
 import { useDeviceType } from "@/lib/useDeviceType";
 
 type Theme = "light" | "dark";
@@ -141,6 +143,8 @@ function Navbar({
 }
 
 function Hero() {
+  const siteSettings = useSiteSettings();
+
   return (
     <section className="relative overflow-hidden border-b border-slate-200 bg-white dark:border-white/10 dark:bg-slate-950">
       <div className="cyber-grid absolute inset-0 opacity-70" />
@@ -150,8 +154,8 @@ function Hero() {
           <p className="w-fit rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-blue-700 dark:border-blue-400/30 dark:bg-blue-400/10 dark:text-blue-200">
             Vatandaslar icin AI destekli dijital guvenlik
           </p>
-          <EditableContent as="h1" className="mt-5 max-w-4xl text-3xl font-bold tracking-normal text-slate-950 sm:text-4xl lg:text-6xl dark:text-white" contentKey="home.hero.title" />
-          <EditableContent as="p" className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg sm:leading-8" contentKey="home.hero.description" />
+          <h1 className="mt-5 max-w-4xl text-3xl font-bold tracking-normal text-slate-950 sm:text-4xl lg:text-6xl dark:text-white">{siteSettings.heroTitle}</h1>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg sm:leading-8">{siteSettings.heroSubtitle}</p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Link className="btn-primary min-h-12 w-full text-base sm:w-auto" href="/sorgu-paneli">
               Sorgu Panelini Ac
@@ -310,11 +314,9 @@ function GuidesPreview() {
     <section id="rehberler" className="border-t border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[320px_1fr]">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200">Rehberler</p>
-          <h2 className="mt-2 text-3xl font-bold">Halkin anlayacagi guvenlik dili.</h2>
-          <p className="mt-3 leading-7 text-slate-600 dark:text-slate-300">
-            Teknik tehditleri sade, uygulanabilir ve SEO uyumlu rehberlere donusturen icerik alani.
-          </p>
+          <EditableContent as="p" className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200" contentKey="home.guides.eyebrow" />
+          <EditableContent as="h2" className="mt-2 text-3xl font-bold" contentKey="home.guides.title" />
+          <EditableContent as="p" className="mt-3 leading-7 text-slate-600 dark:text-slate-300" contentKey="home.guides.description" />
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {guides.map((guide, index) => (
@@ -342,11 +344,14 @@ function GuidesPreview() {
 }
 
 function Footer() {
+  const supportEmail = useEditableContent("home.footer.supportEmail").content;
+  const reportEmail = useEditableContent("home.footer.reportEmail").content;
+
   return (
     <footer className="border-t border-slate-200 bg-slate-950 px-4 py-10 text-white sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1.25fr_0.8fr_0.8fr_1fr]">
         <div>
-          <p className="text-lg font-bold">Dijital Iz Avcisi</p>
+          <EditableContent as="p" className="text-lg font-bold" contentKey="home.footer.title" />
           <EditableContent as="p" className="mt-2 max-w-2xl text-sm leading-6 text-slate-300" contentKey="home.footer.description" />
           <p className="mt-4 rounded-md border border-amber-300/20 bg-amber-300/10 p-3 text-xs leading-5 text-amber-100">
             Platform bilgilendirme amaciyla risk sinyalleri uretir; kesin hukum veya suc isnadi olusturmaz.
@@ -368,9 +373,9 @@ function Footer() {
         </nav>
         <div className="grid content-start gap-2 text-sm text-slate-300">
           <p className="font-bold text-white">Iletisim</p>
-          <a className="transition hover:text-cyan-100" href="mailto:destek@dijitalizavcisi.com">destek@dijitalizavcisi.com</a>
-          <a className="transition hover:text-cyan-100" href="mailto:ihbar@dijitalizavcisi.com">ihbar@dijitalizavcisi.com</a>
-          <p className="pt-3 text-xs text-slate-500">© 2026 Dijital Iz Avcisi. Tum haklari saklidir.</p>
+          <a className="transition hover:text-cyan-100" href={`mailto:${supportEmail}`}>{supportEmail}</a>
+          <a className="transition hover:text-cyan-100" href={`mailto:${reportEmail}`}>{reportEmail}</a>
+          <EditableContent as="p" className="pt-3 text-xs text-slate-500" contentKey="home.footer.copyright" />
         </div>
       </div>
     </footer>

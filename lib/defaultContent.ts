@@ -28,6 +28,54 @@ export const defaultEditableContent: EditableContent[] = [
     updatedBy: "system"
   },
   {
+    id: "content-about-page-title",
+    key: "about.page.title",
+    title: "Hakkimizda sayfa basligi",
+    content: "Siber farkindalik ve alisveris guvenligi icin sade risk analizi.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-about-page-description",
+    key: "about.page.description",
+    title: "Hakkimizda alt aciklamasi",
+    content: "Dijital Iz Avcisi, cevrim ici alisverislerde kullanicilarin urun ve satici risk sinyallerini daha hizli gorebilmesi icin gelistirilen AI destekli analiz platformudur.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-about-mission-title",
+    key: "about.mission.title",
+    title: "Misyon basligi",
+    content: "Misyonumuz",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-about-mission-text",
+    key: "about.mission.text",
+    title: "Misyon metni",
+    content: "Kullanici verisi satmadan, odeme bilgisi almadan ve sade risk dili kullanarak dijital tehditleri herkes icin daha anlasilir hale getirmek.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-about-vision-title",
+    key: "about.vision.title",
+    title: "Vizyon basligi",
+    content: "Vizyonumuz",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-about-vision-text",
+    key: "about.vision.text",
+    title: "Vizyon metni",
+    content: "Turkiye genelinde alisveris guven farkindaligini artirmak ve dijital riskleri herkes icin daha okunabilir hale getirmek.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
     id: "content-home-cyber-news-title",
     key: "home.cyberNews.title",
     title: "Siber Gündem basligi",
@@ -52,6 +100,30 @@ export const defaultEditableContent: EditableContent[] = [
     updatedBy: "system"
   },
   {
+    id: "content-home-guides-eyebrow",
+    key: "home.guides.eyebrow",
+    title: "Rehberler ust etiketi",
+    content: "Rehberler",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-guides-title",
+    key: "home.guides.title",
+    title: "Rehberler basligi",
+    content: "Guvenlik bilgisi herkes icin.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-guides-description",
+    key: "home.guides.description",
+    title: "Rehberler aciklamasi",
+    content: "Teknik tehditleri sade, uygulanabilir ve anlasilir rehberlere donusturen icerik alani.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
     id: "content-home-footer-description",
     key: "home.footer.description",
     title: "Footer aciklamasi",
@@ -60,10 +132,90 @@ export const defaultEditableContent: EditableContent[] = [
     updatedBy: "system"
   },
   {
+    id: "content-home-footer-title",
+    key: "home.footer.title",
+    title: "Footer basligi",
+    content: "Dijital Iz Avcisi",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-footer-support-email",
+    key: "home.footer.supportEmail",
+    title: "Footer destek e-postasi",
+    content: "destek@dijitalizavcisi.com",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-footer-report-email",
+    key: "home.footer.reportEmail",
+    title: "Footer ihbar e-postasi",
+    content: "ihbar@dijitalizavcisi.com",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-home-footer-copyright",
+    key: "home.footer.copyright",
+    title: "Footer telif metni",
+    content: "© 2026 Dijital Iz Avcisi. Tum haklari saklidir.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
     id: "content-contact-intro-text",
     key: "contact.intro.text",
     title: "Iletisim alani metni",
     content: "Supheli link, sahte SMS ornegi, hatali analiz bildirimi veya yeni ozellik onerilerini bu form uzerinden paylasabilirsiniz.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-contact-page-title",
+    key: "contact.page.title",
+    title: "Iletisim sayfa basligi",
+    content: "Oneri, bildirim ve is birligi.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-contact-page-description",
+    key: "contact.page.description",
+    title: "Iletisim sayfa aciklamasi",
+    content: "Supheli link, sahte SMS ornegi, hatali analiz bildirimi veya yeni ozellik onerilerini bu form uzerinden paylasabilirsiniz.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-contact-info-title",
+    key: "contact.info.title",
+    title: "Iletisim bilgi basligi",
+    content: "Resmi iletisim",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-contact-info-description",
+    key: "contact.info.description",
+    title: "Iletisim bilgi aciklamasi",
+    content: "Iletisim, ihbar, oneri ve is birligi talepleri icin asagidaki adresleri kullanabilirsiniz.",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-contact-support-email",
+    key: "contact.supportEmail",
+    title: "Iletisim destek e-postasi",
+    content: "iletisim@dijitalizavcisi.com",
+    updatedAt: initialUpdatedAt,
+    updatedBy: "system"
+  },
+  {
+    id: "content-contact-report-email",
+    key: "contact.reportEmail",
+    title: "Iletisim ihbar e-postasi",
+    content: "iletisim@dijitalizavcisi.com",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
@@ -97,7 +249,14 @@ export const editableContentGroups: EditableContentGroup[] = [
       "home.securityCenter.description",
       "home.cyberNews.title",
       "home.cyberNews.description",
+      "home.guides.eyebrow",
+      "home.guides.title",
+      "home.guides.description",
       "home.todayCyberEvent.text",
+      "home.footer.title",
+      "home.footer.supportEmail",
+      "home.footer.reportEmail",
+      "home.footer.copyright",
       "home.footer.description"
     ]
   },
@@ -105,6 +264,21 @@ export const editableContentGroups: EditableContentGroup[] = [
     id: "corporate",
     title: "Kurumsal sayfalar",
     description: "Hakkimizda ve iletisim alanlarinda kullanilan metinler.",
-    keys: ["home.about.text", "contact.intro.text"]
+    keys: [
+      "about.page.title",
+      "about.page.description",
+      "about.mission.title",
+      "about.mission.text",
+      "about.vision.title",
+      "about.vision.text",
+      "home.about.text",
+      "contact.page.title",
+      "contact.page.description",
+      "contact.info.title",
+      "contact.info.description",
+      "contact.supportEmail",
+      "contact.reportEmail",
+      "contact.intro.text"
+    ]
   }
 ];

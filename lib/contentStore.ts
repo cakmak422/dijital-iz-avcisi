@@ -74,7 +74,7 @@ export function resetEditableContent(key: EditableContentKey, updatedBy: string)
 }
 
 export function useEditableContent(key: EditableContentKey) {
-  const [item, setItem] = useState<EditableContent>(() => getEditableContentByKey(key));
+  const [item, setItem] = useState<EditableContent>(() => defaultEditableContent.find((content) => content.key === key)!);
 
   useEffect(() => {
     const refresh = () => setItem(getEditableContentByKey(key));
@@ -93,7 +93,7 @@ export function useEditableContent(key: EditableContentKey) {
 }
 
 export function useEditableContentItems() {
-  const [items, setItems] = useState<EditableContent[]>(() => getEditableContentItems());
+  const [items, setItems] = useState<EditableContent[]>(() => defaultEditableContent);
 
   useEffect(() => {
     const refresh = () => setItems(getEditableContentItems());

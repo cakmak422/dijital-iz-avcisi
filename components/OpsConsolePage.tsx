@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AdminGate } from "@/components/AdminGate";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ParserHealth } from "@/components/ParserHealth";
+import type { ContactMessage } from "@/lib/contactStore";
+import type { ContactMessageStats } from "@/lib/contactStore";
+import { getContactMessageStats, getLatestContactMessages, subscribeToContactMessages } from "@/lib/contactStore";
 import { aiUsageLogs, alerts, posts } from "@/lib/content";
 import { mockUsers, UserStatus } from "@/lib/users";
 
@@ -29,6 +32,18 @@ const statusStyles: Record<UserStatus, string> = {
 
 export function OpsConsolePage() {
   const [newsUpdateStatus, setNewsUpdateStatus] = useState("Hazir");
+  const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
+  const [contactStats, setContactStats] = useState<ContactMessageStats>({ total: 0, new: 0, read: 0, archived: 0 });
+
+  useEffect(() => {
+    function syncMessages() {
+      setContactMessages(getLatestContactMessages(3));
+      setContactStats(getContactMessageStats());
+    }
+
+    syncMessages();
+    return subscribeToContactMessages(syncMessages);
+  }, []);
 
   async function handleNewsUpdate() {
     setNewsUpdateStatus("Haber kaynaklari kontrol ediliyor...");
@@ -86,6 +101,15 @@ export function OpsConsolePage() {
                   Icerik panelini ac
                 </Link>
               </article>
+              <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+                <h2 className="text-xl font-bold">Site Ayarlari</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">
+                  Logo, tema, renk, genel site ayarlari ve CMS temel yonetimi.
+                </p>
+                <Link className="mt-4 inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100" href="/ops-console/site-settings">
+                  Site ayarlarini ac
+                </Link>
+              </article>
               <UsersTable />
               <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
                 <h2 className="text-xl font-bold">Parser sağlık durumu</h2>
@@ -97,6 +121,7 @@ export function OpsConsolePage() {
             </div>
             <div className="grid gap-5">
               <AdminCard title="Siber gündem içerikleri" items={posts.map((post) => `${post.title} - ${post.status}`)} />
+              <ContactMessagesSummaryCard messages={contactMessages} stats={contactStats} />
               <AdminCard title="Kullanıcı geri bildirimleri" items={["Şüpheli link bildirimi", "Hatalı analiz notu", "Yeni araç önerisi"]} />
               <NewsUpdateCard onUpdate={handleNewsUpdate} status={newsUpdateStatus} />
               <AdminCard title="Riskli link bildirimleri" items={alerts.map((alert) => `${alert.title} - ${alert.riskLevel}`)} />
@@ -173,6 +198,161 @@ function AdminCard({ items, title }: { items: string[]; title: string }) {
         ))}
       </div>
     </article>
+  );
+}
+
+function ContactMessagesSummaryCard({ messages, stats }: { messages: ContactMessage[]; stats: ContactMessageStats }) {
+  return (
+    <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+      <h2 className="text-xl font-bold">Iletisim Mesajlari</h2>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Local MVP: mesaj kutusu ozeti.</p>
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <ContactStatPill label="Toplam" value={stats.total} />
+        <ContactStatPill label="Yeni" value={stats.new} tone="amber" />
+        <ContactStatPill label="Arsiv" value={stats.archived} />
+      </div>
+      <div className="mt-4 grid gap-2">
+        {messages.length ? (
+          messages.map((message) => (
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm dark:border-white/10 dark:bg-white/5" key={message.id}>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <p className="font-semibold text-slate-900 dark:text-white">{message.topic}</p>
+                <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-amber-700 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100">
+                  {message.status}
+                </span>
+              </div>
+              <p className="mt-1 break-words text-slate-700 dark:text-slate-200">{message.name}</p>
+              <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-600 dark:text-slate-300">{message.message}</p>
+              <p className="mt-2 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+                {new Date(message.createdAt).toLocaleString("tr-TR")}
+              </p>
+            </div>
+          ))
+        ) : (
+          <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+            Henuz mesaj yok
+          </p>
+        )}
+      </div>
+      <Link className="mt-4 inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100" href="/ops-console/messages">
+        Tum mesajlari goruntule
+      </Link>
+    </article>
+  );
+}
+
+function ContactStatPill({ label, tone = "slate", value }: { label: string; tone?: "amber" | "slate"; value: number }) {
+  const classes = tone === "amber"
+    ? "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100"
+    : "border-slate-200 bg-slate-50 text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200";
+
+  return (
+    <div className={`rounded-md border px-3 py-2 ${classes}`}>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] opacity-75">{label}</p>
+      <p className="mt-1 text-xl font-bold">{value}</p>
+    </div>
+  );
+}
+
+function ContactMessagesCard({
+  messages,
+  onArchive,
+  onMarkAsRead
+}: {
+  messages: ContactMessage[];
+  onArchive: (id: string) => void;
+  onMarkAsRead: (id: string) => void;
+}) {
+  const [openMessageId, setOpenMessageId] = useState<string | null>(null);
+
+  function formatDate(value: string) {
+    return new Date(value).toLocaleString("tr-TR");
+  }
+  return (
+    <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+      <h2 className="text-xl font-bold">İletişim Mesajları</h2>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Local MVP: son 5 form mesajı.</p>
+      <div className="mt-4 grid gap-2">
+        {messages.length ? (
+          messages.map((message) => (
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm dark:border-white/10 dark:bg-white/5" key={message.id}>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <p className="font-semibold text-slate-900 dark:text-white">{message.topic}</p>
+                <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-amber-700 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100">
+                  {message.status}
+                </span>
+              </div>
+              <p className="mt-1 break-words text-slate-700 dark:text-slate-200">{message.name}</p>
+              <p className="mt-1 break-all text-xs text-slate-500 dark:text-slate-400">{message.email}</p>
+              <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-600 dark:text-slate-300">{message.message}</p>
+              <p className="mt-2 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+                {formatDate(message.createdAt)}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-cyan-400 hover:text-cyan-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-100 dark:hover:border-cyan-300"
+                  onClick={() => setOpenMessageId(openMessageId === message.id ? null : message.id)}
+                  type="button"
+                >
+                  Detay
+                </button>
+                <button
+                  className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-55 dark:border-emerald-300/20 dark:bg-emerald-300/10 dark:text-emerald-100"
+                  disabled={message.status === "read"}
+                  onClick={() => onMarkAsRead(message.id)}
+                  type="button"
+                >
+                  Okundu işaretle
+                </button>
+                <button
+                  className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-amber-300 hover:text-amber-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-100 dark:hover:border-amber-300"
+                  onClick={() => {
+                    onArchive(message.id);
+                    if (openMessageId === message.id) setOpenMessageId(null);
+                  }}
+                  type="button"
+                >
+                  Arşivle
+                </button>
+              </div>
+              {openMessageId === message.id ? (
+                <div className="mt-3 grid gap-2 rounded-md border border-cyan-100 bg-white p-3 text-xs text-slate-700 dark:border-cyan-300/15 dark:bg-slate-950/40 dark:text-slate-200">
+                  <DetailRow label="Ad soyad" value={message.name} />
+                  <DetailRow label="E-posta" value={message.email} breakAll />
+                  <DetailRow label="Konu" value={message.topic} />
+                  <DetailRow label="Mesaj içeriği" value={message.message} multiline />
+                  <DetailRow label="Tarih" value={formatDate(message.createdAt)} />
+                  <DetailRow label="Durum" value={message.status} />
+                </div>
+              ) : null}
+            </div>
+          ))
+        ) : (
+          <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+            Henüz mesaj yok
+          </p>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function DetailRow({
+  breakAll = false,
+  label,
+  multiline = false,
+  value
+}: {
+  breakAll?: boolean;
+  label: string;
+  multiline?: boolean;
+  value: string;
+}) {
+  return (
+    <div className="grid gap-1 sm:grid-cols-[120px_1fr]">
+      <span className="font-semibold text-slate-500 dark:text-slate-400">{label}</span>
+      <span className={`${breakAll ? "break-all" : "break-words"} ${multiline ? "whitespace-pre-wrap leading-5" : ""}`}>{value}</span>
+    </div>
   );
 }
 

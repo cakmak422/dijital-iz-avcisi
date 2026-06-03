@@ -2,13 +2,11 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { loginDemoUser } from "@/lib/auth";
 import { checkClientRateLimit } from "@/lib/rateLimit";
 import { sanitizeText } from "@/lib/sanitize";
 
 export function LoginForm() {
-  const router = useRouter();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -39,8 +37,10 @@ export function LoginForm() {
       return;
     }
 
-    setSuccess("Giris basarili. Kullanici paneline yonlendiriliyorsunuz.");
-    window.setTimeout(() => router.push("/kullanici-paneli"), 650);
+    setSuccess("Giris basarili. Yonlendiriliyorsunuz.");
+    const destination = user.role === "admin" ? getSafeNextPath() ?? "/ops-console" : "/kullanici-paneli";
+    window.location.assign(destination);
+    return;
   }
 
   return (
@@ -92,4 +92,14 @@ export function LoginForm() {
       </aside>
     </section>
   );
+}
+
+function getSafeNextPath() {
+  if (typeof window === "undefined") return null;
+
+  const next = new URLSearchParams(window.location.search).get("next");
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
+  if (!next.startsWith("/ops-console")) return null;
+
+  return next;
 }

@@ -22,8 +22,8 @@ export function AboutSection() {
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200">Hakkimizda</p>
-          <h1 className="mt-3 text-3xl font-bold tracking-normal sm:text-4xl lg:text-5xl">Siber farkindalik ve alisveris guvenligi icin sade risk analizi.</h1>
-          <EditableContent as="p" className="mt-4 leading-7 text-slate-600 dark:text-slate-300" contentKey="home.about.text" />
+          <EditableContent as="h1" className="mt-3 text-3xl font-bold tracking-normal sm:text-4xl lg:text-5xl" contentKey="about.page.title" />
+          <EditableContent as="p" className="mt-4 leading-7 text-slate-600 dark:text-slate-300" contentKey="about.page.description" />
           <p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">
             Platform; sahte yorum, manipule puan, guven vermeyen satici profili ve fake magaza gibi gercek sorunlari teknik detaylara bogmadan anlasilir hale getirmeyi hedefler.
           </p>
@@ -71,13 +71,13 @@ export function AboutSection() {
           </article>
 
           <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
-            <h2 className="text-lg font-bold">Gizlilik yaklasimi</h2>
-            <p className="mt-2 leading-7 text-slate-600 dark:text-slate-300">
-              Kullanici verisi satilmaz, odeme bilgisi alinmaz ve girilen bilgiler yalnizca analiz amaciyla islenir.
-            </p>
-            <p className="mt-2 leading-7 text-slate-600 dark:text-slate-300">
-              Vizyonumuz, Turkiye genelinde alisveris guven farkindaligini artirmak ve dijital riskleri herkes icin daha okunabilir hale getirmektir.
-            </p>
+            <EditableContent as="h2" className="text-lg font-bold" contentKey="about.mission.title" />
+            <EditableContent as="p" className="mt-2 leading-7 text-slate-600 dark:text-slate-300" contentKey="about.mission.text" />
+          </article>
+
+          <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+            <EditableContent as="h2" className="text-lg font-bold" contentKey="about.vision.title" />
+            <EditableContent as="p" className="mt-2 leading-7 text-slate-600 dark:text-slate-300" contentKey="about.vision.text" />
           </article>
         </div>
       </div>
