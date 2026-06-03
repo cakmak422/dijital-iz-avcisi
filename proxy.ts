@@ -48,7 +48,7 @@ export function proxy(request: NextRequest) {
     return new NextResponse("Bu alana erisim yetkiniz yok.", { status: 403 });
   }
 
-  const allowDemoCookies = process.env.NODE_ENV !== "production";
+  const allowDemoCookies = process.env.NEXT_PUBLIC_ENABLE_DEMO_AUTH === "true" || process.env.NODE_ENV !== "production";
   const sessionCookie = request.cookies.get("__Host-dia_session")?.value ?? (allowDemoCookies ? request.cookies.get("dia_session")?.value : undefined);
   const sessionRole = request.cookies.get("__Host-dia_role")?.value ?? (allowDemoCookies ? request.cookies.get("dia_role")?.value : undefined);
 
