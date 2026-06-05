@@ -3,12 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AboutSection } from "@/components/AboutSection";
 import { AwarenessSlider } from "@/components/AwarenessSlider";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberEventVisual } from "@/components/CyberEventVisual";
 import { CyberNewsCenter } from "@/components/CyberNewsCenter";
 import { FeedbackForm } from "@/components/FeedbackForm";
-import { ParserHealth } from "@/components/ParserHealth";
 import { SecurityCenter } from "@/components/SecurityCenter";
 import { EditableContent } from "@/components/admin/content/EditableContent";
 import { useEditableContent } from "@/lib/contentStore";
@@ -22,23 +22,6 @@ const platformStats = [
   { label: "Gunluk analiz", value: "420", detail: "ortalama demo" }
 ];
 
-const howItWorks = [
-  {
-    title: "Link yapistir",
-    icon: "01",
-    body: "Urun, site, IP veya mesaj bilgisini ilgili analiz paneline gir."
-  },
-  {
-    title: "AI analiz etsin",
-    icon: "AI",
-    body: "Parser, guvenlik kontrolleri ve AI ozetleme katmani risk paternlerini sade dile cevirir."
-  },
-  {
-    title: "Risk sonucunu ogren",
-    icon: "✓",
-    body: "Guven skoru, gorulen sinyaller ve kullanici onerileri tek raporda listelenir."
-  }
-];
 
 export default function Home() {
   const [theme, setTheme] = useState<Theme>("light");
@@ -53,11 +36,10 @@ export default function Home() {
         <Hero />
         <StatsBand />
         <CyberNewsCenter />
-        <ParserHealth />
         <TodayCyberEvent />
-        <HowItWorks />
         <FeedbackForm />
         <GuidesPreview />
+        <AboutSection />
         <Footer />
       </div>
     </main>
@@ -267,33 +249,6 @@ function TodayCyberEvent() {
               Kaynak: {event.sourceName}
             </a>
           </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function HowItWorks() {
-  return (
-    <section className="border-b border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="max-w-2xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200">Nasil calisir?</p>
-          <h2 className="mt-2 text-3xl font-bold">Uc adimda sade risk sonucu.</h2>
-          <p className="mt-3 leading-7 text-slate-600 dark:text-slate-300">
-            Teknik kontroller arka planda calisir; kullanici yalnizca neye dikkat etmesi gerektigini gorur.
-          </p>
-        </div>
-        <div className="mt-6 grid gap-3 md:grid-cols-3">
-          {howItWorks.map((step, index) => (
-            <article className="premium-card bg-slate-50 p-5 dark:bg-white/5" key={step.title}>
-              <span className="flex h-11 w-11 items-center justify-center rounded-md bg-slate-900 text-sm font-bold text-white shadow-sm shadow-cyan-950/20 dark:bg-white dark:text-slate-950">
-                {step.icon}
-              </span>
-              <h3 className="mt-4 text-lg font-bold">{step.title}</h3>
-              <p className="mt-2 leading-7 text-slate-600 dark:text-slate-300">{step.body}</p>
-            </article>
-          ))}
         </div>
       </div>
     </section>
