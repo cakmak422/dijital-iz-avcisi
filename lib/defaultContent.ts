@@ -143,7 +143,7 @@ export const defaultEditableContent: EditableContent[] = [
     id: "content-home-footer-support-email",
     key: "home.footer.supportEmail",
     title: "Footer destek e-postasi",
-    content: "destek@dijitalizavcisi.com",
+    content: "iletisim@dijitalizavcisi.com",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
@@ -151,7 +151,7 @@ export const defaultEditableContent: EditableContent[] = [
     id: "content-home-footer-report-email",
     key: "home.footer.reportEmail",
     title: "Footer ihbar e-postasi",
-    content: "ihbar@dijitalizavcisi.com",
+    content: "iletisim@dijitalizavcisi.com",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },

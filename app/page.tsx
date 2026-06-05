@@ -12,7 +12,6 @@ import { SecurityCenter } from "@/components/SecurityCenter";
 import { EditableContent } from "@/components/admin/content/EditableContent";
 import { useEditableContent } from "@/lib/contentStore";
 import { getTodayCyberEvent } from "@/lib/cyberArchive";
-import { useDeviceType } from "@/lib/useDeviceType";
 
 type Theme = "light" | "dark";
 
@@ -71,15 +70,17 @@ function Navbar({
   setTheme: (theme: Theme) => void;
 }) {
   const pathname = usePathname();
-  const deviceType = useDeviceType();
   const [menuOpen, setMenuOpen] = useState(false);
-  const isDesktop = deviceType === "desktop";
   const navItems = [
     { href: "/hakkimizda", label: "Hakkimizda" },
     { href: "/siber-arsiv", label: "Siber Arsiv" },
     { href: "/haberler", label: "Haberler" },
     { href: "/sorgu-paneli", label: "Sorgu Paneli" },
     { href: "/dijital-arac-merkezi", label: "Dijital Arac Merkezi" }
+  ];
+  const authItems = [
+    { href: "/giris-yap", label: "Giris Yap", variant: "secondary" },
+    { href: "/kayit-ol", label: "Kayit Ol", variant: "primary" }
   ];
 
   return (
@@ -89,12 +90,19 @@ function Navbar({
           <BrandLogo subtitle="AI guvenlik platformu" />
 
           <div className="flex items-center gap-2">
-            <Link className="focus-ring hidden rounded-md border border-cyan-900/12 px-3 py-2 text-sm font-semibold transition hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10 lg:inline-flex" href="/giris-yap">
-              Giriş Yap
-            </Link>
-            <Link className="focus-ring hidden rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100 lg:inline-flex" href="/kayit-ol">
-              Kayıt Ol
-            </Link>
+            {authItems.map((item) => (
+              <Link
+                className={`focus-ring hidden rounded-md px-3 py-2 text-sm font-semibold transition lg:inline-flex ${
+                  item.variant === "primary"
+                    ? "bg-slate-900 text-white hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100"
+                    : "border border-cyan-900/12 hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10"
+                }`}
+                href={item.href}
+                key={item.href}
+              >
+                {item.label}
+              </Link>
+            ))}
             <button
               aria-label="Tema degistir"
               className="focus-ring flex h-10 w-10 items-center justify-center rounded-md border border-cyan-900/15 bg-white text-slate-700 shadow-sm transition hover:border-cyan-500/40 hover:bg-cyan-50 hover:text-cyan-900 dark:border-cyan-300/15 dark:bg-cyan-300/5 dark:text-cyan-100 dark:hover:bg-cyan-300/10"
@@ -115,7 +123,7 @@ function Navbar({
           </div>
         </div>
 
-        <div className={`${isDesktop || menuOpen ? "grid" : "hidden"} gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 lg:flex lg:overflow-visible lg:pb-0`}>
+        <div className={`${menuOpen ? "grid" : "hidden"} gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 lg:flex lg:overflow-visible lg:pb-0`}>
           {navItems.map((item) => {
             const active = pathname === item.href;
             return (
@@ -128,12 +136,20 @@ function Navbar({
             Rehberler
           </a>
           <div className="grid gap-2 border-t border-slate-200 pt-2 dark:border-white/10 lg:hidden">
-            <Link className="focus-ring flex min-h-11 items-center justify-center rounded-md border border-cyan-900/12 px-3 py-2 text-sm font-semibold transition hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10" href="/giris-yap" onClick={() => setMenuOpen(false)}>
-              Giris Yap
-            </Link>
-            <Link className="focus-ring flex min-h-11 items-center justify-center rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100" href="/kayit-ol" onClick={() => setMenuOpen(false)}>
-              Kayit Ol
-            </Link>
+            {authItems.map((item) => (
+              <Link
+                className={`focus-ring flex min-h-11 items-center justify-center rounded-md px-3 py-2 text-sm font-semibold transition ${
+                  item.variant === "primary"
+                    ? "bg-slate-900 text-white hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100"
+                    : "border border-cyan-900/12 hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10"
+                }`}
+                href={item.href}
+                key={item.href}
+                onClick={() => setMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
         </div>
       </nav>
