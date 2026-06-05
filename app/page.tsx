@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AwarenessSlider } from "@/components/AwarenessSlider";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberEventVisual } from "@/components/CyberEventVisual";
 import { CyberNewsCenter } from "@/components/CyberNewsCenter";
@@ -48,6 +49,7 @@ export default function Home() {
         <Navbar theme={theme} setTheme={setTheme} />
         <SecurityCenter />
         <AnnouncementBanner />
+        <AwarenessSlider />
         <Hero />
         <StatsBand />
         <CyberNewsCenter />
