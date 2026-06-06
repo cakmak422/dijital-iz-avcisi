@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
+import { CyberPageShell } from "@/components/CyberPageShell";
 import { RegisterForm } from "@/components/RegisterForm";
 
 export default function RegisterPage() {
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
+    <CyberPageShell className="auth-reference-page" variant="auth">
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <BrandLogo subtitle="Kayit Ol" />
@@ -14,21 +15,41 @@ export default function RegisterPage() {
         </nav>
       </header>
 
-      <section className="border-b border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Uyelik</p>
-          <h1 className="mt-2 text-3xl font-bold sm:text-4xl">E-posta dogrulamali kayit.</h1>
-          <p className="mt-3 max-w-3xl leading-7 text-slate-600 dark:text-slate-300">
-            Dogrulama kodu canli sistemde yalnizca e-posta uzerinden iletilir; hassas bilgiler arayuzde gosterilmez.
-          </p>
-        </div>
-      </section>
+      <AuthReferenceHero />
 
-      <section className="px-4 py-10 sm:px-6 lg:px-8">
+      <section id="kayit-formu" className="px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <RegisterForm />
         </div>
       </section>
-    </main>
+    </CyberPageShell>
+  );
+}
+
+function AuthReferenceHero() {
+  return (
+    <section className="auth-reference-hero relative overflow-hidden border-b border-cyan-300/15 px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+      <div className="relative z-10 mx-auto flex min-h-[440px] max-w-7xl items-center">
+        <div className="max-w-3xl">
+          <p className="inline-flex rounded-md border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.24em] text-cyan-100">
+            Uyelik
+          </p>
+          <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
+            E-posta dogrulamali kayit.
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
+            Dogrulama kodu canli sistemde yalnizca e-posta uzerinden iletilir; hassas bilgiler arayuzde gosterilmez.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link className="btn-primary min-h-11 px-5" href="#kayit-formu">
+              Kayit Formuna Git
+            </Link>
+            <Link className="btn-secondary min-h-11 px-5" href="/giris-yap">
+              Giris Yap
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
