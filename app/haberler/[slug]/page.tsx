@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BrandLogo } from "@/components/BrandLogo";
+import { CyberPageShell } from "@/components/CyberPageShell";
 import { getCyberNewsBySlug, getCyberNewsItems, type CyberNewsRiskLevel } from "@/lib/newsStore";
 
 const riskStyles: Record<CyberNewsRiskLevel, string> = {
@@ -20,7 +21,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
   if (!item) notFound();
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
+    <CyberPageShell variant="news">
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
         <nav className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <BrandLogo subtitle="Haber Detayi" />
@@ -30,6 +31,19 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
         </nav>
       </header>
 
+      <section className="news-detail-hero border-b border-cyan-300/15 px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl">
+          <p className="inline-flex rounded-md border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.22em] text-cyan-100">
+            {item.category} / {item.publishedAt}
+          </p>
+          <h1 className="mt-5 text-3xl font-extrabold leading-tight text-white sm:text-5xl">{item.title}</h1>
+          <p className="mt-4 max-w-3xl text-base leading-8 text-slate-200">{item.summary}</p>
+          <Link className="btn-secondary mt-6 min-h-11 px-5" href="/haberler">
+            Tum Haberler
+          </Link>
+        </div>
+      </section>
+
       <article className="px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
           <div className="flex flex-wrap items-center gap-2">
@@ -37,7 +51,6 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
             <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{item.category}</span>
             <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{item.publishedAt}</span>
           </div>
-          <h1 className="mt-4 text-3xl font-bold sm:text-4xl">{item.title}</h1>
           <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
             Kaynak: <a className="font-semibold text-cyan-700 underline dark:text-cyan-200" href={item.sourceUrl} rel="noreferrer" target="_blank">{item.sourceName}</a>
           </p>
@@ -77,6 +90,6 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
           </div>
         </div>
       </article>
-    </main>
+    </CyberPageShell>
   );
 }

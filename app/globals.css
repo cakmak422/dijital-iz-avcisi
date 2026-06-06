@@ -300,6 +300,73 @@ html {
   filter: saturate(1.08) contrast(1.02);
 }
 
+.news-reference-page {
+  background:
+    radial-gradient(circle at 14% 10%, rgba(34, 211, 238, 0.16), transparent 25rem),
+    radial-gradient(circle at 82% 12%, rgba(16, 185, 129, 0.12), transparent 30rem),
+    linear-gradient(180deg, #020617 0%, #06111f 48%, #020617 100%);
+}
+
+.news-reference-hero {
+  isolation: isolate;
+  min-height: 560px;
+  background:
+    radial-gradient(circle at 20% 34%, rgba(34, 211, 238, 0.14), transparent 22rem),
+    linear-gradient(110deg, #020617 0%, #031421 50%, #020617 100%);
+}
+
+.news-reference-hero::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-image: url("/awareness/haberler.png");
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  opacity: 0.92;
+}
+
+.news-reference-hero::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(2, 6, 23, 0.97) 0%, rgba(2, 6, 23, 0.90) 30%, rgba(2, 6, 23, 0.54) 54%, rgba(2, 6, 23, 0.20) 78%, rgba(2, 6, 23, 0.12) 100%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.42), transparent 45%, rgba(2, 6, 23, 0.78)),
+    linear-gradient(rgba(34, 211, 238, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.07) 1px, transparent 1px),
+    radial-gradient(circle at 35% 42%, rgba(34, 211, 238, 0.13), transparent 22rem);
+  background-position: 0 0, 0 0, 0 0, 0 0, center;
+  background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px, 100% 100%;
+}
+
+.news-detail-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 72% 16%, rgba(34, 211, 238, 0.18), transparent 24rem),
+    radial-gradient(circle at 18% 42%, rgba(16, 185, 129, 0.10), transparent 22rem),
+    linear-gradient(110deg, rgba(2, 6, 23, 0.98), rgba(8, 47, 73, 0.58), rgba(2, 6, 23, 0.98));
+}
+
+.news-detail-hero::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(rgba(34, 211, 238, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.055) 1px, transparent 1px),
+    radial-gradient(circle at 82% 45%, rgba(34, 211, 238, 0.12), transparent 18rem);
+  background-size: 52px 52px, 52px 52px, 100% 100%;
+}
+
 .cyber-page-archive :where(article.rounded-lg) {
   position: relative;
 }
@@ -433,6 +500,14 @@ html {
 }
 
 @media (max-width: 1023px) {
+  .news-reference-hero {
+    min-height: 500px;
+  }
+
+  .news-reference-hero::before {
+    background-position: 64% center;
+  }
+
   .query-reference-hero {
     min-height: 500px;
   }
@@ -443,6 +518,24 @@ html {
 }
 
 @media (max-width: 767px) {
+  .news-reference-hero {
+    min-height: 560px;
+  }
+
+  .news-reference-hero::before {
+    background-position: 58% bottom;
+    background-size: auto 100%;
+    opacity: 0.56;
+  }
+
+  .news-reference-hero::after {
+    background:
+      linear-gradient(180deg, rgba(2, 6, 23, 0.97) 0%, rgba(2, 6, 23, 0.88) 43%, rgba(2, 6, 23, 0.52) 70%, rgba(2, 6, 23, 0.82) 100%),
+      linear-gradient(rgba(34, 211, 238, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34, 211, 238, 0.06) 1px, transparent 1px);
+    background-size: 100% 100%, 54px 54px, 54px 54px;
+  }
+
   .query-reference-hero {
     min-height: 560px;
   }

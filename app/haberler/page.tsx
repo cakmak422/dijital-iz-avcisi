@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
+import { CyberPageShell } from "@/components/CyberPageShell";
 import { getCyberNewsItems, type CyberNewsRiskLevel } from "@/lib/newsStore";
 
 const riskStyles: Record<CyberNewsRiskLevel, string> = {
@@ -13,7 +14,7 @@ export default function NewsPage() {
   const news = getCyberNewsItems();
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
+    <CyberPageShell className="news-reference-page" variant="news">
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
         <nav className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <BrandLogo subtitle="Guncel Siber Haberler" />
@@ -23,17 +24,9 @@ export default function NewsPage() {
         </nav>
       </header>
 
-      <section className="border-b border-slate-200 bg-white px-4 py-8 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Guncel Siber Haberler</p>
-          <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Kaynakli siber guvenlik haberleri.</h1>
-          <p className="mt-3 max-w-3xl leading-7 text-slate-600 dark:text-slate-300">
-            Haberler kaynak basligi korunarak, metin birebir kopyalanmadan vatandas icin sade risk notuna donusturulur.
-          </p>
-        </div>
-      </section>
+      <NewsReferenceHero />
 
-      <section className="px-4 py-8 sm:px-6 lg:px-8">
+      <section className="px-4 py-8 sm:px-6 lg:px-8" id="haber-akisi">
         <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-2 xl:grid-cols-3">
           {news.map((item) => (
             <article className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-md dark:border-white/10 dark:bg-white/5" key={item.id}>
@@ -60,6 +53,34 @@ export default function NewsPage() {
           ))}
         </div>
       </section>
-    </main>
+    </CyberPageShell>
+  );
+}
+
+function NewsReferenceHero() {
+  return (
+    <section className="news-reference-hero relative overflow-hidden border-b border-cyan-300/15 px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+      <div className="relative z-10 mx-auto flex min-h-[440px] max-w-7xl items-center">
+        <div className="max-w-3xl">
+          <p className="inline-flex rounded-md border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.26em] text-cyan-100">
+            Guncel Siber Haberler
+          </p>
+          <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
+            Kaynakli siber guvenlik haberleri.
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
+            Haberler kaynak basligi korunarak, metin birebir kopyalanmadan vatandas icin sade risk notuna donusturulur.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link className="btn-primary min-h-11 px-5" href="#haber-akisi">
+              Haberleri Incele
+            </Link>
+            <Link className="btn-secondary min-h-11 px-5" href="/">
+              Ana Sayfa
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
