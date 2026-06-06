@@ -29,7 +29,7 @@ export default function Home() {
 
   return (
     <main className={theme === "dark" ? "dark" : ""}>
-        <CyberPageShell as="div" className="home-reference-page transition-colors" variant="home">
+        <CyberPageShell as="div" className="home-reference-page home-general-theme transition-colors" variant="home">
         <Navbar theme={theme} setTheme={setTheme} />
         <Hero />
         <SecurityCenter />
