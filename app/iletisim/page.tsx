@@ -2,11 +2,12 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ContactForm } from "@/components/ContactForm";
 import { ContactInfoCard } from "@/components/ContactInfoCard";
+import { CyberPageShell } from "@/components/CyberPageShell";
 import { EditableContent } from "@/components/admin/content/EditableContent";
 
 export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
+    <CyberPageShell className="contact-reference-page" variant="contact">
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <BrandLogo subtitle="Iletisim" />
@@ -16,20 +17,39 @@ export default function ContactPage() {
         </nav>
       </header>
 
-      <section className="border-b border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Iletisim</p>
-          <EditableContent as="h1" className="mt-3 text-3xl font-bold sm:text-4xl" contentKey="contact.page.title" />
-          <EditableContent as="p" className="mt-4 leading-7 text-slate-600 dark:text-slate-300 sm:leading-8" contentKey="contact.page.description" />
-        </div>
-      </section>
+      <ContactReferenceHero />
 
-      <section className="px-4 py-10 sm:px-6 lg:px-8">
+      <section id="iletisim-formu" className="px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-4xl gap-5">
           <ContactInfoCard />
           <ContactForm />
         </div>
       </section>
-    </main>
+    </CyberPageShell>
+  );
+}
+
+function ContactReferenceHero() {
+  return (
+    <section className="contact-reference-hero relative overflow-hidden border-b border-cyan-300/15 px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+      <div className="relative z-10 mx-auto flex min-h-[440px] max-w-7xl items-center">
+        <div className="max-w-3xl">
+          <p className="inline-flex rounded-md border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.24em] text-cyan-100">
+            Iletisim
+          </p>
+          <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
+            <EditableContent as="span" contentKey="contact.page.title" />
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
+            <EditableContent as="span" contentKey="contact.page.description" />
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link className="btn-primary min-h-11 px-5" href="#iletisim-formu">
+              Mesaj Gonder
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
