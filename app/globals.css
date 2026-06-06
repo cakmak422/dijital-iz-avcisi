@@ -380,6 +380,66 @@ html {
   background: linear-gradient(180deg, rgba(34, 211, 238, 0.78), rgba(16, 185, 129, 0.58));
 }
 
+.archive-reference-page {
+  background:
+    radial-gradient(circle at 16% 10%, rgba(34, 211, 238, 0.16), transparent 26rem),
+    radial-gradient(circle at 82% 18%, rgba(16, 185, 129, 0.12), transparent 32rem),
+    linear-gradient(180deg, #020617 0%, #06111f 48%, #020617 100%);
+}
+
+.archive-reference-hero {
+  isolation: isolate;
+  min-height: 560px;
+  background:
+    radial-gradient(circle at 18% 34%, rgba(34, 211, 238, 0.15), transparent 22rem),
+    linear-gradient(110deg, #020617 0%, #031421 48%, #020617 100%);
+}
+
+.archive-reference-hero::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-image: url("/awareness/arsiv.png");
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  opacity: 0.92;
+}
+
+.archive-reference-hero::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(2, 6, 23, 0.97) 0%, rgba(2, 6, 23, 0.90) 29%, rgba(2, 6, 23, 0.55) 53%, rgba(2, 6, 23, 0.20) 78%, rgba(2, 6, 23, 0.12) 100%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.50), transparent 44%, rgba(2, 6, 23, 0.82)),
+    linear-gradient(rgba(34, 211, 238, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.07) 1px, transparent 1px),
+    radial-gradient(circle at 34% 42%, rgba(34, 211, 238, 0.14), transparent 23rem);
+  background-position: 0 0, 0 0, 0 0, 0 0, center;
+  background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px, 100% 100%;
+}
+
+.archive-status-band {
+  background:
+    linear-gradient(180deg, rgba(2, 6, 23, 0.82), rgba(8, 47, 73, 0.32));
+}
+
+.archive-status-card {
+  border-color: rgba(34, 211, 238, 0.24);
+  background:
+    radial-gradient(circle at 94% 18%, rgba(16, 185, 129, 0.12), transparent 14rem),
+    linear-gradient(135deg, rgba(8, 47, 73, 0.48), rgba(2, 6, 23, 0.74));
+  box-shadow:
+    0 18px 60px rgba(2, 6, 23, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+}
+
 .cyber-page-contact :where(form.rounded-lg, article.rounded-lg),
 .cyber-page-auth :where(form.rounded-lg, article.rounded-lg) {
   background:
@@ -500,6 +560,14 @@ html {
 }
 
 @media (max-width: 1023px) {
+  .archive-reference-hero {
+    min-height: 500px;
+  }
+
+  .archive-reference-hero::before {
+    background-position: 64% center;
+  }
+
   .news-reference-hero {
     min-height: 500px;
   }
@@ -518,6 +586,24 @@ html {
 }
 
 @media (max-width: 767px) {
+  .archive-reference-hero {
+    min-height: 560px;
+  }
+
+  .archive-reference-hero::before {
+    background-position: 58% bottom;
+    background-size: auto 100%;
+    opacity: 0.56;
+  }
+
+  .archive-reference-hero::after {
+    background:
+      linear-gradient(180deg, rgba(2, 6, 23, 0.97) 0%, rgba(2, 6, 23, 0.88) 43%, rgba(2, 6, 23, 0.52) 70%, rgba(2, 6, 23, 0.82) 100%),
+      linear-gradient(rgba(34, 211, 238, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34, 211, 238, 0.06) 1px, transparent 1px);
+    background-size: 100% 100%, 54px 54px, 54px 54px;
+  }
+
   .news-reference-hero {
     min-height: 560px;
   }
