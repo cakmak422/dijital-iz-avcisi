@@ -8,6 +8,7 @@ import { AwarenessSlider } from "@/components/AwarenessSlider";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberEventVisual } from "@/components/CyberEventVisual";
 import { CyberNewsCenter } from "@/components/CyberNewsCenter";
+import { CyberPageShell } from "@/components/CyberPageShell";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { SecurityCenter } from "@/components/SecurityCenter";
 import { EditableContent } from "@/components/admin/content/EditableContent";
@@ -28,12 +29,12 @@ export default function Home() {
 
   return (
     <main className={theme === "dark" ? "dark" : ""}>
-        <div className="min-h-screen bg-slate-50 text-slate-950 transition-colors dark:bg-slate-950 dark:text-white">
+        <CyberPageShell as="div" className="home-reference-page transition-colors" variant="home">
         <Navbar theme={theme} setTheme={setTheme} />
+        <Hero />
         <SecurityCenter />
         <AnnouncementBanner />
         <AwarenessSlider />
-        <Hero />
         <StatsBand />
         <CyberNewsCenter />
         <TodayCyberEvent />
@@ -41,7 +42,7 @@ export default function Home() {
         <GuidesPreview />
         <AboutSection />
         <Footer />
-      </div>
+      </CyberPageShell>
     </main>
   );
 }
@@ -116,9 +117,9 @@ function Navbar({
               </Link>
             );
           })}
-          <a className="focus-ring flex min-h-11 items-center rounded-md border border-cyan-900/12 bg-white px-3 py-2 shadow-sm transition hover:border-cyan-500/45 hover:bg-cyan-50 hover:text-cyan-950 dark:border-cyan-300/15 dark:bg-cyan-300/5 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50 lg:shrink-0" href="#rehberler" onClick={() => setMenuOpen(false)}>
+          <Link className="focus-ring flex min-h-11 items-center rounded-md border border-cyan-900/12 bg-white px-3 py-2 shadow-sm transition hover:border-cyan-500/45 hover:bg-cyan-50 hover:text-cyan-950 dark:border-cyan-300/15 dark:bg-cyan-300/5 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50 lg:shrink-0" href="/rehberler" onClick={() => setMenuOpen(false)}>
             Rehberler
-          </a>
+          </Link>
           <div className="grid gap-2 border-t border-slate-200 pt-2 dark:border-white/10 lg:hidden">
             {authItems.map((item) => (
               <Link
@@ -146,48 +147,25 @@ function Hero() {
   const heroDescription = useEditableContent("home.hero.description").content;
 
   return (
-    <section className="relative overflow-hidden border-b border-slate-200 bg-white dark:border-white/10 dark:bg-slate-950">
-      <div className="cyber-grid absolute inset-0 opacity-70" />
-      <div className="absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl dark:bg-cyan-300/10" />
-      <div className="relative mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 sm:px-6 sm:py-12 lg:grid-cols-[1fr_380px] lg:px-8 lg:py-14">
-        <div className="max-w-4xl">
-          <p className="w-fit rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-blue-700 dark:border-blue-400/30 dark:bg-blue-400/10 dark:text-blue-200">
+    <section className="home-reference-hero relative overflow-hidden border-b border-cyan-300/15 px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+      <div className="relative z-10 mx-auto flex min-h-[440px] max-w-7xl items-center">
+        <div className="max-w-3xl">
+          <p className="inline-flex rounded-md border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.24em] text-cyan-100">
             Vatandaslar icin AI destekli dijital guvenlik
           </p>
-          <h1 className="mt-5 max-w-4xl text-3xl font-bold tracking-normal text-slate-950 sm:text-4xl lg:text-6xl dark:text-white">{heroTitle}</h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg sm:leading-8">{heroDescription}</p>
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <Link className="btn-primary min-h-12 w-full text-base sm:w-auto" href="/sorgu-paneli">
+          <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
+            {heroTitle}
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
+            {heroDescription}
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link className="btn-primary min-h-11 px-5" href="/sorgu-paneli">
               Sorgu Panelini Ac
             </Link>
-            <Link className="btn-secondary min-h-12 w-full text-base sm:w-auto" href="/siber-arsiv">
+            <Link className="btn-secondary min-h-11 px-5" href="/siber-arsiv">
               Siber Arsivi Incele
             </Link>
-          </div>
-        </div>
-        <div className="premium-card relative min-h-72 overflow-hidden p-5 dark:bg-slate-900/70">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(34,211,238,0.20),transparent_32%),radial-gradient(circle_at_80%_60%,rgba(59,130,246,0.18),transparent_36%)]" />
-          <div className="relative grid h-full content-between">
-            <div className="flex items-center justify-between">
-              <span className="rounded-md border border-cyan-200 bg-cyan-50 px-2 py-1 text-xs font-bold text-cyan-800 dark:border-cyan-300/25 dark:bg-cyan-300/10 dark:text-cyan-100">Risk radari</span>
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Canli demo</span>
-            </div>
-            <div className="my-8 grid place-items-center">
-              <div className="relative h-36 w-36 rounded-full border border-cyan-300/50 bg-slate-950 shadow-2xl shadow-cyan-950/20">
-                <div className="absolute inset-4 rounded-full border border-cyan-300/35" />
-                <div className="absolute inset-10 rounded-full border border-emerald-300/45 bg-cyan-300/10" />
-                <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-200" />
-                <div className="absolute left-1/2 top-1/2 h-0.5 w-16 origin-left -translate-y-1/2 rotate-45 bg-cyan-200" />
-              </div>
-            </div>
-            <div className="grid gap-2">
-              {["Phishing paterni", "Satici sinyali", "Mesaj riski"].map((item, index) => (
-                <div className="flex items-center justify-between rounded-md border border-slate-200 bg-white/80 px-3 py-2 text-sm dark:border-white/10 dark:bg-white/5" key={item}>
-                  <span>{item}</span>
-                  <span className={index === 0 ? "font-bold text-amber-600 dark:text-amber-200" : "font-bold text-cyan-700 dark:text-cyan-200"}>{index === 0 ? "Dikkat" : "Izleniyor"}</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </div>
@@ -197,7 +175,7 @@ function Hero() {
 
 function AnnouncementBanner() {
   return (
-    <section className="border-b border-cyan-900/10 bg-cyan-50 px-4 py-3 dark:border-cyan-300/10 dark:bg-cyan-400/10 sm:px-6 lg:px-8">
+    <section className="cyber-section border-b border-cyan-900/10 bg-cyan-50 px-4 py-3 dark:border-cyan-300/10 dark:bg-cyan-400/10 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm font-semibold uppercase tracking-[0.12em] text-cyan-800 dark:text-cyan-100">Duyuru</p>
         <EditableContent as="p" className="text-sm leading-6 text-slate-700 dark:text-cyan-50 sm:text-right" contentKey="home.announcement.banner" />
@@ -208,7 +186,7 @@ function AnnouncementBanner() {
 
 function StatsBand() {
   return (
-    <section className="border-b border-slate-200 bg-slate-50 px-4 py-6 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
+    <section className="cyber-section border-b border-slate-200 bg-slate-50 px-4 py-6 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-3 sm:grid-cols-3">
         {platformStats.map((stat) => (
             <article className="premium-card p-5" key={stat.label}>
@@ -226,7 +204,7 @@ function TodayCyberEvent() {
   const event = getTodayCyberEvent();
 
   return (
-    <section className="border-b border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
+    <section className="cyber-section border-b border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
         <CyberEventVisual category={event.category} title={event.title} tone={event.visualTone} year={event.year} />
         <div>
@@ -284,7 +262,7 @@ function GuidesPreview() {
   ];
 
   return (
-    <section id="rehberler" className="border-t border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
+    <section id="rehberler" className="cyber-section border-t border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[320px_1fr]">
         <div>
           <EditableContent as="p" className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200" contentKey="home.guides.eyebrow" />

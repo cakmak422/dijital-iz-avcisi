@@ -150,6 +150,50 @@ html {
   opacity: 0.68;
 }
 
+.home-reference-page {
+  background:
+    radial-gradient(circle at 14% 10%, rgba(34, 211, 238, 0.16), transparent 26rem),
+    radial-gradient(circle at 82% 18%, rgba(16, 185, 129, 0.12), transparent 32rem),
+    linear-gradient(180deg, #020617 0%, #06111f 48%, #020617 100%);
+}
+
+.home-reference-hero {
+  isolation: isolate;
+  min-height: 560px;
+  background:
+    radial-gradient(circle at 18% 34%, rgba(34, 211, 238, 0.15), transparent 22rem),
+    linear-gradient(110deg, #020617 0%, #031421 48%, #020617 100%);
+}
+
+.home-reference-hero::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-image: url("/awareness/anasayfa.png");
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  opacity: 0.92;
+}
+
+.home-reference-hero::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(2, 6, 23, 0.97) 0%, rgba(2, 6, 23, 0.90) 29%, rgba(2, 6, 23, 0.55) 53%, rgba(2, 6, 23, 0.20) 78%, rgba(2, 6, 23, 0.12) 100%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.48), transparent 44%, rgba(2, 6, 23, 0.80)),
+    linear-gradient(rgba(34, 211, 238, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.07) 1px, transparent 1px),
+    radial-gradient(circle at 34% 42%, rgba(34, 211, 238, 0.13), transparent 23rem);
+  background-position: 0 0, 0 0, 0 0, 0 0, center;
+  background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px, 100% 100%;
+}
+
 .cyber-page-about::after {
   background:
     repeating-radial-gradient(circle, rgba(125, 211, 252, 0.14) 0 1px, transparent 2px 62px),
@@ -798,6 +842,14 @@ html {
 }
 
 @media (max-width: 1023px) {
+  .home-reference-hero {
+    min-height: 500px;
+  }
+
+  .home-reference-hero::before {
+    background-position: 64% center;
+  }
+
   .guides-reference-hero {
     min-height: 500px;
   }
@@ -864,6 +916,24 @@ html {
 }
 
 @media (max-width: 767px) {
+  .home-reference-hero {
+    min-height: 560px;
+  }
+
+  .home-reference-hero::before {
+    background-position: 58% bottom;
+    background-size: auto 100%;
+    opacity: 0.56;
+  }
+
+  .home-reference-hero::after {
+    background:
+      linear-gradient(180deg, rgba(2, 6, 23, 0.97) 0%, rgba(2, 6, 23, 0.88) 43%, rgba(2, 6, 23, 0.52) 70%, rgba(2, 6, 23, 0.82) 100%),
+      linear-gradient(rgba(34, 211, 238, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34, 211, 238, 0.06) 1px, transparent 1px);
+    background-size: 100% 100%, 54px 54px, 54px 54px;
+  }
+
   .guides-reference-hero {
     min-height: 560px;
   }

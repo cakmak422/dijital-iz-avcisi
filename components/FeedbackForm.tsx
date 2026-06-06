@@ -41,7 +41,7 @@ export function FeedbackForm() {
   }
 
   return (
-    <section className="border-b border-slate-200 bg-slate-50 px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
+    <section className="cyber-section border-b border-slate-200 bg-slate-50 px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[360px_1fr]">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Oneri ve Bildirim</p>

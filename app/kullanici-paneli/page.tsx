@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
+import { CyberPageShell } from "@/components/CyberPageShell";
 import { UserSessionBanner } from "@/components/UserSessionBanner";
 
 const history = [
@@ -12,7 +13,7 @@ const favorites = ["Sahte Link Analizi", "SMS / Mesaj Analizi", "Siber Kırılma
 
 export default function UserPanelPage() {
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
+    <CyberPageShell variant="auth">
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <BrandLogo subtitle="Kullanıcı Paneli" />
@@ -22,7 +23,7 @@ export default function UserPanelPage() {
         </nav>
       </header>
 
-      <section className="border-b border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
+      <section className="cyber-hero border-b border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Hesap vitrini</p>
           <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Kullanıcı paneli altyapısı hazır.</h1>
@@ -78,6 +79,6 @@ export default function UserPanelPage() {
           </div>
         </div>
       </section>
-    </main>
+    </CyberPageShell>
   );
 }

@@ -18,7 +18,7 @@ export function AboutSection() {
   ];
 
   return (
-    <section className="bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6 lg:px-8">
+    <section className="cyber-section bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200">Hakkimizda</p>

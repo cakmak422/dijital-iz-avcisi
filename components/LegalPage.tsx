@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
+import { CyberHero } from "@/components/CyberHero";
+import { CyberPageShell } from "@/components/CyberPageShell";
 
 export type LegalSection = {
   title: string;
@@ -16,7 +18,7 @@ export function LegalPage({
   title: string;
 }) {
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
+    <CyberPageShell variant="about">
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <BrandLogo subtitle={title} />
@@ -26,13 +28,13 @@ export function LegalPage({
         </nav>
       </header>
 
-      <section className="border-b border-slate-200 bg-white px-4 py-10 dark:border-white/10 dark:bg-slate-950 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Bilgilendirme</p>
-          <h1 className="mt-3 text-3xl font-bold sm:text-4xl">{title}</h1>
-          <p className="mt-4 leading-8 text-slate-600 dark:text-slate-300">{description}</p>
-        </div>
-      </section>
+      <CyberHero
+        description={description}
+        eyebrow="Bilgilendirme"
+        primaryAction={{ href: "/", label: "Ana Sayfa" }}
+        title={title}
+        variant="about"
+      />
 
       <section className="px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-4xl gap-4">
@@ -44,6 +46,6 @@ export function LegalPage({
           ))}
         </div>
       </section>
-    </main>
+    </CyberPageShell>
   );
 }
