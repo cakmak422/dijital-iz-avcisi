@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberPageShell } from "@/components/CyberPageShell";
+import { ManagedPageHero } from "@/components/ManagedPageHero";
 import { getCyberNewsItems, type CyberNewsRiskLevel } from "@/lib/newsStore";
 
 const riskStyles: Record<CyberNewsRiskLevel, string> = {
@@ -59,28 +60,18 @@ export default function NewsPage() {
 
 function NewsReferenceHero() {
   return (
-    <section className="news-reference-hero relative overflow-hidden border-b border-cyan-300/15 px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
-      <div className="relative z-10 mx-auto flex min-h-[440px] max-w-7xl items-center">
-        <div className="max-w-3xl">
-          <p className="inline-flex rounded-md border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.26em] text-cyan-100">
-            Güncel Siber Haberler
-          </p>
-          <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
-            Kaynaklı siber güvenlik haberleri.
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
-          Haberler kaynak başlığı korunarak, metin birebir kopyalanmadan vatandaş için sade risk notuna dönüştürülür.
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link className="btn-primary min-h-11 px-5" href="#haber-akisi">
-              Haberleri İncele
-            </Link>
-            <Link className="btn-secondary min-h-11 px-5" href="/">
-              Ana Sayfa
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
+    <ManagedPageHero
+      actions={[
+        { href: "#haber-akisi", label: "Haberleri İncele" },
+        { href: "/", label: "Ana Sayfa", variant: "secondary" }
+      ]}
+      className="news-reference-hero"
+      fallback={{
+        title: "Kaynaklı siber güvenlik haberleri.",
+        description: "Haberler kaynak başlığı korunarak, metin birebir kopyalanmadan vatandaş için sade risk notuna dönüştürülür.",
+        image: "/awareness/haberler.png"
+      }}
+      slug="haberler"
+    />
   );
 }

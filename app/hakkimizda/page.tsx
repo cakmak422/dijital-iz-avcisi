@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AboutSection } from "@/components/AboutSection";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberPageShell } from "@/components/CyberPageShell";
+import { ManagedPageHero } from "@/components/ManagedPageHero";
 
 export default function AboutPage() {
   return (
@@ -22,28 +23,19 @@ export default function AboutPage() {
 
 function AboutReferenceHero() {
   return (
-    <section className="about-reference-hero relative overflow-hidden border-b border-cyan-300/15 px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
-      <div className="relative z-10 mx-auto flex min-h-[440px] max-w-7xl items-center">
-        <div className="max-w-3xl">
-          <p className="inline-flex rounded-md border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.24em] text-cyan-100">
-            Hakkımızda
-          </p>
-          <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
-            Güvenilir dijital analiz için sade ve sorumlu teknoloji.
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
-            Dijital İz Avcısı; alışveriş güvenliği, siber farkındalık ve risk sinyallerini halkın anlayabileceği sade raporlara dönüştürmek için geliştirilen kurumsal bir platformdur.
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link className="btn-primary min-h-11 px-5" href="/sorgu-paneli">
-              Sorgu Panelini Aç
-            </Link>
-            <Link className="btn-secondary min-h-11 px-5" href="/iletisim">
-              İletişime Geç
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
+    <ManagedPageHero
+      actions={[
+        { href: "/sorgu-paneli", label: "Sorgu Panelini Aç" },
+        { href: "/iletisim", label: "İletişime Geç", variant: "secondary" }
+      ]}
+      className="about-reference-hero"
+      fallback={{
+        title: "Güvenilir dijital analiz için sade ve sorumlu teknoloji.",
+        description:
+          "Dijital İz Avcısı; alışveriş güvenliği, siber farkındalık ve risk sinyallerini halkın anlayabileceği sade raporlara dönüştürmek için geliştirilen kurumsal bir platformdur.",
+        image: "/awareness/Hakkımızda.png"
+      }}
+      slug="hakkimizda"
+    />
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberPageShell } from "@/components/CyberPageShell";
+import { ManagedPageHero } from "@/components/ManagedPageHero";
 import { primaryDigitalTools, roadmapDigitalTools, statusLabels, ToolStatus } from "@/lib/digitalTools";
 
 const statusStyles: Record<ToolStatus, string> = {
@@ -56,26 +57,17 @@ export default function DigitalToolsPage() {
 
 function ToolsReferenceHero() {
   return (
-    <section className="tools-reference-hero relative overflow-hidden border-b border-cyan-300/15 px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
-      <div className="relative z-10 mx-auto flex min-h-[440px] max-w-7xl items-center">
-        <div className="max-w-3xl">
-          <p className="inline-flex rounded-md border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.24em] text-cyan-100">
-            Dijital Araç Merkezi
-          </p>
-          <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
-            Tek panelden güvenlik kontrolleri.
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
-          Link, domain, QR, veri sızıntısı ve mahremiyet kontrollerini planlı bir servis merkezi altında topluyoruz. İlk hedef kalabalık bir link listesi değil, güvenilir ve sade araç deneyimi.
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link className="btn-primary min-h-11 px-5" href="/sorgu-paneli">
-              Sorgu Panelini Aç
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
+    <ManagedPageHero
+      actions={[{ href: "/sorgu-paneli", label: "Sorgu Panelini Aç" }]}
+      className="tools-reference-hero"
+      fallback={{
+        title: "Tek panelden güvenlik kontrolleri.",
+        description:
+          "Link, domain, QR, veri sızıntısı ve mahremiyet kontrollerini planlı bir servis merkezi altında topluyoruz. İlk hedef kalabalık bir link listesi değil, güvenilir ve sade araç deneyimi.",
+        image: "/awareness/Dijital Arac Merkezi.png"
+      }}
+      slug="dijital-arac-merkezi"
+    />
   );
 }
 

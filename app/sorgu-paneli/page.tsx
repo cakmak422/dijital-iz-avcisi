@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { AnalysisWorkspace } from "@/components/AnalysisWorkspace";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberPageShell } from "@/components/CyberPageShell";
+import { ManagedPageHero } from "@/components/ManagedPageHero";
 
 export default function QueryPanelPage() {
   return (
@@ -29,28 +30,18 @@ export default function QueryPanelPage() {
 
 function QueryReferenceHero() {
   return (
-    <section className="query-reference-hero relative overflow-hidden border-b border-cyan-300/15 px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
-      <div className="relative z-10 mx-auto max-w-7xl">
-        <div className="max-w-3xl">
-          <p className="w-fit rounded-md border border-cyan-300/30 bg-cyan-300/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100">
-            Güvenlik laboratuvari
-          </p>
-          <h1 className="mt-5 text-3xl font-bold tracking-normal text-white sm:text-4xl lg:text-6xl">
-            Analiz türünü seç ve sorguyu başlat.
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-slate-200 sm:text-lg sm:leading-8">
-            Ürün analizi, phishing kontrolü, site güvenliği, IP istihbaratı, EXIF ve SMS analizi aynı profesyonel rapor formatında toplanır.
-          </p>
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <Link className="btn-primary min-h-12 w-full text-base sm:w-auto" href="#analysis-workspace">
-              Analize Basla
-            </Link>
-            <Link className="btn-secondary min-h-12 w-full text-base sm:w-auto" href="/">
-              Ana Sayfa
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
+    <ManagedPageHero
+      actions={[
+        { href: "#analysis-workspace", label: "Analize Başla" },
+        { href: "/", label: "Ana Sayfa", variant: "secondary" }
+      ]}
+      className="query-reference-hero"
+      fallback={{
+        title: "Analiz türünü seç ve sorguyu başlat.",
+        description: "Ürün analizi, phishing kontrolü, site güvenliği, IP istihbaratı, EXIF ve SMS analizi aynı profesyonel rapor formatında toplanır.",
+        image: "/awareness/sorgu-paneli-reference.png"
+      }}
+      slug="sorgu-paneli"
+    />
   );
 }
