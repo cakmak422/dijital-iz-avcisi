@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AdminGate } from "@/components/AdminGate";
+import { AdminSessionMenu } from "@/components/AdminSessionMenu";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ParserHealth } from "@/components/ParserHealth";
 import type { ContactMessage } from "@/lib/contactStore";
@@ -65,9 +66,12 @@ export function OpsConsolePage() {
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <BrandLogo subtitle="Ops Console" />
-          <Link className="rounded-md border border-cyan-900/12 px-4 py-2 text-sm font-semibold transition hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10" href="/">
-            Ana sayfa
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link className="rounded-md border border-cyan-900/12 px-4 py-2 text-sm font-semibold transition hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10" href="/">
+              Ana sayfa
+            </Link>
+            <AdminSessionMenu />
+          </div>
         </nav>
       </header>
 

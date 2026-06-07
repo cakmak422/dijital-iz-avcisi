@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AdminGate } from "@/components/AdminGate";
+import { AdminSessionMenu } from "@/components/AdminSessionMenu";
 import { BrandLogo } from "@/components/BrandLogo";
 import type { ContactMessage, ContactMessageStatus } from "@/lib/contactStore";
 import { archiveMessage, getAllContactMessages, markAsRead, subscribeToContactMessages } from "@/lib/contactStore";
@@ -64,6 +65,7 @@ export default function OpsConsoleMessagesPage() {
             <Link className="rounded-md border border-cyan-900/12 px-4 py-2 text-sm font-semibold transition hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10" href="/">
               Ana sayfa
             </Link>
+            <AdminSessionMenu />
           </div>
         </nav>
       </header>

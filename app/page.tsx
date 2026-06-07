@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AboutSection } from "@/components/AboutSection";
+import { AdminSessionMenu } from "@/components/AdminSessionMenu";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberEventVisual } from "@/components/CyberEventVisual";
 import { CyberNewsCenter } from "@/components/CyberNewsCenter";
@@ -12,6 +13,8 @@ import { FeedbackForm } from "@/components/FeedbackForm";
 import { EditableContent } from "@/components/admin/content/EditableContent";
 import { useEditableContent } from "@/lib/contentStore";
 import { getTodayCyberEvent } from "@/lib/cyberArchive";
+import { getCurrentDemoUser } from "@/lib/auth";
+import type { User } from "@/lib/users";
 
 type Theme = "light" | "dark";
 
@@ -54,6 +57,7 @@ function Navbar({
 }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const navItems = [
     { href: "/hakkimizda", label: "Hakkımızda" },
     { href: "/siber-arsiv", label: "Siber Arşiv" },
@@ -65,6 +69,11 @@ function Navbar({
     { href: "/giris-yap", label: "Giriş Yap", variant: "secondary" },
     { href: "/kayit-ol", label: "Kayıt Ol", variant: "primary" }
   ];
+  const isAdmin = currentUser?.role === "admin";
+
+  useEffect(() => {
+    setCurrentUser(getCurrentDemoUser());
+  }, []);
 
   return (
     <header className="sticky top-0 z-30 border-b border-cyan-900/10 bg-white/88 shadow-sm shadow-cyan-950/5 backdrop-blur-xl dark:border-cyan-300/10 dark:bg-slate-950/88">
@@ -73,19 +82,23 @@ function Navbar({
           <BrandLogo subtitle="AI güvenlik platformu" />
 
           <div className="flex items-center gap-2 xl:order-3">
-            {authItems.map((item) => (
-              <Link
-                className={`focus-ring hidden rounded-md px-3 py-2 text-sm font-semibold transition lg:inline-flex ${
-                  item.variant === "primary"
-                    ? "bg-slate-900 text-white hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100"
-                    : "border border-cyan-900/12 hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10"
-                }`}
-                href={item.href}
-                key={item.href}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {isAdmin ? (
+              <AdminSessionMenu className="hidden lg:block" onLogout={() => setCurrentUser(null)} user={currentUser} />
+            ) : (
+              authItems.map((item) => (
+                <Link
+                  className={`focus-ring hidden rounded-md px-3 py-2 text-sm font-semibold transition lg:inline-flex ${
+                    item.variant === "primary"
+                      ? "bg-slate-900 text-white hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100"
+                      : "border border-cyan-900/12 hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10"
+                  }`}
+                  href={item.href}
+                  key={item.href}
+                >
+                  {item.label}
+                </Link>
+              ))
+            )}
             <button
               aria-label="Tema değiştir"
               className="focus-ring hidden h-10 w-10 items-center justify-center rounded-md border border-cyan-900/15 bg-white text-slate-700 shadow-sm transition hover:border-cyan-500/40 hover:bg-cyan-50 hover:text-cyan-900 dark:border-cyan-300/15 dark:bg-cyan-300/5 dark:text-cyan-100 dark:hover:bg-cyan-300/10 sm:flex"
@@ -119,20 +132,29 @@ function Navbar({
             Rehberler
           </Link>
           <div className="grid gap-2 border-t border-slate-200 pt-2 dark:border-white/10 lg:hidden">
-            {authItems.map((item) => (
-              <Link
-                className={`focus-ring flex min-h-11 items-center justify-center rounded-md px-3 py-2 text-sm font-semibold transition ${
-                  item.variant === "primary"
-                    ? "bg-slate-900 text-white hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100"
-                    : "border border-cyan-900/12 hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10"
-                }`}
-                href={item.href}
-                key={item.href}
-                onClick={() => setMenuOpen(false)}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {isAdmin ? (
+              <AdminSessionMenu
+                fullWidth
+                onLogout={() => setCurrentUser(null)}
+                onNavigate={() => setMenuOpen(false)}
+                user={currentUser}
+              />
+            ) : (
+              authItems.map((item) => (
+                <Link
+                  className={`focus-ring flex min-h-11 items-center justify-center rounded-md px-3 py-2 text-sm font-semibold transition ${
+                    item.variant === "primary"
+                      ? "bg-slate-900 text-white hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100"
+                      : "border border-cyan-900/12 hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10"
+                  }`}
+                  href={item.href}
+                  key={item.href}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))
+            )}
           </div>
         </div>
       </nav>

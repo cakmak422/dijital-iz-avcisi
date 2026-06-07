@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AdminGate } from "@/components/AdminGate";
+import { AdminSessionMenu } from "@/components/AdminSessionMenu";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ContentSection } from "@/components/admin/content/ContentSection";
 import { editableContentGroups } from "@/lib/defaultContent";
@@ -15,13 +16,14 @@ export default function OpsConsoleContentPage() {
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
         <nav className="mx-auto flex min-h-16 max-w-7xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <BrandLogo subtitle="İçerik Yönetimi" />
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Link className="rounded-md border border-cyan-900/12 px-4 py-2 text-sm font-semibold transition hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10" href="/ops-console">
               Ops Console
             </Link>
             <Link className="rounded-md border border-cyan-900/12 px-4 py-2 text-sm font-semibold transition hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10" href="/">
               Ana sayfa
             </Link>
+            <AdminSessionMenu />
           </div>
         </nav>
       </header>

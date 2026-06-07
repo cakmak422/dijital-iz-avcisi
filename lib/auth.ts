@@ -11,7 +11,7 @@ const DEMO_SESSION_COOKIE = "dia_session";
 const DEMO_ROLE_COOKIE = "dia_role";
 
 // Demo admin is only for local/admin panel access in the current frontend MVP.
-// This is not production authentiçation; real deployment needs backend auth,
+// This is not production authentication; real deployment needs backend auth,
 // password hashing, server-side authorization, and HttpOnly Secure sessions.
 const seededUsers: DemoAuthRecord[] = [
   {
@@ -98,15 +98,36 @@ export function getCurrentDemoUser(): User | null {
 
   try {
     const user = JSON.parse(stored) as User;
+    setDemoSessionCookies(user);
     return user;
   } catch {
     window.localStorage.removeItem(SESSION_KEY);
+    clearDemoSessionCookies();
     return null;
   }
+}
+
+export function logoutDemoUser() {
+  if (typeof window === "undefined") return;
+
+  window.localStorage.removeItem(SESSION_KEY);
+  clearDemoSessionCookies();
 }
 
 function setDemoSessionCookies(user: User) {
   const maxAge = 60 * 60 * 8;
   document.cookie = `${DEMO_SESSION_COOKIE}=demo-session; Path=/; SameSite=Lax; Max-Age=${maxAge}`;
   document.cookie = `${DEMO_ROLE_COOKIE}=${user.role}; Path=/; SameSite=Lax; Max-Age=${maxAge}`;
+
+  if (window.location.protocol === "https:") {
+    document.cookie = `__Host-${DEMO_SESSION_COOKIE}=demo-session; Path=/; Secure; SameSite=Lax; Max-Age=${maxAge}`;
+    document.cookie = `__Host-${DEMO_ROLE_COOKIE}=${user.role}; Path=/; Secure; SameSite=Lax; Max-Age=${maxAge}`;
+  }
+}
+
+function clearDemoSessionCookies() {
+  document.cookie = `${DEMO_SESSION_COOKIE}=; Path=/; SameSite=Lax; Max-Age=0`;
+  document.cookie = `${DEMO_ROLE_COOKIE}=; Path=/; SameSite=Lax; Max-Age=0`;
+  document.cookie = `__Host-${DEMO_SESSION_COOKIE}=; Path=/; Secure; SameSite=Lax; Max-Age=0`;
+  document.cookie = `__Host-${DEMO_ROLE_COOKIE}=; Path=/; Secure; SameSite=Lax; Max-Age=0`;
 }
