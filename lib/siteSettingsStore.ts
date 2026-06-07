@@ -19,10 +19,10 @@ const storageKey = "dijital-iz-avcisi:site-settings:v1";
 const changedEventName = "dijital-iz-avcisi-site-settings-changed";
 
 export const defaultSiteSettings: SiteSettings = {
-  siteName: "Dijital Iz Avcisi",
-  logoText: "Dijital Iz Avcisi",
-  heroTitle: "Dijital tehditleri sade risk sinyallerine donustur.",
-  heroSubtitle: "Sahte site, phishing link, riskli satici, supheli SMS ve dijital risk sinyallerini herkesin anlayacagi guven raporlarina ceviren AI destekli analiz platformu.",
+  siteName: "Dijital İz Avcısı",
+  logoText: "Dijital İz Avcısı",
+  heroTitle: "Dijital tehditleri sade risk sinyallerine dönüştür.",
+  heroSubtitle: "Sahte site, phishing link, riskli satıcı, şüpheli SMS ve dijital risk sinyallerini herkesin anlayacağı güven raporlarına çeviren AI destekli analiz platformu.",
   favicon: "/favicon.ico",
   primaryColor: "#0f172a",
   secondaryColor: "#0891b2",
@@ -89,7 +89,7 @@ export function saveSiteSettings(settings: SiteSettings) {
   }
 
   // TODO: Bu localStorage store ileride PostgreSQL/Supabase tabanli
-  // kalici site ayarlari servisine tasinacak.
+// Kalıcı site ayarları servisine taşınacak.
   return nextSettings;
 }
 

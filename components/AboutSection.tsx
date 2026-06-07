@@ -2,44 +2,46 @@
 
 import { EditableContent } from "@/components/admin/content/EditableContent";
 
-export function AboutSection() {
+const HOME_SECTION_CONTAINER = "mx-auto w-full max-w-[1560px] px-4 sm:px-6 lg:px-10 xl:px-12";
+
+export function AboutSection({ wide = false }: { wide?: boolean }) {
   const analyzedSignals = [
-    "Yorum yogunlugu",
-    "Satici gecmisi",
+    "Yorum yoğunluğu",
+    "Satıcı geçmişi",
     "Puan anomalileri",
-    "Kullanici geri bildirimleri",
-    "AI destekli yorum ozeti"
+    "Kullanıcı geri bildirimleri",
+    "AI destekli yorum özeti"
   ];
 
   const riskLevels = [
-    { label: "Guvenli", body: "Belirgin risk sinyali dusuk gorunur.", style: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200" },
-    { label: "Dikkatli Ol", body: "Bazi sinyaller satin alma oncesi kontrol gerektirir.", style: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200" },
-    { label: "Riskli", body: "Birden fazla supheli sinyal birlikte gorunur.", style: "border-red-200 bg-red-50 text-red-700 dark:border-red-400/30 dark:bg-red-400/10 dark:text-red-200" }
+    { label: "Güvenli", body: "Belirgin risk sinyali düşük görünür.", style: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200" },
+    { label: "Dikkatli Ol", body: "Bazı sinyaller satın alma öncesi kontrol gerektirir.", style: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200" },
+    { label: "Riskli", body: "Birden fazla şüpheli sinyal birlikte görünür.", style: "border-red-200 bg-red-50 text-red-700 dark:border-red-400/30 dark:bg-red-400/10 dark:text-red-200" }
   ];
 
   return (
-    <section className="cyber-section bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6 lg:px-8">
-      <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+    <section className={`${wide ? "py-8" : "px-4 py-10 sm:px-6 lg:px-8"} cyber-section bg-slate-50 dark:bg-slate-950`}>
+      <div className={`grid ${wide ? `${HOME_SECTION_CONTAINER} gap-5` : "mx-auto max-w-7xl gap-6"} lg:grid-cols-[0.9fr_1.1fr]`}>
         <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200">Hakkimizda</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200">Hakkımızda</p>
           <EditableContent as="h1" className="mt-3 text-3xl font-bold tracking-normal sm:text-4xl lg:text-5xl" contentKey="about.page.title" />
           <EditableContent as="p" className="mt-4 leading-7 text-slate-600 dark:text-slate-300" contentKey="about.page.description" />
           <p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">
-            Platform; sahte yorum, manipule puan, guven vermeyen satici profili ve fake magaza gibi gercek sorunlari teknik detaylara bogmadan anlasilir hale getirmeyi hedefler.
+            Platform; sahte yorum, manipüle puan, güven vermeyen satıcı profili ve fake mağaza gibi gerçek sorunlari teknik detaylara boğmadan anlaşılır hale getirmeyi hedefler.
           </p>
           <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-950/60">
-            <h2 className="font-bold">Hukuki guven metni</h2>
+            <h2 className="font-bold">Hukuki güven metni</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-              Sistem kesin hukum vermez. Sunulan sonuclar risk sinyalleri ve veri analizi temelinde olusturulan bilgilendirme ciktilaridir.
+              Sistem kesin hüküm vermez. Sunulan sonuçlar risk sinyalleri ve veri analizi temelinde oluşturulan bilgilendirme çıktılarıdır.
             </p>
           </div>
         </div>
 
         <div className="grid gap-4">
           <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
-            <h2 className="text-lg font-bold">Sistem nasil calisir?</h2>
+            <h2 className="text-lg font-bold">Sistem nasıl çalışır?</h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {["Urun linki analiz edilir", "Satici sinyalleri incelenir", "Yorum yogunlugu degerlendirilir", "AI destekli risk ozeti olusturulur"].map((item) => (
+              {["Ürün linki analiz edilir", "Satıcı sinyalleri incelenir", "Yorum yoğunluğu değerlendirilir", "AI destekli risk özeti oluşturulur"].map((item) => (
                 <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200" key={item}>
                   {item}
                 </p>

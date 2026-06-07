@@ -87,7 +87,7 @@ export async function upsertNewsItems(items: CyberNewsItem[]): Promise<NewsDbWri
       errors: errors.slice(0, 5)
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Bilinmeyen Supabase insert hatasi";
+    const errorMessage = error instanceof Error ? error.message : "Bilinmeyen Supabase insert hatası";
     console.error("supabase_cyber_news_upsert_exception", {
       error: errorMessage,
       itemCount: items.length
@@ -130,7 +130,7 @@ async function upsertNewsBatch(items: CyberNewsItem[]): Promise<NewsDbWriteResul
       errors: []
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Bilinmeyen Supabase insert hatasi";
+    const errorMessage = error instanceof Error ? error.message : "Bilinmeyen Supabase insert hatası";
     console.error("supabase_cyber_news_batch_exception", {
       error: errorMessage,
       itemCount: items.length
@@ -165,7 +165,7 @@ async function fetchRows(query: string): Promise<CyberNewsDbRow[] | null> {
     return Array.isArray(data) ? (data as CyberNewsDbRow[]) : null;
   } catch (error) {
     console.error("supabase_cyber_news_read_failed", {
-      error: error instanceof Error ? error.message : "Bilinmeyen Supabase okuma hatasi"
+      error: error instanceof Error ? error.message : "Bilinmeyen Supabase okuma hatası"
     });
     return null;
   }
@@ -197,7 +197,7 @@ function getSupabaseHeaders(prefer?: string) {
 
 function toDbRow(item: CyberNewsItem) {
   return {
-    // id bilerek gonderilmez; Supabase/PostgreSQL gen_random_uuid() uretir.
+    // id bilerek gönderilmez; Supabase/PostgreSQL gen_random_uuid() üretir.
     title: item.title,
     slug: item.slug,
     summary: item.summary,
@@ -233,7 +233,7 @@ function fromDbRow(row: CyberNewsDbRow): CyberNewsItem {
     summary: row.summary,
     riskNote: row.risk_note ?? "",
     publicAdvice: Array.isArray(row.public_advice) ? row.public_advice : [],
-    category: row.category ?? "Siber GÃ¼ndem",
+    category: row.category ?? "Siber Gündem",
     sourceName: row.source_name,
     sourceUrl: row.source_url,
     imageUrl: row.image_url ?? "/news-fallback-cyber.svg",

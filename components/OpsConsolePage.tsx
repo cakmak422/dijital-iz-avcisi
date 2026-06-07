@@ -19,8 +19,8 @@ const stats = [
 ];
 
 const recentAnalyses = [
-  { target: "trendyol.com/urun", type: "Ürün", result: "Dikkat" },
-  { target: "bit.ly/ornek", type: "Phishing", result: "Risk" },
+  { target: "trendyol.com/Ürün", type: "Ürün", result: "Dikkat" },
+  { target: "bit.ly/örnek", type: "Phishing", result: "Risk" },
   { target: "Kargo SMS metni", type: "SMS", result: "Risk" }
 ];
 
@@ -46,17 +46,17 @@ export function OpsConsolePage() {
   }, []);
 
   async function handleNewsUpdate() {
-    setNewsUpdateStatus("Haber kaynaklari kontrol ediliyor...");
+      setNewsUpdateStatus("Haber kaynakları kontrol ediliyor...");
     try {
       // CRON_SECRET client tarafina konmaz. Bu istek admin session cookie ile yetkilendirilir.
-      // TODO: Gercek production auth geldiginde bu butonu server action veya signed admin API uzerinden calistir.
+      // TODO: Gerçek production auth geldiginde bu butonu server action veya signed admin API uzerinden calistir.
       const response = await fetch("/api/news/fetch", { method: "POST" });
-      if (!response.ok) throw new Error("Haber guncelleme istegi basarisiz oldu.");
+      if (!response.ok) throw new Error("Haber güncelleme isteği başarısız oldu.");
       const result = (await response.json()) as { found: number; inserted: number; skipped: number; failed: number; errors?: string[] };
-      const errorSummary = result.errors?.length ? ` Ilk hata: ${result.errors[0]}` : "";
-      setNewsUpdateStatus(`${result.found} haber bulundu, ${result.inserted} veritabanina eklendi, ${result.skipped} tekrar/atlanmis, ${result.failed} basarisiz.${errorSummary}`);
+      const errorSummary = result.errors?.length ? ` İlk hata: ${result.errors[0]}` : "";
+      setNewsUpdateStatus(`${result.found} haber bulundu, ${result.inserted} veritabanına eklendi, ${result.skipped} tekrar/atlanmış, ${result.failed} başarısız.${errorSummary}`);
     } catch {
-      setNewsUpdateStatus("Haberler guncellenemedi. Kaynak veya ag erisimi kontrol edilmeli.");
+      setNewsUpdateStatus("Haberler güncellenemedi. Kaynak veya ag erişimi kontrol edilmeli.");
     }
   }
 
@@ -93,21 +93,21 @@ export function OpsConsolePage() {
               <AdminCard title="Son analizler" items={recentAnalyses.map((item) => `${item.type}: ${item.target} - ${item.result}`)} />
               <SecurityStatusCard />
               <article className="rounded-lg border border-cyan-200 bg-cyan-50 p-5 shadow-sm dark:border-cyan-400/30 dark:bg-cyan-400/10">
-                <h2 className="text-xl font-bold">Icerik duzenleme sistemi</h2>
+                <h2 className="text-xl font-bold">İçerik düzenleme sistemi</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-cyan-50">
-                  Hero, hakkimizda, duyuru, siber gundem ve footer metinlerini panel uzerinden yonetin.
+                  Hero, hakkimizda, duyuru, siber gündem ve footer metinlerini panel uzerinden yönetin.
                 </p>
                 <Link className="mt-4 inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100" href="/ops-console/content">
-                  Icerik panelini ac
+                  İçerik panelini aç
                 </Link>
               </article>
               <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
                 <h2 className="text-xl font-bold">Site Ayarlari</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">
-                  Logo, tema, renk, genel site ayarlari ve CMS temel yonetimi.
+        Logo, tema, renk, genel site ayarları ve CMS temel yönetimi.
                 </p>
                 <Link className="mt-4 inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100" href="/ops-console/site-settings">
-                  Site ayarlarini ac
+        Site ayarlarını aç
                 </Link>
               </article>
               <UsersTable />
@@ -204,12 +204,12 @@ function AdminCard({ items, title }: { items: string[]; title: string }) {
 function ContactMessagesSummaryCard({ messages, stats }: { messages: ContactMessage[]; stats: ContactMessageStats }) {
   return (
     <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
-      <h2 className="text-xl font-bold">Iletisim Mesajlari</h2>
-      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Local MVP: mesaj kutusu ozeti.</p>
+      <h2 className="text-xl font-bold">İletişim Mesajlari</h2>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Local MVP: mesaj kutusu özeti.</p>
       <div className="mt-4 grid grid-cols-3 gap-2">
         <ContactStatPill label="Toplam" value={stats.total} />
         <ContactStatPill label="Yeni" value={stats.new} tone="amber" />
-        <ContactStatPill label="Arsiv" value={stats.archived} />
+        <ContactStatPill label="Arşiv" value={stats.archived} />
       </div>
       <div className="mt-4 grid gap-2">
         {messages.length ? (
@@ -230,12 +230,12 @@ function ContactMessagesSummaryCard({ messages, stats }: { messages: ContactMess
           ))
         ) : (
           <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
-            Henuz mesaj yok
+            Henüz mesaj yok
           </p>
         )}
       </div>
       <Link className="mt-4 inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100" href="/ops-console/messages">
-        Tum mesajlari goruntule
+        Tüm mesajları görüntüle
       </Link>
     </article>
   );
@@ -365,12 +365,12 @@ function NewsUpdateCard({
 }) {
   return (
     <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
-      <h2 className="text-xl font-bold">Guncel Siber Haberler</h2>
+      <h2 className="text-xl font-bold">Güncel Siber Haberler</h2>
       <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-        RSS kaynaklarini tarar, uygun haberleri cyber_news tablosuna source_url benzersizligiyle kaydeder.
+        RSS kaynaklarını tarar, uygun haberleri cyber_news tablosuna source_url benzersizliğiyle kaydeder.
       </p>
       <button className="btn-primary mt-4 min-h-10 px-4" onClick={onUpdate} type="button">
-        Haberleri Guncelle
+        Haberleri Göncelle
       </button>
       <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-400">{status}</p>
     </article>
@@ -379,16 +379,16 @@ function NewsUpdateCard({
 
 function SecurityStatusCard() {
   const items = [
-    "Admin erisimi proxy ve role kontrolu ile korunur",
+    "Admin erişimi proxy ve role kontrolü ile korunur",
     "Demo bilgiler production arayuzunde gizli",
-    "Production OTP ekranda gosterilmez",
+    "Production OTP ekranda gösterilmez",
     "Security headers aktif",
-    "Rate limit hazirligi aktif"
+        "Rate limit hazırlığı aktif"
   ];
 
   return (
     <article className="rounded-lg border border-emerald-200 bg-emerald-50 p-5 shadow-sm dark:border-emerald-400/30 dark:bg-emerald-400/10">
-      <h2 className="text-xl font-bold">Guvenlik durumu</h2>
+      <h2 className="text-xl font-bold">Güvenlik durumu</h2>
       <div className="mt-4 grid gap-2">
         {items.map((item) => (
           <p className="rounded-md border border-emerald-200 bg-white/70 px-3 py-2 text-sm font-semibold text-emerald-800 dark:border-emerald-300/20 dark:bg-white/5 dark:text-emerald-100" key={item}>

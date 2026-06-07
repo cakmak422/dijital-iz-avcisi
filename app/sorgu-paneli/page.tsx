@@ -33,13 +33,13 @@ function QueryReferenceHero() {
       <div className="relative z-10 mx-auto max-w-7xl">
         <div className="max-w-3xl">
           <p className="w-fit rounded-md border border-cyan-300/30 bg-cyan-300/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100">
-            Guvenlik laboratuvari
+            Güvenlik laboratuvari
           </p>
           <h1 className="mt-5 text-3xl font-bold tracking-normal text-white sm:text-4xl lg:text-6xl">
-            Analiz turunu sec ve sorguyu baslat.
+            Analiz türünü seç ve sorguyu başlat.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-7 text-slate-200 sm:text-lg sm:leading-8">
-            Urun analizi, phishing kontrolu, site guvenligi, IP istihbarati, EXIF ve SMS analizi ayni profesyonel rapor formatinda toplanir.
+            Ürün analizi, phishing kontrolü, site güvenliği, IP istihbaratı, EXIF ve SMS analizi aynı profesyonel rapor formatında toplanır.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Link className="btn-primary min-h-12 w-full text-base sm:w-auto" href="#analysis-workspace">

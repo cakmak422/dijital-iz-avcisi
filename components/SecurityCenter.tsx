@@ -34,7 +34,7 @@ export function SecurityCenter() {
           </div>
           <div className="flex flex-col justify-between p-5 sm:p-6">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-200">Dijital Guvenlik Merkezi</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-200">Dijital Güvenlik Merkezi</p>
               <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">{featured.title}</h1>
               <p className="mt-4 leading-7 text-slate-300">{featured.content}</p>
               <EditableContent as="p" className="mt-3 text-sm leading-6 text-cyan-50/85" contentKey="home.securityCenter.description" />

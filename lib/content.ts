@@ -47,7 +47,7 @@ export const posts: PlatformContentItem[] = [
     status: "published"
   },
   {
-    id: "post-guvenli-alisveris",
+    id: "post-güvenli-alışveriş",
     title: "Alışveriş öncesi satıcı ve yorum kontrolü",
     category: "Alışveriş Güvenliği",
     summary:

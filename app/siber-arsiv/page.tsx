@@ -13,7 +13,7 @@ export default function CyberArchivePage() {
       <header className="border-b border-slate-200 bg-white dark:border-white/10 dark:bg-slate-950">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <BrandLogo subtitle="Siber olay arsivi" />
+          <BrandLogo subtitle="Siber olay arşivi" />
             <div className="flex flex-wrap gap-2 text-sm font-semibold">
               <Link className="rounded-md border border-slate-200 bg-white px-3 py-2 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10" href="/">
                 Ana Sayfa
@@ -32,7 +32,7 @@ export default function CyberArchivePage() {
         <div className="archive-status-card mx-auto flex max-w-7xl flex-col gap-2 rounded-lg border p-4 text-cyan-50">
           <p className="text-sm font-bold">Bugunun secili olayi: {todayEvent.title}</p>
           <p className="text-sm leading-6">
-            Ana sayfadaki guncel kart takvim gunune gore gece 00:00 sonrasinda bu arsivden yeni olaya gecer.
+            Ana sayfadaki güncel kart takvim gününe göre gece 00:00 sonrasında bu arşivden yeni olaya geçer.
           </p>
         </div>
       </section>
@@ -75,17 +75,17 @@ function ArchiveReferenceHero() {
       <div className="relative z-10 mx-auto flex min-h-[440px] max-w-7xl items-center">
         <div className="max-w-3xl">
           <p className="inline-flex rounded-md border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.24em] text-cyan-100">
-            Siber Tarih & Dijital Tehdit Arsivi
+            Siber Tarih & Dijital Tehdit Arşivi
           </p>
           <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
-            Siber Kirilma Noktalari
+            Siber Kırılma Noktaları
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
-            Tarihte iz birakan siber olaylari; kaynak, etki ve guvenlik dersiyle birlikte sade bir arsivde topluyoruz.
+            Tarihte iz bırakan siber olayları; kaynak, etki ve güvenlik dersiyle birlikte sade bir arşivde topluyoruz.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link className="btn-primary min-h-11 px-5" href="#arsiv-listesi">
-              Arsivi Incele
+              Arşivi Incele
             </Link>
             <Link className="btn-secondary min-h-11 px-5" href="/sorgu-paneli">
               Sorgu Paneli

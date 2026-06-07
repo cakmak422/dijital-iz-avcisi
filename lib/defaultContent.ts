@@ -6,47 +6,47 @@ export const defaultEditableContent: EditableContent[] = [
   {
     id: "content-home-hero-title",
     key: "home.hero.title",
-    title: "Hero basligi",
-    content: "Dijital tehditleri sade risk sinyallerine donustur.",
+    title: "Hero başlığı",
+    content: "Dijital tehditleri sade risk sinyallerine dönüştür.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-home-hero-description",
     key: "home.hero.description",
-    title: "Hero aciklamasi",
-    content: "Sahte site, phishing link, riskli satici, supheli SMS ve dijital risk sinyallerini herkesin anlayacagi guven raporlarina ceviren AI destekli analiz platformu.",
+    title: "Hero açıklaması",
+    content: "Sahte site, phishing link, riskli satıcı, şüpheli SMS ve dijital risk sinyallerini herkesin anlayacağı güven raporlarına çeviren AI destekli analiz platformu.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-home-about-text",
     key: "home.about.text",
-    title: "Hakkimizda metni",
-    content: "Dijital Iz Avcisi, cevrim ici alisverislerde kullanicilarin urun ve satici risk sinyallerini daha hizli gorebilmesi icin gelistirilen AI destekli analiz platformudur.",
+    title: "Hakkımızda metni",
+    content: "Dijital İz Avcısı, çevrim içi alışverişlerde kullanıcılarin Ürün ve satıcı risk sinyallerini daha hızlı görebilmesi için geliştirilen AI destekli analiz platformudur.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-about-page-title",
     key: "about.page.title",
-    title: "Hakkimizda sayfa basligi",
-    content: "Siber farkindalik ve alisveris guvenligi icin sade risk analizi.",
+    title: "Hakkımızda sayfa başlığı",
+    content: "Siber farkındalık ve alışveriş güvenliği için sade risk analizi.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-about-page-description",
     key: "about.page.description",
-    title: "Hakkimizda alt aciklamasi",
-    content: "Dijital Iz Avcisi, cevrim ici alisverislerde kullanicilarin urun ve satici risk sinyallerini daha hizli gorebilmesi icin gelistirilen AI destekli analiz platformudur.",
+    title: "Hakkımızda alt açıklaması",
+    content: "Dijital İz Avcısı, çevrim içi alışverişlerde kullanıcılarin Ürün ve satıcı risk sinyallerini daha hızlı görebilmesi için geliştirilen AI destekli analiz platformudur.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-about-mission-title",
     key: "about.mission.title",
-    title: "Misyon basligi",
+    title: "Misyon başlığı",
     content: "Misyonumuz",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
@@ -55,14 +55,14 @@ export const defaultEditableContent: EditableContent[] = [
     id: "content-about-mission-text",
     key: "about.mission.text",
     title: "Misyon metni",
-    content: "Kullanici verisi satmadan, odeme bilgisi almadan ve sade risk dili kullanarak dijital tehditleri herkes icin daha anlasilir hale getirmek.",
+    content: "Kullanıcı verisi satmadan, ödeme bilgisi almadan ve sade risk dili kullanarak dijital tehditleri herkes için daha anlaşılır hale getirmek.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-about-vision-title",
     key: "about.vision.title",
-    title: "Vizyon basligi",
+    title: "Vizyon başlığı",
     content: "Vizyonumuz",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
@@ -71,31 +71,31 @@ export const defaultEditableContent: EditableContent[] = [
     id: "content-about-vision-text",
     key: "about.vision.text",
     title: "Vizyon metni",
-    content: "Turkiye genelinde alisveris guven farkindaligini artirmak ve dijital riskleri herkes icin daha okunabilir hale getirmek.",
+    content: "Türkiye genelinde alışveriş güven farkindaligini artirmak ve dijital riskleri herkes için daha okunabilir hale getirmek.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-home-cyber-news-title",
     key: "home.cyberNews.title",
-    title: "Siber Gündem basligi",
-    content: "Guncel dijital risk notlari.",
+    title: "Siber Gündem başlığı",
+    content: "Güncel dijital risk notları.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-home-cyber-news-description",
     key: "home.cyberNews.description",
-    title: "Siber Gündem aciklamasi",
-    content: "Turkiye odakli kisa, net ve aksiyon alinabilir guvenlik bultenleri.",
+    title: "Siber Gündem açıklaması",
+    content: "Türkiye odaklı kısa, net ve aksiyon alınabilir güvenlik bültenleri.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-home-security-center-description",
     key: "home.securityCenter.description",
-    title: "Dijital Guvenlik Merkezi aciklamasi",
-    content: "Kisa, net ve uygulanabilir risk uyarilariyla dijital tehditleri daha okunabilir hale getirir.",
+    title: "Dijital Güvenlik Merkezi açıklaması",
+    content: "Kısa, net ve uygulanabilir risk uyarilariyla dijital tehditleri daha okunabilir hale getirir.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
@@ -110,32 +110,32 @@ export const defaultEditableContent: EditableContent[] = [
   {
     id: "content-home-guides-title",
     key: "home.guides.title",
-    title: "Rehberler basligi",
-    content: "Guvenlik bilgisi herkes icin.",
+    title: "Rehberler başlığı",
+    content: "Güvenlik bilgisi herkes için.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-home-guides-description",
     key: "home.guides.description",
-    title: "Rehberler aciklamasi",
-    content: "Teknik tehditleri sade, uygulanabilir ve anlasilir rehberlere donusturen icerik alani.",
+    title: "Rehberler açıklaması",
+    content: "Teknik tehditleri sade, uygulanabilir ve anlaşılır rehberlere dönüştüren içerik alanı.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-home-footer-description",
     key: "home.footer.description",
-    title: "Footer aciklamasi",
-    content: "AI destekli analizler bilgilendirme amaclidir. Platform kesin suclama yapmaz; riskli davranis, phishing paterni ve supheli sinyal dilini kullanir.",
+    title: "Footer açıklaması",
+    content: "AI destekli analizler bilgilendirme amaçlıdır. Platform kesin suçlama yapmaz; riskli davranış, phishing paterni ve şüpheli sinyal dilini kullanır.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-home-footer-title",
     key: "home.footer.title",
-    title: "Footer basligi",
-    content: "Dijital Iz Avcisi",
+    title: "Footer başlığı",
+    content: "Dijital İz Avcısı",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
@@ -159,54 +159,54 @@ export const defaultEditableContent: EditableContent[] = [
     id: "content-home-footer-copyright",
     key: "home.footer.copyright",
     title: "Footer telif metni",
-    content: "© 2026 Dijital Iz Avcisi. Tum haklari saklidir.",
+    content: "© 2026 Dijital İz Avcısı. Tüm hakları saklıdır.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-contact-intro-text",
     key: "contact.intro.text",
-    title: "Iletisim alani metni",
-    content: "Supheli link, sahte SMS ornegi, hatali analiz bildirimi veya yeni ozellik onerilerini bu form uzerinden paylasabilirsiniz.",
+    title: "İletişim alanı metni",
+    content: "Şüpheli link, sahte SMS örneği, hatalı analiz bildirimi veya yeni özellik önerilerini bu form üzerinden paylaşabilirsiniz.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-contact-page-title",
     key: "contact.page.title",
-    title: "Iletisim sayfa basligi",
-    content: "Oneri, bildirim ve is birligi.",
+    title: "İletişim sayfa başlığı",
+    content: "Öneri, bildirim ve iş birliği.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-contact-page-description",
     key: "contact.page.description",
-    title: "Iletisim sayfa aciklamasi",
-    content: "Supheli link, sahte SMS ornegi, hatali analiz bildirimi veya yeni ozellik onerilerini bu form uzerinden paylasabilirsiniz.",
+    title: "İletişim sayfa açıklaması",
+    content: "Şüpheli link, sahte SMS örneği, hatalı analiz bildirimi veya yeni özellik önerilerini bu form üzerinden paylaşabilirsiniz.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-contact-info-title",
     key: "contact.info.title",
-    title: "Iletisim bilgi basligi",
-    content: "Resmi iletisim",
+    title: "İletişim bilgi başlığı",
+    content: "Resmi iletişim",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-contact-info-description",
     key: "contact.info.description",
-    title: "Iletisim bilgi aciklamasi",
-    content: "Iletisim, ihbar, oneri ve is birligi talepleri icin asagidaki adresleri kullanabilirsiniz.",
+    title: "İletişim bilgi açıklaması",
+    content: "İletişim, ihbar, öneri ve iş birliği talepleri için aşağıdaki adresleri kullanabilirsiniz.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-contact-support-email",
     key: "contact.supportEmail",
-    title: "Iletisim destek e-postasi",
+    title: "İletişim destek e-postasi",
     content: "iletisim@dijitalizavcisi.com",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
@@ -214,7 +214,7 @@ export const defaultEditableContent: EditableContent[] = [
   {
     id: "content-contact-report-email",
     key: "contact.reportEmail",
-    title: "Iletisim ihbar e-postasi",
+    title: "İletişim ihbar e-postasi",
     content: "iletisim@dijitalizavcisi.com",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
@@ -223,15 +223,15 @@ export const defaultEditableContent: EditableContent[] = [
     id: "content-home-announcement-banner",
     key: "home.announcement.banner",
     title: "Ana sayfa duyuru banneri",
-    content: "Demo bulten: Sahte kargo SMS'leri ve marka taklidi yapan linkler icin analiz panelini kullanarak risk sinyallerini kontrol edin.",
+    content: "Demo bülten: Sahte kargo SMS'leri ve marka taklidi yapan linkler için analiz panelini kullanarak risk sinyallerini kontrol edin.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   },
   {
     id: "content-home-today-cyber-event-text",
     key: "home.todayCyberEvent.text",
-    title: "Bugunun Siber Olayi metni",
-    content: "Bu olay, dijital guvenlikte tek bir teknik acigin genis olcekli toplumsal ve kurumsal etkilere yol acabilecegini gosterir.",
+    title: "Bugünün Siber Olayı metni",
+    content: "Bu olay, dijital güvenlikte tek bir teknik açığın geniş ölçekli toplumsal ve kurumsal etkilere yol açabileceğini gösterir.",
     updatedAt: initialUpdatedAt,
     updatedBy: "system"
   }
@@ -241,7 +241,7 @@ export const editableContentGroups: EditableContentGroup[] = [
   {
     id: "homepage",
     title: "Ana sayfa",
-    description: "Hero, duyuru, siber gundem ve guvenlik merkezi metinleri.",
+    description: "Hero, duyuru, siber gündem ve güvenlik merkezi metinleri.",
     keys: [
       "home.hero.title",
       "home.hero.description",
@@ -263,7 +263,7 @@ export const editableContentGroups: EditableContentGroup[] = [
   {
     id: "corporate",
     title: "Kurumsal sayfalar",
-    description: "Hakkimizda ve iletisim alanlarinda kullanilan metinler.",
+    description: "Hakkımızda ve iletişim alanlarında kullanılan metinler.",
     keys: [
       "about.page.title",
       "about.page.description",

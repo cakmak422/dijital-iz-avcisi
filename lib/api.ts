@@ -137,8 +137,8 @@ export type ExifAnalysisResult = {
 };
 
 const fallbackResult: AnalysisResult = {
-  product_name: "Demo urun analizi",
-  seller_name: "Ornek Satici",
+  product_name: "Demo Ürün analizi",
+  seller_name: "örnek Satıcı",
   marketplace: "Demo",
   rating: 4.2,
   review_count: 128,
@@ -148,12 +148,12 @@ const fallbackResult: AnalysisResult = {
   review_snippet_count: 0,
   parser_notes: ["Frontend fallback demo sonucu kullanildi."],
   ai_summary: {
-    positive: "Kullanicilar urun kalitesi ve fiyat-performans dengesini olumlu buluyor.",
-    negative: "Bazi yorumlarda paketleme ve gec teslimat sikayetleri one cikiyor.",
-    fake_review_pattern: "Tekrarlayan kisa yorumlar nedeniyle dusuk-orta seviyede sahte yorum paterni ihtimali var.",
-    delivery_complaints: "Teslimat sikayetleri yogun degil, ancak tamamen ihmal edilebilir seviyede de degil.",
-    return_issues: "Iade sureciyle ilgili sinirli sayida olumsuz sinyal var.",
-    recommendation: "Satin almadan once satici puanini ve en yeni yorumlari tekrar kontrol edin."
+    positive: "Kullanıcılar Ürün kalitesi ve fiyat-performans dengesini olumlu buluyor.",
+    negative: "Bazı yorumlarda paketleme ve geç teslimat şikayetleri öne çıkıyor.",
+    fake_review_pattern: "Tekrarlayan kısa yorumlar nedeniyle düşük-orta seviyede sahte yorum paterni ihtimali var.",
+    delivery_complaints: "Teslimat şikayetleri yogun değil, ancak tamamen ihmal edilebilir seviyede de değil.",
+    return_issues: "İade süreciyle ilgili sınırlı sayıda olumsuz sinyal var.",
+    recommendation: "Satın almadan önce satıcı puanini ve en yeni yorumlari tekrar kontrol edin."
   }
 };
 
@@ -178,7 +178,7 @@ export async function analyzeProduct(url: string): Promise<AnalysisResult> {
     return {
       ...fallbackResult,
       marketplace: detectMarketplace(url),
-      product_name: "Backend baglantisi olmadan demo analiz"
+    product_name: "Backend bağlantısı olmadan demo analiz"
     };
   }
 }
@@ -243,7 +243,7 @@ export async function analyzeExifImage(file: File): Promise<ExifAnalysisResult> 
   const hasJpegExtension = lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg");
   const hasJpegType = file.type === "image/jpeg";
   if (!hasJpegExtension && !hasJpegType) {
-    throw new Error(`Sadece JPG/JPEG destekleniyor. Secilen dosya: ${file.name}, type: ${file.type || "yok"}`);
+    throw new Error(`Sadece JPG/JPEG destekleniyor. Seçilen dosya: ${file.name}, type: ${file.type || "yok"}`);
   }
 
   console.log("exif_upload_request", {

@@ -10,7 +10,7 @@ export default function ContactPage() {
     <CyberPageShell className="contact-reference-page" variant="contact">
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <BrandLogo subtitle="Iletisim" />
+          <BrandLogo subtitle="İletişim" />
           <Link className="rounded-md border border-cyan-900/12 px-4 py-2 text-sm font-semibold transition hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10" href="/">
             Ana sayfa
           </Link>
@@ -35,7 +35,7 @@ function ContactReferenceHero() {
       <div className="relative z-10 mx-auto flex min-h-[440px] max-w-7xl items-center">
         <div className="max-w-3xl">
           <p className="inline-flex rounded-md border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.24em] text-cyan-100">
-            Iletisim
+            İletişim
           </p>
           <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
             <EditableContent as="span" contentKey="contact.page.title" />
@@ -45,7 +45,7 @@ function ContactReferenceHero() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link className="btn-primary min-h-11 px-5" href="#iletisim-formu">
-              Mesaj Gonder
+              Mesaj Gönder
             </Link>
           </div>
         </div>

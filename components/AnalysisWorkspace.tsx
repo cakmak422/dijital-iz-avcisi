@@ -35,53 +35,53 @@ type Module = {
 const modules: Module[] = [
   {
     id: "product",
-    title: "Urun Analizi",
-    shortTitle: "Urun",
-    description: "Trendyol, Hepsiburada, N11 ve Amazon TR urun linkleri icin satici, yorum ve fiyat sinyallerini inceler.",
+    title: "Ürün Analizi",
+    shortTitle: "Ürün",
+    description: "Trendyol, Hepsiburada, N11 ve Amazon TR ürün linkleri için satıcı, yorum ve fiyat sinyallerini inceler.",
     status: "Aktif MVP",
     icon: "UR",
-    inputLabel: "Urun linki",
+    inputLabel: "Ürün linki",
     placeholder: "https://www.trendyol.com/...",
-    checks: ["Satici adi", "Puan", "Yorum sayisi", "Fiyat", "Sahte yorum paterni", "Guven skoru"]
+    checks: ["Satıcı adi", "Puan", "Yorum sayisi", "Fiyat", "Sahte yorum paterni", "Güven skoru"]
   },
   {
     id: "phishing",
-    title: "Phishing Kontrolu",
+    title: "Phishing Kontrolü",
     shortTitle: "Phishing",
-    description: "URL icin marka taklidi, guvensiz protokol, kisa link ve supheli alan adi paternlerini inceler.",
+    description: "URL için marka taklidi, güvensiz protokol, kısa link ve Şüpheli alan adi paternlerini inceler.",
     status: "Aktif MVP",
     icon: "PH",
-    inputLabel: "Supheli URL",
-    placeholder: "https://ornek-link.com/login",
-    checks: ["HTTPS kontrolu", "Marka taklidi", "Kisa link", "Alan adi paterni", "Oltalama sinyali", "AI ozeti"]
+    inputLabel: "Şüpheli URL",
+    placeholder: "https://örnek-link.com/login",
+    checks: ["HTTPS kontrolü", "Marka taklidi", "Kısa link", "Alan adi paterni", "Oltalama sinyali", "AI özeti"]
   },
   {
     id: "site",
-    title: "Site Guvenlik Kontrolu",
+    title: "Site Güvenlik Kontrolü",
     shortTitle: "Site",
-    description: "Domain, SSL, DNS, RDAP, mail guvenligi ve redirect sinyallerinden sade bir OSINT raporu uretir.",
+    description: "Domain, SSL, DNS, RDAP, mail güvenliği ve redirect sinyallerinden sade bir OSINT raporu üretir.",
     status: "Aktif MVP",
     icon: "SG",
     inputLabel: "URL veya domain",
-    placeholder: "ornek-site.com",
-    checks: ["Domain yasi", "SSL sertifikasi", "DNS kayitlari", "RDAP/WHOIS", "Mail guvenligi", "Redirect kontrolu"]
+    placeholder: "örnek-site.com",
+    checks: ["Domain yaşı", "SSL sertifikası", "DNS kayıtları", "RDAP/WHOIS", "Mail güvenliği", "Redirect kontrolü"]
   },
   {
     id: "exif",
-    title: "Fotograf EXIF Analizi",
+    title: "Fotoğraf EXIF Analizi",
     shortTitle: "EX",
-    description: "Fotograftaki cekim tarihi, cihaz modeli, GPS konumu ve gizlilik risklerini analiz eder.",
+    description: "Fotoğraftaki çekim tarihi, cihaz modeli, GPS konumu ve gizlilik risklerini analiz eder.",
     status: "Yakinda",
     icon: "EX",
-    inputLabel: "Fotograf dosyasi",
+    inputLabel: "Fotoğraf dosyası",
     placeholder: "",
-    checks: ["Cekim tarihi", "Cihaz modeli", "GPS konumu", "Yazilim bilgisi", "Gizlilik riski", "Metadata durumu"]
+    checks: ["Çekim tarihi", "Cihaz modeli", "GPS konumu", "Yazılım bilgisi", "Gizlilik riski", "Metadata durumu"]
   },
   {
     id: "ip",
     title: "IP Istihbarati",
     shortTitle: "IP",
-    description: "IP adresinin ulke, ASN, hosting, proxy/VPN/Tor ve kotuye kullanim sinyallerini degerlendirir.",
+    description: "IP adresinin ülke, ASN, hosting, proxy/VPN/Tor ve kötüye kullanım sinyallerini değerlendirir.",
     status: "Aktif MVP",
     icon: "IP",
     inputLabel: "IP adresi",
@@ -89,36 +89,36 @@ const modules: Module[] = [
     // TODO: IP Istihbarati kapsami:
     // - IP ulke bilgisi
     // - ASN / organizasyon
-    // - Hosting saglayici
+// - Hosting sağlayıcı
     // - AbuseIPDB entegrasyonu
     // - VPN / Proxy tespiti
-    // - Tor exit node kontrolu
+    // - Tor exit node kontrolü
     // - Kara liste sinyalleri
     // - Son raporlanma tarihi
-    // - Vatandasa sade risk yorumu
-    checks: ["Ulke", "ASN", "Hosting firmasi", "VPN/TOR olasiligi", "Abuse kayitlari", "Veri merkezi sinyali"]
+    // - Vatandaça sade risk yorumu
+    checks: ["Ülke", "ASN", "Hosting firması", "VPN/TOR olasılığı", "Abuse kayıtları", "Veri merkezi sinyali"]
   },
   {
     id: "message",
     title: "SMS / Mesaj Analizi",
     shortTitle: "SMS",
-    description: "Korku dili, aciliyet baskisi, kurum taklidi ve sahte kargo paternlerini AI ile aciklar.",
+    description: "Korku dili, aciliyet baskısı, kurum taklidi ve sahte kargo paternlerini AI ile açıklar.",
     status: "Aktif MVP",
     icon: "SM",
     inputLabel: "SMS veya mesaj metni",
-    placeholder: "Kargonuz bekletiliyor, hemen odeme yapin...",
-    checks: ["Aciliyet baskisi", "Kurum taklidi", "Phishing paterni", "Sahte kargo", "Risk seviyesi", "Kullanici onerisi"]
+    placeholder: "Kargonuz bekletiliyor, hemen ödeme yapin...",
+    checks: ["Aciliyet baskısı", "Kurum taklidi", "Phishing paterni", "Sahte kargo", "Risk seviyesi", "Kullanıcı önerisi"]
   }
 ];
 
 const riskLabels: Record<RiskLevel, string> = {
-  safe: "Guvenli",
+  safe: "Güvenli",
   caution: "Dikkatli Ol",
   risk: "Riskli"
 };
 
 const ipRiskLabels: Record<RiskLevel, string> = {
-  safe: "Dusuk Risk",
+  safe: "Düşük Risk",
   caution: "Dikkat",
   risk: "Riskli"
 };
@@ -195,7 +195,7 @@ export function AnalysisWorkspace() {
 
     const rate = checkClientRateLimit(`analysis-${activeModule}`, 10, 60_000);
     if (!rate.allowed) {
-      setError(`Cok fazla analiz denemesi. Lutfen ${rate.retryAfterSeconds} saniye sonra tekrar deneyin.`);
+      setError(`Çok fazla analiz denemesi. Lütfen ${rate.retryAfterSeconds} saniye sonra tekrar deneyin.`);
       return;
     }
 
@@ -204,7 +204,7 @@ export function AnalysisWorkspace() {
 
     if (activeModule === "exif") {
       if (!selectedExifFile) {
-        setError("Analiz icin bir JPG/JPEG fotograf secin.");
+      setError("Analiz için bir JPG/JPEG fotoğraf seçin.");
         return;
       }
       setIsLoading(true);
@@ -217,7 +217,7 @@ export function AnalysisWorkspace() {
       try {
         setExifResult(await analyzeExifImage(selectedExifFile));
       } catch (error) {
-        setError(error instanceof Error ? error.message : "EXIF analizi tamamlanamadi. JPG/JPEG dosyasi sectiginizden emin olun.");
+      setError(error instanceof Error ? error.message : "EXIF analizi tamamlanamadı. JPG/JPEG dosyası seçtiğinizden emin olun.");
       } finally {
         setIsLoading(false);
       }
@@ -225,22 +225,22 @@ export function AnalysisWorkspace() {
     }
 
     if (activeModule !== "product" && activeModule !== "phishing" && activeModule !== "message" && activeModule !== "site" && activeModule !== "ip") {
-      setError("Bu sorgu paneli yakinda aktif olacak. Simdilik urun analizi calisiyor.");
+      setError("Bu sorgu paneli yakinda aktif olacak. Simdilik Ürün analizi calisiyor.");
       return;
     }
 
     if (!sanitizedInput) {
-      setError(activeModule === "message" ? "Analiz icin bir mesaj metni girin." : "Analiz icin bir URL yapistirin.");
+    setError(activeModule === "message" ? "Analiz için bir mesaj metni girin." : "Analiz için bir URL yapıştırın.");
       return;
     }
 
     if ((activeModule === "product" || activeModule === "phishing" || activeModule === "site") && !isLikelyUrl(sanitizedInput)) {
-      setError("Gecerli bir URL girin.");
+      setError("Geçerli bir URL girin.");
       return;
     }
 
     if (activeModule === "ip" && !isLikelyIpInput(sanitizedInput)) {
-      setError("Gecerli bir IP adresi girin.");
+      setError("Geçerli bir IP adresi girin.");
       return;
     }
 
@@ -270,7 +270,7 @@ export function AnalysisWorkspace() {
       try {
         setSiteResult(await analyzeSiteSafety(sanitizedInput));
       } catch {
-        setError("Site guvenlik analizi su anda tamamlanamadi. Backend baglantisini ve OSINT servislerini kontrol edin.");
+      setError("Site güvenlik analizi şu anda tamamlanamadı. Backend bağlantısını ve OSINT servislerini kontrol edin.");
       } finally {
         setIsLoading(false);
       }
@@ -281,7 +281,7 @@ export function AnalysisWorkspace() {
       try {
         setIpResult(await analyzeIpIntelligence(sanitizedInput));
       } catch {
-        setError("IP istihbarati analizi su anda tamamlanamadi. Backend baglantisini ve RDAP servislerini kontrol edin.");
+      setError("IP istihbaratı analizi şu anda tamamlanamadı. Backend bağlantısını ve RDAP servislerini kontrol edin.");
       } finally {
         setIsLoading(false);
       }
@@ -399,9 +399,9 @@ function AnalyzerPanel({
           </label>
           {activeModule.id === "exif" ? (
             <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-5 text-center dark:border-white/15 dark:bg-white/5">
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Dosya yukleme alani</p>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Dosya yukleme alanı</p>
               <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                JPG/JPEG aktif. PNG ve HEIC icin hazirlik.
+                  JPG/JPEG aktif. PNG ve HEIC için hazırlık.
               </p>
               <input
                 accept=".jpg,.jpeg,image/jpeg"
@@ -448,7 +448,7 @@ function AnalyzerPanel({
             {isLoading
               ? "Analiz ediliyor..."
               : activeModule.id === "product"
-                ? "Urunu Analiz Et"
+                ? "Ürünü Analiz Et"
                 : activeModule.id === "phishing"
                 ? "URL'yi Kontrol Et"
                 : activeModule.id === "site"
@@ -458,7 +458,7 @@ function AnalyzerPanel({
                 : activeModule.id === "exif"
                   ? "EXIF'i Analiz Et"
                 : activeModule.id === "message"
-                    ? "Mesaji Analiz Et"
+                    ? "Mesajı Analiz Et"
                   : "Yakinda Aktif"}
           </button>
         </form>
@@ -539,9 +539,9 @@ function ResultPanel({
           <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full border border-cyan-200 bg-cyan-50 text-xl font-bold text-cyan-800 shadow-sm dark:border-cyan-300/25 dark:bg-cyan-300/10 dark:text-cyan-100">
             DI
           </div>
-          <p className="text-lg font-semibold">Analiz sonucu burada gorunecek.</p>
+          <p className="text-lg font-semibold">Analiz sonucu burada görünecek.</p>
           <p className="mt-2 max-w-md text-slate-600 dark:text-slate-300">
-            Sorgu panelinden bir analiz turu secip URL girdiginde sonuc burada gorunur.
+            Sorgu panelinden bir analiz türü seçip URL girdiğinizde sonuç burada görünür.
           </p>
         </div>
       </section>
@@ -554,10 +554,10 @@ function ResultPanel({
         <div>
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{result.marketplace}</p>
           <h2 className="mt-1 text-2xl font-bold">{result.product_name}</h2>
-          <p className="mt-2 text-slate-600 dark:text-slate-300">Satici: {result.seller_name}</p>
+          <p className="mt-2 text-slate-600 dark:text-slate-300">Satıcı: {result.seller_name}</p>
         </div>
         <div className={`rounded-lg border px-4 py-3 text-center ${riskStyles[result.risk_level]}`}>
-          <p className="text-sm font-semibold">Guven Skoru</p>
+          <p className="text-sm font-semibold">Güven Skoru</p>
           <p className="text-3xl font-bold">{result.trust_score}</p>
           <p className="text-sm font-semibold">{riskLabels[result.risk_level]}</p>
         </div>
@@ -566,13 +566,13 @@ function ResultPanel({
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <Metric label="Puan" value={result.rating.toFixed(1)} />
         <Metric label="Yorum" value={result.review_count.toString()} />
-        <Metric label="Negatif yogunluk" value={`%${result.negative_review_density}`} />
+        <Metric label="Negatif yoğunluk" value={`%${result.negative_review_density}`} />
       </div>
 
       <div className="mt-5 grid gap-3 lg:grid-cols-3">
-        <DecisionPanel title="Neden bu sonuc?" body={result.ai_summary.negative} footer={`Guven skoru ${result.trust_score}/100 olarak hesaplandi.`} />
-        <DecisionPanel title="Gorulen sinyaller" body={`${result.ai_summary.fake_review_pattern} ${result.ai_summary.delivery_complaints}`} footer={`Parser ${result.review_snippet_count} yorum ornegi yakaladi.`} />
-        <DecisionPanel title="Kullanici onerisi" body={result.ai_summary.recommendation} footer={result.parser_notes.length ? result.parser_notes.join(" ") : "Ek parser notu yok."} />
+        <DecisionPanel title="Neden bu sonuç?" body={result.ai_summary.negative} footer={`Güven skoru ${result.trust_score}/100 olarak hesaplandı.`} />
+        <DecisionPanel title="Görülen sinyaller" body={`${result.ai_summary.fake_review_pattern} ${result.ai_summary.delivery_complaints}`} footer={`Parser ${result.review_snippet_count} yorum örneği yakaladı.`} />
+        <DecisionPanel title="Kullanıcı Önerisi" body={result.ai_summary.recommendation} footer={result.parser_notes.length ? result.parser_notes.join(" ") : "Ek parser notu yok."} />
       </div>
     </section>
   );
@@ -583,12 +583,12 @@ function PhishingResultPanel({ result }: { result: PhishingResult }) {
     <section className="premium-card p-5">
       <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-white/10">
         <div>
-          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Phishing Kontrolu</p>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Phishing Kontrolü</p>
           <h2 className="mt-1 break-words text-2xl font-bold">{result.domain}</h2>
           <p className="mt-2 break-words text-sm text-slate-600 dark:text-slate-300">{result.url}</p>
         </div>
         <div className={`rounded-lg border px-4 py-3 text-center ${riskStyles[result.riskLevel]}`}>
-          <p className="text-sm font-semibold">Guven Skoru</p>
+          <p className="text-sm font-semibold">Güven Skoru</p>
           <p className="text-3xl font-bold">{result.trustScore}</p>
           <p className="text-sm font-semibold">{result.verdict}</p>
         </div>
@@ -599,9 +599,9 @@ function PhishingResultPanel({ result }: { result: PhishingResult }) {
       </p>
 
       <div className="mt-5 grid gap-3 lg:grid-cols-3">
-        <DecisionPanel title="Neden bu sonuc?" body={result.reasons.join(" ")} footer={`Guven skoru ${result.trustScore}/100 olarak hesaplandi.`} />
-        <DecisionPanel title="Gorulen sinyaller" body={result.signals.join(" ")} footer={`${result.signals.length} sinyal degerlendirildi.`} />
-        <DecisionPanel title="Kullanici onerisi" body={result.recommendation} footer="Kesin hukum degil, bilgilendirme amacli risk degerlendirmesidir." />
+        <DecisionPanel title="Neden bu sonuç?" body={result.reasons.join(" ")} footer={`Güven skoru ${result.trustScore}/100 olarak hesaplandı.`} />
+        <DecisionPanel title="Görülen sinyaller" body={result.signals.join(" ")} footer={`${result.signals.length} sinyal değerlendirildi.`} />
+        <DecisionPanel title="Kullanıcı Önerisi" body={result.recommendation} footer="Kesin hüküm değil, bilgilendirme amaçlı risk değerlendirmesidir." />
       </div>
     </section>
   );
@@ -613,11 +613,11 @@ function MessageResultPanel({ result }: { result: MessageResult }) {
       <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-white/10">
         <div>
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">SMS / Mesaj Analizi</p>
-          <h2 className="mt-1 text-2xl font-bold">Mesaj risk ozeti</h2>
+          <h2 className="mt-1 text-2xl font-bold">Mesaj risk özeti</h2>
           <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{result.message}</p>
         </div>
         <div className={`rounded-lg border px-4 py-3 text-center ${riskStyles[result.riskLevel]}`}>
-          <p className="text-sm font-semibold">Guven Skoru</p>
+          <p className="text-sm font-semibold">Güven Skoru</p>
           <p className="text-3xl font-bold">{result.trustScore}</p>
           <p className="text-sm font-semibold">{result.verdict}</p>
         </div>
@@ -628,9 +628,9 @@ function MessageResultPanel({ result }: { result: MessageResult }) {
       </p>
 
       <div className="mt-5 grid gap-3 lg:grid-cols-3">
-        <DecisionPanel title="Neden bu sonuc?" body={result.reasons.join(" ")} footer={`Guven skoru ${result.trustScore}/100 olarak hesaplandi.`} />
-        <DecisionPanel title="Gorulen sinyaller" body={result.signals.join(" ")} footer={`${result.signals.length} mesaj sinyali degerlendirildi.`} />
-        <DecisionPanel title="Kullanici onerisi" body={result.recommendation} footer="Kesin hukum degil, bilgilendirme amacli risk degerlendirmesidir." />
+        <DecisionPanel title="Neden bu sonuç?" body={result.reasons.join(" ")} footer={`Güven skoru ${result.trustScore}/100 olarak hesaplandı.`} />
+        <DecisionPanel title="Görülen sinyaller" body={result.signals.join(" ")} footer={`${result.signals.length} mesaj sinyali değerlendirildi.`} />
+        <DecisionPanel title="Kullanıcı Önerisi" body={result.recommendation} footer="Kesin hüküm değil, bilgilendirme amaçlı risk değerlendirmesidir." />
       </div>
     </section>
   );
@@ -643,19 +643,19 @@ function ExifPreviewPanel() {
         <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Yakinda</p>
         <h2 className="mt-1 text-2xl font-bold">Fotograf EXIF Analizi</h2>
         <p className="mt-2 leading-7 text-slate-600 dark:text-slate-300">
-          Fotograf dosyalarindaki EXIF metadata bilgilerini okuyarak cekim tarihi, cihaz modeli, konum ve paylasim risklerini sade bir rapor haline getirir.
+          Fotoğraf dosyalarındaki EXIF metadata bilgilerini okuyarak çekim tarihi, cihaz modeli, konum ve paylaşım risklerini sade bir rapor haline getirir.
         </p>
       </div>
 
       <div className="mt-5 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-5 text-center dark:border-white/15 dark:bg-white/5">
         <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Dosya yukleme hazirligi</p>
         <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-          Desteklenen format hazirligi: JPG, JPEG, PNG, HEIC. Bu MVP adiminda dosya yuklenmez ve analiz yapilmaz.
+          Desteklenen format hazırlığı: JPG, JPEG, PNG, HEIC. Bu MVP adımında dosya yüklenmez ve analiz yapılmaz.
         </p>
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {["Cekim tarihi", "Cihaz modeli", "GPS konumu", "Yazilim bilgisi", "Gizlilik riski", "Metadata durumu"].map((item) => (
+        {["Çekim tarihi", "Cihaz modeli", "GPS konumu", "Yazılım bilgisi", "Gizlilik riski", "Metadata durumu"].map((item) => (
           <article className="rounded-md border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5" key={item}>
             <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{item}</p>
             <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">Yakinda analiz edilecek</p>
@@ -677,12 +677,12 @@ function ExifResultPanel({ result }: { result: ExifAnalysisResult }) {
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Fotograf EXIF Analizi</p>
           <h2 className="mt-1 break-words text-2xl font-bold">{result.file_name}</h2>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-            {result.image_width && result.image_height ? `${result.image_width} x ${result.image_height}` : "Gorsel boyutu okunamadi"} · {formatBytes(result.file_size)}
+            {result.image_width && result.image_height ? `${result.image_width} x ${result.image_height}` : "Görsel boyutu okunamadı"} · {formatBytes(result.file_size)}
           </p>
         </div>
         <div className={`rounded-lg border px-4 py-3 text-center ${riskStyles[result.privacy_risk]}`}>
           <p className="text-sm font-semibold">Gizlilik Riski</p>
-          <p className="text-xl font-bold">{result.privacy_risk === "caution" ? "Dikkat" : "Guvenli"}</p>
+          <p className="text-xl font-bold">{result.privacy_risk === "caution" ? "Dikkat" : "Güvenli"}</p>
           <p className="text-sm font-semibold">GPS {result.gps_present ? "Var" : "Yok"}</p>
         </div>
       </div>
@@ -692,14 +692,14 @@ function ExifResultPanel({ result }: { result: ExifAnalysisResult }) {
       </p>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        <CompactMetric label="Cekim tarihi" value={formatExifDate(result.datetime_original)} />
+        <CompactMetric label="Çekim tarihi" value={formatExifDate(result.datetime_original)} />
         <CompactMetric label="Marka" value={result.camera_make ?? "Veri Yok"} />
         <CompactMetric label="Model" value={result.camera_model ?? "Veri Yok"} />
-        <CompactMetric label="Firmware / Yazilim" value={result.software ?? "Veri Yok"} />
+        <CompactMetric label="Firmware / Yazılım" value={result.software ?? "Veri Yok"} />
         <CompactMetric label="GPS durumu" value={result.gps_present ? "Konum verisi var" : "Konum verisi yok"} />
-        <CompactMetric label="Gizlilik riski" value={result.privacy_risk === "caution" ? "Dikkat" : "Guvenli"} />
+        <CompactMetric label="Gizlilik riski" value={result.privacy_risk === "caution" ? "Dikkat" : "Güvenli"} />
         <CompactMetric label="Metadata durumu" value={metadataStatus} />
-        <CompactMetric label="Fotograf turu sinyali" value={photoTypeSignal} />
+        <CompactMetric label="Fotoğraf türü sinyali" value={photoTypeSignal} />
       </div>
 
       {result.gps_present ? (
@@ -735,7 +735,7 @@ function IpIntelligenceResultPanel({ result }: { result: IpIntelligenceResult })
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">IP Istihbarati</p>
           <h2 className="mt-1 break-words text-2xl font-bold">{result.ip ?? result.input}</h2>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-            {result.is_public ? "Public IP tehdit istihbarati" : "Public olmayan IP / bilgi modu"}
+            {result.is_public ? "Genel IP tehdit istihbaratı" : "Genel olmayan IP / bilgi modu"}
           </p>
         </div>
         <div className={`rounded-lg border px-4 py-3 text-center ${riskStyles[result.risk_level]}`}>
@@ -752,8 +752,8 @@ function IpIntelligenceResultPanel({ result }: { result: IpIntelligenceResult })
       <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <CompactMetric label="IP" value={result.ip ?? result.input} />
         <CompactMetric
-          helper={!result.ip_info.country ? "RDAP kaynagi ulke bilgisi dondurmedi." : undefined}
-          label="Ulke"
+          helper={!result.ip_info.country ? "RDAP kaynağı ülke bilgisi döndürmedi." : undefined}
+          label="Ülke"
           value={result.ip_info.country ?? "Tespit Edilemedi"}
         />
         <CompactMetric label="ASN / Handle" value={result.ip_info.asn ?? "Bilinmiyor"} clamp />
@@ -773,7 +773,7 @@ function IpIntelligenceResultPanel({ result }: { result: IpIntelligenceResult })
         <InfoPanel
           title="Altyapi sinyalleri"
           rows={[
-            ["Saglayici", result.infrastructure.provider ?? "Bilinmiyor"],
+            ["Sağlayıcı", result.infrastructure.provider ?? "Bilinmiyor"],
             ["CDN", yesNo(result.infrastructure.is_cdn)],
             ["Hosting", yesNo(result.infrastructure.is_hosting)],
             ["Veri merkezi", yesNo(result.infrastructure.is_datacenter)]
@@ -786,7 +786,7 @@ function IpIntelligenceResultPanel({ result }: { result: IpIntelligenceResult })
         <div className="mt-4 grid gap-3">
           {result.risk_score_breakdown.length ? (
             <div className="rounded-md border border-slate-200 bg-white p-3 text-sm dark:border-white/10 dark:bg-slate-950">
-              <p className="font-bold">Risk puani aciklamasi</p>
+              <p className="font-bold">Risk puani açıklaması</p>
               <div className="mt-3 grid gap-2">
                 {result.risk_score_breakdown.map((item) => (
                   <div className="flex flex-col gap-1 rounded-md border border-slate-100 p-3 dark:border-white/10 sm:flex-row sm:items-start sm:justify-between" key={`${item.label}-${item.points}`}>
@@ -832,7 +832,7 @@ function SiteSafetyResultPanel({ result }: { result: SiteSafetyResult }) {
     <section className="premium-card p-5">
       <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-white/10">
         <div>
-          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Site Guvenlik Kontrolu</p>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Site Güvenlik Kontrolü</p>
           <h2 className="mt-1 break-words text-2xl font-bold">{result.url_analysis.domain}</h2>
           <p className="mt-2 break-words text-sm text-slate-600 dark:text-slate-300">{result.url_analysis.normalized_url}</p>
         </div>
@@ -849,9 +849,9 @@ function SiteSafetyResultPanel({ result }: { result: SiteSafetyResult }) {
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Metric label="HTTP durum" value={result.url_analysis.http_status?.toString() ?? "Yok"} />
-        <Metric label="Domain yasi" value={result.domain_info.domain_age_days !== null ? `${result.domain_info.domain_age_days} gun` : "Bilinmiyor"} />
-        <Metric label="SSL" value={result.ssl_info.valid ? "Gecerli" : "Kontrol gerekli"} />
-        <Metric label="Mail guvenligi" value={result.mail_security.spoofing_risk === "safe" ? "Iyi" : result.mail_security.spoofing_risk === "caution" ? "Dikkat" : "Risk"} />
+        <Metric label="Domain yaşı" value={result.domain_info.domain_age_days !== null ? `${result.domain_info.domain_age_days} gün` : "Bilinmiyor"} />
+        <Metric label="SSL" value={result.ssl_info.valid ? "Geçerli" : "Kontrol gerekli"} />
+        <Metric label="Mail güvenliği" value={result.mail_security.spoofing_risk === "safe" ? "İyi" : result.mail_security.spoofing_risk === "caution" ? "Dikkat" : "Risk"} />
       </div>
 
       <div className="mt-5 grid gap-3 lg:grid-cols-2">
@@ -859,22 +859,22 @@ function SiteSafetyResultPanel({ result }: { result: SiteSafetyResult }) {
           title="Domain bilgileri"
           rows={[
             ["Registrar", result.domain_info.registrar ?? "Bilinmiyor"],
-            ["Kayit tarihi", result.domain_info.created_at ?? "Bilinmiyor"],
-            ["Bitis tarihi", result.domain_info.expires_at ?? "Bilinmiyor"],
+            ["Kayıt tarihi", result.domain_info.created_at ?? "Bilinmiyor"],
+            ["Bitiş tarihi", result.domain_info.expires_at ?? "Bilinmiyor"],
             ["Abuse contact", result.domain_info.abuse_contact ?? "Yok"]
           ]}
         />
         <InfoPanel
-          title="SSL guvenligi"
+          title="SSL güvenliği"
           rows={[
-            ["Durum", result.ssl_info.valid ? "Gecerli" : "Kontrol gerekli"],
+            ["Durum", result.ssl_info.valid ? "Geçerli" : "Kontrol gerekli"],
             ["Issuer", result.ssl_info.issuer ?? "Bilinmiyor"],
-            ["Bitis", result.ssl_info.expires_at ?? "Bilinmiyor"],
-            ["Kalan gun", result.ssl_info.days_remaining !== null ? result.ssl_info.days_remaining.toString() : "Bilinmiyor"]
+            ["Bitiş", result.ssl_info.expires_at ?? "Bilinmiyor"],
+            ["Kalan gün", result.ssl_info.days_remaining !== null ? result.ssl_info.days_remaining.toString() : "Bilinmiyor"]
           ]}
         />
         <InfoPanel
-          title="DNS ozeti"
+          title="DNS özeti"
           rows={[
             ["A", result.dns_info.a.slice(0, 3).join(", ") || "Yok"],
             ["AAAA", result.dns_info.aaaa.slice(0, 2).join(", ") || "Yok"],
@@ -883,7 +883,7 @@ function SiteSafetyResultPanel({ result }: { result: SiteSafetyResult }) {
           ]}
         />
         <InfoPanel
-          title="Mail guvenligi"
+          title="Mail güvenliği"
           rows={[
             ["SPF", yesNo(result.mail_security.has_spf)],
             ["DMARC", yesNo(result.mail_security.has_dmarc)],
@@ -895,18 +895,18 @@ function SiteSafetyResultPanel({ result }: { result: SiteSafetyResult }) {
           title="IP bilgileri"
           rows={[
             ["IP", result.ip_info.ip ?? "Bilinmiyor"],
-            ["Ulke", result.ip_info.country ?? "Bilinmiyor"],
+            ["Ülke", result.ip_info.country ?? "Bilinmiyor"],
             ["ASN", result.ip_info.asn ?? "Bilinmiyor"],
             ["Hosting", result.ip_info.hosting ?? "Bilinmiyor"]
           ]}
         />
         <InfoPanel
-          title="URL bulgulari"
+          title="URL bulguları"
           rows={[
             ["Final URL", result.url_analysis.final_url ?? "Yok"],
-            ["Redirect", result.url_analysis.redirect_chain.length ? `${result.url_analysis.redirect_chain.length} adim` : "Yok"],
-            ["Kisa link", yesNo(result.url_analysis.is_short_link)],
-            ["Supheli kelime", result.url_analysis.suspicious_keywords.join(", ") || "Yok"]
+            ["Redirect", result.url_analysis.redirect_chain.length ? `${result.url_analysis.redirect_chain.length} adım` : "Yok"],
+            ["Kısa link", yesNo(result.url_analysis.is_short_link)],
+            ["Şüpheli kelime", result.url_analysis.suspicious_keywords.join(", ") || "Yok"]
           ]}
         />
       </div>
@@ -916,7 +916,7 @@ function SiteSafetyResultPanel({ result }: { result: SiteSafetyResult }) {
         <div className="mt-4 grid gap-3">
           {riskBreakdown.length ? (
             <div className="rounded-md border border-slate-200 bg-white p-3 text-sm dark:border-white/10 dark:bg-slate-950">
-              <p className="font-bold">Risk puani aciklamasi</p>
+              <p className="font-bold">Risk puani açıklaması</p>
               <div className="mt-3 grid gap-2">
                 {riskBreakdown.map((item) => (
                   <div className="flex flex-col gap-1 rounded-md border border-slate-100 p-3 dark:border-white/10 sm:flex-row sm:items-start sm:justify-between" key={`${item.label}-${item.points}`}>
@@ -996,7 +996,7 @@ function yesNo(value: boolean) {
 
 function privacyLabel(value: IpIntelligenceResult["privacy_signals"]["vpn_proxy_possibility"]) {
   if (value === "possible") return "Olasi";
-  if (value === "low") return "Dusuk";
+  if (value === "low") return "Düşük";
   return "Bilinmiyor";
 }
 
@@ -1023,7 +1023,7 @@ function getExifMetadataStatus(result: ExifAnalysisResult) {
   ].filter(Boolean).length;
 
   if (presentFields >= 2) return "EXIF mevcut";
-  if (presentFields === 1) return "Sinirli metadata";
+  if (presentFields === 1) return "Sınırlı metadata";
   return "Metadata bulunamadi";
 }
 
@@ -1033,9 +1033,9 @@ function getPhotoTypeSignal(result: ExifAnalysisResult) {
   }
   const lowResolution = Boolean(result.image_width && result.image_height && result.image_width <= 1280 && result.image_height <= 1280);
   if (lowResolution && getExifMetadataStatus(result) === "Metadata bulunamadi") {
-    return "Ekran goruntusu veya duzenlenmis gorsel olabilir";
+  return "Ekran görüntüsü veya düzenlenmiş görsel olabilir";
   }
-  return "Kaynak turu net degil";
+  return "Kaynak turu net değil";
 }
 
 function DecisionPanel({ body, footer, title }: { body: string; footer: string; title: string }) {
@@ -1062,13 +1062,13 @@ function HistoryPanel({ history }: { history: AnalysisHistoryItem[] }) {
     <section className="premium-card p-5">
       <div className="flex flex-col gap-1 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:justify-between dark:border-white/10">
         <div>
-          <h2 className="text-xl font-bold">Analiz gecmisi</h2>
+          <h2 className="text-xl font-bold">Analiz geçmişi</h2>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">PostgreSQL bagliysa son analizler burada listelenir.</p>
         </div>
-        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{history.length} kayit</p>
+        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{history.length} kayıt</p>
       </div>
       <p className="py-6 text-sm text-slate-600 dark:text-slate-300">
-        {history.length === 0 ? "Kayitli analiz bulunmuyor veya backend gecmis endpointine ulasilamadi." : "Son analizler yuklendi."}
+        {history.length === 0 ? "Kayıtlı analiz bulunmuyor veya backend geçmiş endpointine ulaşılamadı." : "Son analizler yüklendi."}
       </p>
     </section>
   );
@@ -1085,59 +1085,59 @@ function analyzePhishingUrl(input: string): PhishingResult {
   if (!parsed) {
     risk += 25;
     signals.push("URL formati net okunamadi.");
-    reasons.push("Adres yapisi standart URL formatina uymadigi icin ek kontrol gerekir.");
+    reasons.push("Adres yapısı standart URL formatına uymadığı için ek kontrol gerekir.");
   }
 
   if (parsed && parsed.protocol !== "https:") {
     risk += 18;
-    signals.push("HTTPS kullanimi gorulmedi.");
-    reasons.push("Giris veya odeme isteyen sayfalarda HTTPS olmamasi onemli bir supheli sinyaldir.");
+    signals.push("HTTPS kullanımı görülmedi.");
+    reasons.push("Giriş veya ödeme isteyen sayfalarda HTTPS olmaması önemli bir şüpheli sinyaldir.");
   }
 
   if (isIpAddress(hostname)) {
     risk += 18;
-    signals.push("Alan adi yerine IP adresi kullaniliyor.");
-    reasons.push("Marka veya kurum sayfalarinda dogrudan IP kullanimi kullanici icin dogrulama zorlugu olusturur.");
+    signals.push("Alan adı yerine IP adresi kullanılıyor.");
+    reasons.push("Marka veya kurum sayfalarında doğrudan IP kullanımı kullanıcı için doğrulama zorluğu oluşturur.");
   }
 
   if (isShortener(hostname)) {
     risk += 14;
-    signals.push("Kisa link servisi tespit edildi.");
-    reasons.push("Kisa linkler hedef adresi gizleyebildigi icin phishing kampanyalarinda sik kullanilir.");
+    signals.push("Kısa link servisi tespit edildi.");
+    reasons.push("Kısa linkler hedef adresi gizleyebildiği için phishing kampanyalarında sık kullanılır.");
   }
 
   if (hostname.includes("@") || href.includes("%40")) {
     risk += 20;
-    signals.push("URL icinde yonlendirme/kimlik karistirma paterni var.");
+    signals.push("URL içinde yönlendirme/kimlik karıştırma paterni var.");
   }
 
   if ((hostname.match(/-/g) ?? []).length >= 2) {
     risk += 8;
-    signals.push("Alan adinda birden fazla tire kullanimi var.");
+    signals.push("Alan adında birden fazla tire kullanımı var.");
   }
 
   if (hostname.split(".").length >= 4) {
     risk += 8;
-    signals.push("Cok katmanli alt alan adi yapisi goruldu.");
+    signals.push("Çok katmanlı alt alan adı yapısı görüldü.");
   }
 
   const brandSignal = detectBrandImpersonation(hostname);
   if (brandSignal) {
     risk += 26;
     signals.push(brandSignal);
-    reasons.push("Alan adi, bilinen bir marka veya kurum adini andiriyor ancak resmi alan adiyla birebir eslesmiyor.");
+    reasons.push("Alan adı, bilinen bir marka veya kurum adını andırıyor ancak resmi alan adıyla birebir eşleşmiyor.");
   }
 
-  const suspiciousWords = ["login", "verify", "secure", "account", "odeme", "kargo", "hediye", "kampanya", "destek", "dogrula"];
+  const suspiciousWords = ["login", "verify", "secure", "account", "ödeme", "kargo", "hediye", "kampanya", "destek", "doğrula"];
   const matchedWords = suspiciousWords.filter((word) => href.toLowerCase().includes(word));
   if (matchedWords.length >= 2) {
     risk += 10;
-    signals.push(`URL icinde ${matchedWords.slice(0, 3).join(", ")} gibi ikna/hesap kelimeleri var.`);
+    signals.push(`URL içinde ${matchedWords.slice(0, 3).join(", ")} gibi ikna/hesap kelimeleri var.`);
   }
 
   if (signals.length === 0) {
-    signals.push("Belirgin phishing paterni gorulmedi.");
-    reasons.push("Alan adi ve protokol ilk bakista standart gorunuyor.");
+    signals.push("Belirgin phishing paterni görülmedi.");
+    reasons.push("Alan adı ve protokol ilk bakışta standart görünüyor.");
   }
 
   const trustScore = Math.max(8, Math.min(96, 100 - risk));
@@ -1145,10 +1145,10 @@ function analyzePhishingUrl(input: string): PhishingResult {
   const verdict = riskLabels[riskLevel];
   const summary =
     riskLevel === "safe"
-      ? "AI ozeti: Bu URL'de ilk bakista belirgin bir oltalama paterni gorulmedi. Yine de hassas bilgi girmeden once alan adini ve sayfa icerigini kontrol edin."
+      ? "AI özeti: Bu URL'de ilk bakışta belirgin bir oltalama paterni görülmedi. Yine de hassas bilgi girmeden önce alan adını ve sayfa içeriğini kontrol edin."
       : riskLevel === "caution"
-        ? "AI ozeti: Bu URL bazi supheli sinyaller tasiyor. Islem yapmadan once resmi uygulama veya dogrudan bilinen alan adi uzerinden kontrol etmek daha guvenli olur."
-        : "AI ozeti: Bu URL yuksek riskli davranis paternleri gosteriyor. Sifre, kart bilgisi veya SMS kodu girmeden once baglantiyi kapatip resmi kanaldan dogrulama yapin.";
+        ? "AI özeti: Bu URL bazı şüpheli sinyaller taşıyor. İşlem yapmadan önce resmi uygulama veya doğrudan bilinen alan adı üzerinden kontrol etmek daha güvenli olur."
+        : "AI özeti: Bu URL yüksek riskli davranış paternleri gösteriyor. Şifre, kart bilgisi veya SMS kodu girmeden önce bağlantıyı kapatıp resmi kanaldan doğrulama yapın.";
 
   return {
     url: href,
@@ -1161,8 +1161,8 @@ function analyzePhishingUrl(input: string): PhishingResult {
     reasons,
     recommendation:
       riskLevel === "safe"
-        ? "Adres cubugundaki alan adini yine de kontrol edin; hassas islem yapacaksaniz siteye arama motoru yerine kendi kayitli baglantinizdan girin."
-        : "Linke tiklamadan once alan adini resmi kaynakla karsilastirin, kisaltma linklerini acmayin ve hicbir dogrulama kodunu bu sayfaya girmeyin."
+        ? "Adres çubuğundaki alan adını yine de kontrol edin; hassas işlem yapacaksanız siteye arama motoru yerine kendi kayıtlı bağlantınızdan girin."
+        : "Linke tıklamadan önce alan adını resmi kaynakla karşılaştırın, kısaltma linklerini açmayın ve hiçbir doğrulama kodunu bu sayfaya girmeyin."
   };
 }
 
@@ -1173,10 +1173,10 @@ function analyzeMessageText(input: string): MessageResult {
   const reasons: string[] = [];
   let risk = 0;
 
-  const urgencyWords = ["hemen", "acil", "son gun", "son saat", "simdi", "iptal edilecek", "kapatilacak", "askiya"];
-  const fearWords = ["ceza", "borc", "icra", "bloke", "hesabiniz kapatildi", "kargo bekletiliyor", "teslim edilemedi"];
-  const paymentWords = ["odeme", "kart", "iban", "aidat", "ucret", "tahsilat", "para iadesi"];
-  const credentialWords = ["sifre", "sms kodu", "dogrulama kodu", "tek kullanimlik", "giris yap", "hesap dogrula"];
+  const urgencyWords = ["hemen", "acil", "son gün", "son saat", "şimdi", "iptal edilecek", "kapatılacak", "askıya"];
+  const fearWords = ["ceza", "borç", "icra", "bloke", "hesabınız kapatıldı", "kargo bekletiliyor", "teslim edilemedi"];
+  const paymentWords = ["ödeme", "kart", "IBAN", "aidat", "ücret", "tahsilat", "para iadesi"];
+  const credentialWords = ["Şifre", "SMS kodu", "doğrulama kodu", "tek kullanımlık", "giriş yap", "hesap doğrula"];
   const impersonationWords = ["ptt", "banka", "e-devlet", "edevlet", "trendyol", "hepsiburada", "kargo", "vergi", "sgk"];
 
   const matchedUrgency = findMatches(normalized, urgencyWords);
@@ -1188,47 +1188,47 @@ function analyzeMessageText(input: string): MessageResult {
 
   if (matchedUrgency.length) {
     risk += 16;
-    signals.push(`Aciliyet baskisi goruldu: ${matchedUrgency.slice(0, 3).join(", ")}.`);
-    reasons.push("Mesaj kullaniciyi hizli karar vermeye zorlayan ifadeler iceriyor.");
+    signals.push(`Aciliyet baskısı görüldü: ${matchedUrgency.slice(0, 3).join(", ")}.`);
+    reasons.push("Mesaj kullanıcıyı hızlı karar vermeye zorlayan ifadeler içeriyor.");
   }
 
   if (matchedFear.length) {
     risk += 16;
-    signals.push(`Korku veya yaptirim dili goruldu: ${matchedFear.slice(0, 3).join(", ")}.`);
-    reasons.push("Ceza, bloke, kargo bekletme veya hesap kapatma gibi baski kuran ifadeler risk sinyalidir.");
+    signals.push(`Korku veya yaptırım dili görüldü: ${matchedFear.slice(0, 3).join(", ")}.`);
+    reasons.push("Ceza, bloke, kargo bekletme veya hesap kapatma gibi baskı kuran ifadeler risk sinyalidir.");
   }
 
   if (matchedPayment.length) {
     risk += 14;
-    signals.push(`Odeme/finansal islem dili var: ${matchedPayment.slice(0, 3).join(", ")}.`);
+    signals.push(`Ödeme/finansal işlem dili var: ${matchedPayment.slice(0, 3).join(", ")}.`);
   }
 
   if (matchedCredential.length) {
     risk += 22;
-    signals.push(`Sifre veya dogrulama kodu talebi sinyali var: ${matchedCredential.slice(0, 3).join(", ")}.`);
-    reasons.push("Sifre, SMS kodu veya dogrulama kodu isteyen mesajlar yuksek riskli davranis paterni tasir.");
+    signals.push(`Şifre veya doğrulama kodu talebi sinyali var: ${matchedCredential.slice(0, 3).join(", ")}.`);
+    reasons.push("Şifre, SMS kodu veya doğrulama kodu isteyen mesajlar yüksek riskli davranış paterni taşır.");
   }
 
   if (matchedImpersonation.length) {
     risk += 14;
     signals.push(`Kurum/marka taklidi ihtimali: ${matchedImpersonation.slice(0, 3).join(", ")}.`);
-    reasons.push("Bilinen kurum adlariyla gelen mesajlarda gonderici ve resmi kanal ayrica dogrulanmalidir.");
+    reasons.push("Bilinen kurum adlarıyla gelen mesajlarda gönderici ve resmi kanal ayrıca doğrulanmalıdır.");
   }
 
   if (urlMatches.length) {
     risk += 18;
     signals.push(`${urlMatches.length} adet link tespit edildi.`);
-    reasons.push("Mesaj icindeki linkler phishing sayfasina yonlendirme amaciyla kullanilabilir.");
+    reasons.push("Mesaj içindeki linkler phishing sayfasına yönlendirme amacıyla kullanılabilir.");
   }
 
   if (/[A-ZĞÜŞİÖÇ]{6,}/.test(text)) {
     risk += 5;
-    signals.push("Tamamı buyuk harfli baski dili kullanimi goruldu.");
+    signals.push("Tamamı büyük harfli baskı dili kullanımı görüldü.");
   }
 
   if (signals.length === 0) {
-    signals.push("Belirgin scam/phishing paterni gorulmedi.");
-    reasons.push("Mesajda aciliyet, link, sifre talebi veya kurum taklidi gibi guclu sinyaller tespit edilmedi.");
+    signals.push("Belirgin scam/phishing paterni görülmedi.");
+    reasons.push("Mesajda aciliyet, link, şifre talebi veya kurum taklidi gibi güçlü sinyaller tespit edilmedi.");
   }
 
   const trustScore = Math.max(8, Math.min(96, 100 - risk));
@@ -1236,10 +1236,10 @@ function analyzeMessageText(input: string): MessageResult {
   const verdict = riskLabels[riskLevel];
   const summary =
     riskLevel === "safe"
-      ? "AI ozeti: Bu mesajda ilk bakista belirgin bir dolandiricilik veya oltalama paterni gorulmedi. Yine de link ve ekleri resmi kanaldan kontrol etmek iyi olur."
+      ? "AI özeti: Bu mesajda ilk bakışta belirgin bir dolandırıcılık veya oltalama paterni görülmedi. Yine de link ve ekleri resmi kanaldan kontrol etmek iyi olur."
       : riskLevel === "caution"
-        ? "AI ozeti: Mesaj bazi supheli sinyaller tasiyor. Linke tiklamadan ve bilgi girmeden once gondericiyi resmi kanaldan dogrulayin."
-        : "AI ozeti: Mesaj yuksek riskli davranis paternleri gosteriyor. Linke tiklamayin, sifre veya SMS kodu paylasmayin ve kurumu resmi uygulama/telefon uzerinden kontrol edin.";
+        ? "AI özeti: Mesaj bazı şüpheli sinyaller taşıyor. Linke tıklamadan ve bilgi girmeden önce göndericiyi resmi kanaldan doğrulayın."
+        : "AI özeti: Mesaj yüksek riskli davranış paternleri gösteriyor. Linke tıklamayın, şifre veya SMS kodu paylaşmayın ve kurumu resmi uygulama/telefon üzerinden kontrol edin.";
 
   return {
     message: text,
@@ -1251,8 +1251,8 @@ function analyzeMessageText(input: string): MessageResult {
     reasons,
     recommendation:
       riskLevel === "safe"
-        ? "Yine de mesajdaki linkleri manuel yazmak yerine resmi uygulama veya bilinen web sitesi uzerinden kontrol edin."
-        : "Linke tiklamayin, kart/sifre/SMS kodu girmeyin; gerekiyorsa kurumun resmi numarasi veya uygulamasi uzerinden dogrulama yapin."
+        ? "Yine de mesajdaki linkleri manuel yazmak yerine resmi uygulama veya bilinen web sitesi üzerinden kontrol edin."
+        : "Linke tıklamayın, kart/şifre/SMS kodu girmeyin; gerekiyorsa kurumun resmi numarası veya uygulaması üzerinden doğrulama yapın."
   };
 }
 
@@ -1307,7 +1307,7 @@ function detectBrandImpersonation(hostname: string) {
     .map((domain) => domain.split(".")[0])
     .find((name) => normalized.includes(name) || levenshteinDistance(normalized.split(".")[0], name) <= 2);
 
-  return brand ? `"${brand}" adini andiran ama resmi alan adiyla eslesmeyen yapi goruldu.` : "";
+  return brand ? `"${brand}" adını andıran ama resmi alan adıyla eşleşmeyen yapı görüldü.` : "";
 }
 
 function levenshteinDistance(a: string, b: string) {

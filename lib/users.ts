@@ -18,10 +18,10 @@ export type User = {
 export const mockUsers: User[] = [
   {
     id: "usr-001",
-    username: "ornek_kullanici",
-    email: "kullanici@example.invalid",
+    username: "örnek_kullanıcı",
+    email: "kullanıcı@example.invalid",
     firstName: "Ornek",
-    lastName: "Kullanici",
+    lastName: "Kullanıcı",
     birthDate: "1998-04-12",
     phone: "+90 555 000 00 00",
     role: "user",

@@ -28,6 +28,6 @@ export function checkClientRateLimit(key: string, limit: number, windowMs: numbe
 }
 
 // TODO: Redis tabanli rate limit, IP bazli throttle ve Cloudflare Turnstile
-// backend/API katmaninda uygulanacak. Client helper yalnizca demo koruma katmanidir.
-// TODO: Production abuse prevention icin suspicious request scoring, gecici IP ban,
+// backend/API katmaninda uygulanacak. Client helper yalnızca demo koruma katmanidir.
+// TODO: Production abuse prevention için suspicious request scoring, geciçi IP ban,
 // brute force monitoring, anomaly detection ve audit logging backend tarafina tasinacak.

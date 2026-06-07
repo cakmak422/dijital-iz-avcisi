@@ -5,7 +5,7 @@ import { saveContactMessage } from "@/lib/contactStore";
 import { checkClientRateLimit } from "@/lib/rateLimit";
 import { isValidEmail, sanitizeMultiline, sanitizeText } from "@/lib/sanitize";
 
-const contactTopics = ["Genel iletisim", "Supheli link bildirimi", "Hatali analiz bildirimi", "Is birligi onerisi"];
+const contactTopics = ["Genel iletişim", "Şüpheli link bildirimi", "Hatalı analiz bildirimi", "İş birliği önerisi"];
 
 export function ContactForm() {
   const [sent, setSent] = useState(false);
@@ -18,7 +18,7 @@ export function ContactForm() {
 
     const rate = checkClientRateLimit("contact-form", 5, 60_000);
     if (!rate.allowed) {
-      setError(`Cok fazla mesaj denemesi. Lutfen ${rate.retryAfterSeconds} saniye sonra tekrar deneyin.`);
+      setError(`Çok fazla mesaj denemesi. Lütfen ${rate.retryAfterSeconds} saniye sonra tekrar deneyin.`);
       return;
     }
 
@@ -29,19 +29,19 @@ export function ContactForm() {
     const message = sanitizeMultiline(String(formData.get("message") ?? ""), 1000);
 
     if (!name || !email || !topic || !message) {
-      setError("Lutfen tum alanlari doldurun.");
+      setError("Lütfen tum alanları doldÜrün.");
       return;
     }
 
     if (!isValidEmail(email)) {
-      setError("Gecerli bir e-posta adresi girin.");
+      setError("Geçerli bir e-posta adresi girin.");
       return;
     }
 
     try {
       saveContactMessage({ name, email, topic, message });
     } catch {
-      setError("Mesaj kaydedilemedi. Lutfen tekrar deneyin.");
+      setError("Mesaj kaydedilemedi. Lütfen tekrar deneyin.");
       return;
     }
 
@@ -62,10 +62,10 @@ export function ContactForm() {
       </select>
       <textarea className="min-h-32 rounded-md border border-slate-300 bg-white px-3 py-3 dark:border-white/10 dark:bg-slate-950" maxLength={1000} name="message" placeholder="Mesajiniz" />
       <button className="min-h-11 rounded-md bg-slate-900 px-5 font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100" type="submit">
-        Mesaji Gonder
+        Mesajı Gönder
       </button>
       {error ? <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p> : null}
-      {sent ? <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">Mesajiniz alindi. Gercek backend baglandiginda kayit altina alinacaktir.</p> : null}
+      {sent ? <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">Mesajınız alındı. Gerçek backend bağlandığında kayıt altına alınacaktır.</p> : null}
     </form>
   );
 }

@@ -8,7 +8,7 @@ export default function RegisterPage() {
     <CyberPageShell className="auth-reference-page" variant="auth">
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <BrandLogo subtitle="Kayit Ol" />
+          <BrandLogo subtitle="Kayıt Ol" />
           <Link className="rounded-md border border-cyan-900/12 px-4 py-2 text-sm font-semibold transition hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10" href="/">
             Ana sayfa
           </Link>
@@ -35,17 +35,17 @@ function AuthReferenceHero() {
             Uyelik
           </p>
           <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
-            E-posta dogrulamali kayit.
+            E-posta doğrulamalı kayıt.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
-            Dogrulama kodu canli sistemde yalnizca e-posta uzerinden iletilir; hassas bilgiler arayuzde gosterilmez.
+            Doğrulama kodu canli sistemde yalnızca e-posta uzerinden iletilir; hassas bilgiler arayuzde gösterilmez.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link className="btn-primary min-h-11 px-5" href="#kayit-formu">
-              Kayit Formuna Git
+              Kayıt Formuna Git
             </Link>
             <Link className="btn-secondary min-h-11 px-5" href="/giris-yap">
-              Giris Yap
+              Giriş Yap
             </Link>
           </div>
         </div>

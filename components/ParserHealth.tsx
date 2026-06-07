@@ -3,7 +3,7 @@ import { parserHealthItems } from "@/lib/content";
 const statusStyles: Record<string, string> = {
   aktif: "bg-emerald-500",
   dikkat: "bg-amber-500",
-  bakımda: "bg-red-500",
+  "bakımda": "bg-red-500",
   bakimda: "bg-red-500"
 };
 
@@ -13,8 +13,8 @@ export function ParserHealth({ compact = false }: { compact?: boolean }) {
       <div className={compact ? "" : "mx-auto max-w-7xl"}>
         {!compact ? (
           <div className="max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Parser saglik durumu</p>
-            <h2 className="mt-2 text-3xl font-bold">Pazar yeri izleme kartlari.</h2>
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Parser sağlık durumu</p>
+            <h2 className="mt-2 text-3xl font-bold">Pazar yeri izleme kartları.</h2>
           </div>
         ) : null}
         <div className={compact ? "grid gap-3" : "mt-6 grid gap-3 md:grid-cols-3"}>

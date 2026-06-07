@@ -18,65 +18,65 @@ const heroVisuals: Record<CyberPageVariant, {
   archive: {
     code: "ARC",
     label: "Zaman cizelgesi",
-    metric: "Kaynakli olay arsivi",
+    metric: "Kaynaklı olay arşivi",
     nodes: ["1988", "2010", "2017", "2026"],
-    title: "Dijital arsiv halkasi"
+    title: "Dijital arşiv halkası"
   },
   auth: {
     code: "OTP",
-    label: "Guvenli erisim",
-    metric: "Kimlik dogrulama kapisi",
+    label: "Güvenli erişim",
+    metric: "Kimlik doğrulama kapısı",
     nodes: ["KEY", "OTP", "ROLE", "LOCK"],
     title: "Token kontrol katmani"
   },
   contact: {
     code: "MSG",
-    label: "Sifreli iletisim",
-    metric: "Guvenli mesaj kanali",
+    label: "Şifreli iletişim",
+    metric: "Güvenli mesaj kanalı",
     nodes: ["MAIL", "TLS", "SAFE", "LOG"],
-    title: "Iletisim merkezi"
+    title: "İletişim merkezi"
   },
   guides: {
     code: "EDU",
-    label: "Farkindalik",
-    metric: "Sade guvenlik bilgisi",
+    label: "Farkındalık",
+    metric: "Sade güvenlik bilgisi",
     nodes: ["READ", "LEARN", "CHECK", "ACT"],
     title: "Egitim modulu"
   },
   home: {
     code: "DI",
-    label: "Dijital guvenlik merkezi",
+    label: "Dijital güvenlik merkezi",
     metric: "Risk radari aktif",
     nodes: ["URL", "SMS", "IP", "AI"],
-    title: "Siber guvenlik agi"
+    title: "Siber güvenlik ağı"
   },
   news: {
     code: "RSS",
     label: "Siber haber merkezi",
-    metric: "Kaynakli bulten akisi",
+    metric: "Kaynaklı bülten akışı",
     nodes: ["CISA", "USOM", "BTK", "CVE"],
     title: "Yayin sinyali"
   },
   query: {
     code: "SCAN",
     label: "Analiz laboratuvari",
-    metric: "Sorgu motoru hazir",
+    metric: "Sorgu motoru hazır",
     nodes: ["URL", "DNS", "EXIF", "IP"],
     title: "Veri tarama halkasi"
   },
   tools: {
     code: "TOOL",
-    label: "Arac merkezi",
-    metric: "Moduler guvenlik paneli",
+    label: "Araç merkezi",
+    metric: "Modüler güvenlik paneli",
     nodes: ["QR", "WHOIS", "HASH", "META"],
     title: "Kontrol modulleri"
   },
   about: {
     code: "TRUST",
-    label: "Kurumsal guven",
-    metric: "Misyon ve farkindalik",
+    label: "Kurumsal güven",
+    metric: "Misyon ve farkındalık",
     nodes: ["SAFE", "RISK", "AI", "TR"],
-    title: "Guven katmani"
+    title: "Güven katmanı"
   }
 };
 

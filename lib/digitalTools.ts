@@ -14,44 +14,44 @@ export type DigitalTool = {
 export const primaryDigitalTools: DigitalTool[] = [
   {
     title: "Sahte Link Analizi",
-    category: "Phishing kontrolu",
+    category: "Phishing kontrolü",
     status: "active",
     priority: "core",
-    description: "URL icin phishing paterni, marka taklidi, kisa link ve alan adi suphelerini degerlendirir.",
-    checks: ["Phishing sinyali", "Typo domain", "HTTPS", "Kisa link", "AI risk ozeti"],
+    description: "URL için phishing paterni, marka taklidi, kısa link ve alan adi suphelerini değerlendirir.",
+    checks: ["Phishing sinyali", "Typo domain", "HTTPS", "Kısa link", "AI risk özeti"],
     href: "/sorgu-paneli?module=phishing"
   },
   {
-    title: "E-posta Veri Sizintisi Kontrolu",
-    category: "Kimlik guvenligi",
+    title: "E-posta Veri Sızıntısı Kontrolü",
+    category: "Kimlik güvenliği",
     status: "planned",
     priority: "popular",
-    description: "E-posta adresinin bilinen veri sizintilarinda gorunup gorunmedigini kontrol edecek.",
-    checks: ["Sizinti gecmisi", "Parola riski", "Servis bilgisi", "Kullanici onerisi"]
+    description: "E-posta adresinin bilinen veri sizintilarinda görünup görünmedigini kontrol edecek.",
+    checks: ["Sızıntı geçmişi", "Parola riski", "Servis bilgisi", "Kullanıcı Önerisi"]
   },
   {
     title: "QR Kod Analizi",
     category: "Mobil tehditler",
     status: "planned",
     priority: "popular",
-    description: "Yuklenen QR kodun hedef URL'sini cozumleyip riskli yonlendirme paternlerini aciklayacak.",
-    checks: ["QR hedefi", "Redirect", "Phishing", "Kisa link cozumleme"]
+    description: "Yüklenen QR kodun hedef URL'sini çözümleyip riskli yyönlendirme paternlerini açıklayacak.",
+    checks: ["QR hedefi", "Redirect", "Phishing", "Kısa link çözümleme"]
   },
   {
     title: "Domain Istihbarati",
     category: "OSINT",
     status: "planned",
     priority: "core",
-    description: "Domain yasi, registrar, nameserver, SSL ve supheli alan adi yapisini tek raporda toplayacak.",
-    checks: ["WHOIS", "SSL", "Nameserver", "Domain yasi", "Risk ozeti"],
+    description: "Domain yaşı, registrar, nameserver, SSL ve şüpheli alan adı yapısını tek raporda toplayacak.",
+    checks: ["WHOIS", "SSL", "Nameserver", "Domain yasi", "Risk özeti"],
     href: "/sorgu-paneli?module=site"
   },
   {
-    title: "Metadata Temizleyici",
+    title: "Metadata Temizleyiçi",
     category: "Mahremiyet",
     status: "planned",
     priority: "advanced",
-    description: "Fotograf ve belge dosyalarindaki EXIF/metadata bilgisini kaldirmaya odaklanan mahremiyet araci.",
+    description: "Fotoğraf ve belge dosyalarındaki EXIF/metadata bilgisini kaldırmaya odaklanan mahremiyet aracı.",
     checks: ["EXIF", "Konum bilgisi", "Cihaz bilgisi", "Temiz cikti"]
   }
 ];
@@ -62,48 +62,48 @@ export const roadmapDigitalTools: DigitalTool[] = [
     category: "Ag istihbarati",
     status: "planned",
     priority: "core",
-    description: "Ulke, ASN, VPN/proxy, blacklist ve abuse sinyallerini degerlendirecek.",
-    checks: ["Ulke", "ASN", "VPN/proxy", "Abuse"],
+    description: "Ülke, ASN, VPN/proxy, blacklist ve abuse sinyallerini değerlendirecek.",
+    checks: ["Ülke", "ASN", "VPN/proxy", "Abuse"],
     href: "/sorgu-paneli?module=ip"
   },
   {
-    title: "Telefon Numarasi Risk Kontrolu",
+    title: "Telefon Numarasi Risk Kontrolü",
     category: "Spam ve cagri riski",
     status: "research",
     priority: "popular",
-    description: "Numaranin spam sikayeti, ulke/operator ve supheli davranis sinyallerini inceleyecek.",
-    checks: ["Spam sikayeti", "Operator", "Ulke", "Risk sinyali"]
+    description: "Numaranın spam şikayeti, ülke/operatör ve şüpheli davranış sinyallerini inceleyecek.",
+    checks: ["Spam şikayeti", "Operatör", "Ülke", "Risk sinyali"]
   },
   {
-    title: "Guclu Sifre Olusturucu",
-    category: "Hesap guvenligi",
+    title: "Guclu Şifre Olusturucu",
+    category: "Hesap güvenliği",
     status: "planned",
     priority: "popular",
-    description: "Entropy gostergesi ve tahmini kirilma suresiyle guclu parola uretimi saglayacak.",
-    checks: ["Entropy", "Uzunluk", "Karakter cesitliligi", "Kirilma suresi"]
+    description: "Entropy göstergesi ve tahmini kirilma süresiyle guclu parola üretimi saglayacak.",
+    checks: ["Entropy", "Uzunluk", "Karakter cesitliligi", "Kirilma süresi"]
   },
   {
-    title: "Dosya Hash Uretici",
+    title: "Dosya Hash Uretiçi",
     category: "Adli bilisim",
     status: "planned",
     priority: "advanced",
-    description: "MD5, SHA1 ve SHA256 hash uretimiyle dosya butunlugu kontrolu yapacak.",
+    description: "MD5, SHA1 ve SHA256 hash üretimiyle dosya butunlugu kontrolü yapacak.",
     checks: ["MD5", "SHA1", "SHA256", "Butunluk"]
   },
   {
-    title: "Kisa Link Cozucu",
-    category: "URL guvenligi",
+    title: "Kısa Link Çözücü",
+    category: "URL güvenliği",
     status: "planned",
     priority: "popular",
-    description: "bit.ly ve benzeri kisaltilmis linklerin gercek hedefini guvenli sekilde gosterecek.",
-    checks: ["Hedef URL", "Redirect", "Alan adi", "Risk ozeti"]
+    description: "bit.ly ve benzeri kısaltilmis linklerin gerçek hedefini güvenli şekilde gösterecek.",
+    checks: ["Hedef URL", "Redirect", "Alan adi", "Risk özeti"]
   },
   {
-    title: "Tarayici Guvenlik Testi",
+    title: "Tarayıcı Güvenlik Testi",
     category: "Mahremiyet testi",
     status: "research",
     priority: "advanced",
-    description: "WebRTC, IP leak, canvas fingerprint ve browser exposure kontrollerini gosterecek.",
+    description: "WebRTC, IP leak, canvas fingerprint ve browser exposure kontrollerini gösterecek.",
     checks: ["WebRTC", "IP leak", "Fingerprint", "Exposure"]
   }
 ];

@@ -18,29 +18,29 @@ const posters: AwarenessPoster[] = [
     id: "phishing-warning",
     title: "Oltalama Uyarisi",
     category: "Phishing",
-    warning: "Banka, kargo veya resmi kurum taklidi yapan baglantilarda acele karar vermeyin.",
-    advice: "Linke tiklamadan once alan adini ve yonlendirme adresini kontrol edin.",
+    warning: "Banka, kargo veya resmi kurum taklidi yapan bağlantılarda acele karar vermeyin.",
+    advice: "Linke tıklamadan önce alan adını ve yönlendirme adresini kontrol edin.",
     accent: "cyan",
-    imageAlt: "Oltalama uyarisi farkindalik afisi",
+    imageAlt: "Oltalama uyarısı farkındalık afişi",
     imageUrl: "/awareness/phishing-awareness.png"
   },
   {
     id: "fake-cargo-sms",
     title: "Sahte Kargo SMS",
-    category: "Mesaj Guvenligi",
-    warning: "Teslimat ucreti, adres guncelleme veya iade bahanesiyle gelen kisa linklere dikkat edin.",
-    advice: "Kargo durumunu yalnizca resmi uygulama veya bilinen web adresinden kontrol edin.",
+    category: "Mesaj Güvenligi",
+    warning: "Teslimat ücreti, adres güncelleme veya iade bahanesiyle gelen kısa linklere dikkat edin.",
+    advice: "Kargo durumunu yalnızca resmi uygulama veya bilinen web adresinden kontrol edin.",
     accent: "amber",
-    imageAlt: "Sahte kargo SMS farkindalik afisi"
+    imageAlt: "Sahte kargo SMS farkındalık afişi"
   },
   {
     id: "betting-trap",
     title: "Sanal Bahis Tuzagi",
     category: "Dijital Risk",
-    warning: "Yuksek kazanc vaadi ve hizli para baskisi supheli davranis sinyali olabilir.",
-    advice: "Kimlik, kart ve banka bilgilerinizi bilinmeyen platformlarda paylasmayin.",
+    warning: "Yüksek kazanç vaadi ve hızlı para baskısı şüpheli davranış sinyali olabilir.",
+    advice: "Kimlik, kart ve banka bilgilerinizi bilinmeyen platformlarda paylaşmayın.",
     accent: "red",
-    imageAlt: "Sanal bahis tuzagi farkindalik afisi"
+    imageAlt: "Sanal bahis tuzağı farkındalık afişi"
   }
 ];
 
@@ -97,16 +97,16 @@ export function AwarenessSlider() {
         <div className="grid gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(360px,560px)_minmax(0,0.85fr)] lg:items-center">
           <div className="max-w-xl lg:max-w-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-200">Bilinclendirme</p>
-            <h2 className="mt-3 text-3xl font-bold tracking-normal sm:text-4xl">Siber Farkindalik Afisleri</h2>
+          <h2 className="mt-3 text-3xl font-bold tracking-normal sm:text-4xl">Siber Farkındalık Afişleri</h2>
             <p className="mt-4 text-sm leading-6 text-slate-300">
-              Guncel dolandiricilik yontemlerine karsi hazirlanan kisa ve anlasilir bilgilendirme afisleri.
+            Güncel dolandırıcılık yöntemlerine karşı hazırlanan kısa ve anlaşılır bilgilendirme afişleri.
             </p>
           </div>
 
           <div className="relative mx-auto w-full max-w-[520px]">
             <PosterFrame poster={activePoster} onOpen={() => setLightboxOpen(true)} />
-            <SliderButton ariaLabel="Onceki afis" className="-left-3 sm:-left-5" onClick={showPrevious} direction="left" />
-            <SliderButton ariaLabel="Sonraki afis" className="-right-3 sm:-right-5" onClick={showNext} direction="right" />
+            <SliderButton ariaLabel="Önceki afiş" className="-left-3 sm:-left-5" onClick={showPrevious} direction="left" />
+            <SliderButton ariaLabel="Sonraki afiş" className="-right-3 sm:-right-5" onClick={showNext} direction="right" />
           </div>
 
           <div className="grid gap-3 lg:justify-self-end">
@@ -131,7 +131,7 @@ export function AwarenessSlider() {
         <div className="mt-5 flex items-center justify-center gap-2">
           {posters.map((poster, index) => (
             <button
-              aria-label={`${poster.title} afisini goster`}
+                aria-label={`${poster.title} afişini göster`}
               className={`h-2.5 rounded-full transition-all ${activeIndex === index ? "w-8 bg-cyan-300" : "w-2.5 bg-slate-700 hover:bg-slate-500"}`}
               key={poster.id}
               onClick={() => setActiveIndex(index)}
@@ -144,7 +144,7 @@ export function AwarenessSlider() {
       {lightboxOpen ? (
         <div aria-modal="true" className="fixed inset-0 z-[80] grid place-items-center bg-slate-950/94 backdrop-blur-sm" role="dialog">
           <button
-            aria-label="Afisi kapat"
+            aria-label="Afişi kapat"
             className="absolute right-4 top-4 z-10 rounded-md border border-white/15 bg-white/10 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
             onClick={() => setLightboxOpen(false)}
             type="button"
@@ -152,7 +152,7 @@ export function AwarenessSlider() {
             Kapat
           </button>
           <button
-            aria-label="Onceki afis"
+            aria-label="Önceki afiş"
             className="absolute left-3 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-white/15 bg-white/10 p-3 text-2xl font-bold text-white transition hover:bg-white/20 sm:block"
             onClick={showPrevious}
             type="button"
@@ -163,7 +163,7 @@ export function AwarenessSlider() {
             <PosterFrame poster={activePoster} modal onOpen={() => {}} />
           </div>
           <button
-            aria-label="Sonraki afis"
+            aria-label="Sonraki afiş"
             className="absolute right-3 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-white/15 bg-white/10 p-3 text-2xl font-bold text-white transition hover:bg-white/20 sm:block"
             onClick={showNext}
             type="button"
@@ -188,7 +188,7 @@ function PosterFrame({ modal = false, onOpen, poster }: { modal?: boolean; onOpe
   return (
     <article className={`${modal ? "relative grid h-screen w-screen place-items-center" : "relative mx-auto w-full max-w-[520px]"}`}>
       <button
-        aria-label={`${poster.title} afisini tam ekran incele`}
+        aria-label={`${poster.title} afişini tam ekran incele`}
         className={`group relative overflow-hidden border ${styles.border} bg-slate-900 shadow-2xl shadow-cyan-950/30 ${modal ? "block max-h-[96vh] max-w-[98vw] rounded-md" : "block aspect-[2/3] w-full rounded-lg"}`}
         onClick={modal ? undefined : onOpen}
         type="button"
@@ -226,7 +226,7 @@ function PosterPlaceholder({ modal, poster }: { modal: boolean; poster: Awarenes
         <span className={`rounded-md px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] ${styles.marker}`}>
           {poster.category}
         </span>
-        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Dijital Iz Avcisi</span>
+        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Dijital İz Avcısı</span>
       </div>
 
       <div className="relative z-10 grid place-items-center py-8">
@@ -246,7 +246,7 @@ function PosterPlaceholder({ modal, poster }: { modal: boolean; poster: Awarenes
           {poster.warning}
         </p>
         <div className="mt-6 rounded-lg border border-white/10 bg-white/10 p-4 text-left text-sm leading-6 text-slate-100">
-          <span className="font-bold">Oneri: </span>
+          <span className="font-bold">Öneri: </span>
           {poster.advice}
         </div>
       </div>

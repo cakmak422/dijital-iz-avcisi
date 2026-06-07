@@ -63,8 +63,8 @@ export function saveEditableContent(key: EditableContentKey, content: string, up
     window.dispatchEvent(new CustomEvent(changedEventName, { detail: { key } }));
   }
 
-  // TODO: PostgreSQL entegrasyonu, gercek admin CMS sistemi, markdown destegi,
-  // gorsel yukleme, inline live editing ve version history backend'e tasinacak.
+  // TODO: PostgreSQL entegrasyonu, gerçek admin CMS sistemi, markdown destegi,
+// Görsel yükleme, inline live editing ve version history backend'e taşınacak.
   return updatedItems.find((item) => item.key === key)!;
 }
 

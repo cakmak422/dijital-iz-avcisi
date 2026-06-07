@@ -6,9 +6,9 @@ import { CyberPageShell } from "@/components/CyberPageShell";
 import { getCyberNewsBySlug, getCyberNewsItems, type CyberNewsRiskLevel } from "@/lib/newsStore";
 
 const riskStyles: Record<CyberNewsRiskLevel, string> = {
-  Düşük: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  "Düşük": "border-emerald-200 bg-emerald-50 text-emerald-700",
   Orta: "border-amber-200 bg-amber-50 text-amber-700",
-  Yüksek: "border-red-200 bg-red-50 text-red-700"
+  "Yüksek": "border-red-200 bg-red-50 text-red-700"
 };
 
 export function generateStaticParams() {
@@ -24,7 +24,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
     <CyberPageShell variant="news">
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
         <nav className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
-          <BrandLogo subtitle="Haber Detayi" />
+          <BrandLogo subtitle="Haber Detayı" />
           <Link className="btn-secondary px-4 py-2" href="/haberler">
             Haberler
           </Link>
@@ -39,7 +39,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
           <h1 className="mt-5 text-3xl font-extrabold leading-tight text-white sm:text-5xl">{item.title}</h1>
           <p className="mt-4 max-w-3xl text-base leading-8 text-slate-200">{item.summary}</p>
           <Link className="btn-secondary mt-6 min-h-11 px-5" href="/haberler">
-            Tum Haberler
+            Tüm Haberler
           </Link>
         </div>
       </section>
@@ -60,17 +60,17 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
           ) : null}
 
           <section className="mt-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
-            <h2 className="text-xl font-bold">Kisa ozet</h2>
+            <h2 className="text-xl font-bold">Kısa özet</h2>
             <p className="mt-3 leading-7 text-slate-600 dark:text-slate-300">{item.summary}</p>
           </section>
 
           <section className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-5 text-amber-950 shadow-sm dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">
-            <h2 className="text-xl font-bold">Bu haber neden onemli?</h2>
+            <h2 className="text-xl font-bold">Bu haber neden önemli?</h2>
             <p className="mt-3 leading-7">{item.riskNote}</p>
           </section>
 
           <section className="mt-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
-            <h2 className="text-xl font-bold">Vatandas ne yapmali?</h2>
+            <h2 className="text-xl font-bold">Vatandaş ne yapmalı?</h2>
             <ul className="mt-3 grid gap-2">
               {item.publicAdvice.map((advice) => (
                 <li className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200" key={advice}>
@@ -85,7 +85,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
               Orijinal haberi oku
             </a>
             <Link className="btn-secondary min-h-11 px-5" href="/haberler">
-              Tum haberler
+              Tüm haberler
             </Link>
           </div>
         </div>

@@ -4,7 +4,7 @@ import { CyberPageShell } from "@/components/CyberPageShell";
 import { UserSessionBanner } from "@/components/UserSessionBanner";
 
 const history = [
-  { type: "Phishing Kontrolü", target: "ornek-bank-login.com", result: "Dikkat", date: "24.05.2026" },
+  { type: "Phishing Kontrolü", target: "örnek-bank-login.com", result: "Dikkat", date: "24.05.2026" },
   { type: "SMS Analizi", target: "Kargo ödeme mesajı", result: "Risk", date: "24.05.2026" },
   { type: "Ürün Analizi", target: "Trendyol ürün linki", result: "Güvenli", date: "23.05.2026" }
 ];

@@ -8,7 +8,7 @@ export default function AboutPage() {
     <CyberPageShell className="about-reference-page" variant="about">
       <header className="border-b border-slate-200 bg-white dark:border-white/10 dark:bg-slate-950">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <BrandLogo subtitle="Hakkimizda" />
+          <BrandLogo subtitle="Hakkımızda" />
           <Link className="rounded-md border border-slate-200 px-4 py-2 text-sm font-semibold transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/10" href="/">
             Ana sayfa
           </Link>
@@ -26,20 +26,20 @@ function AboutReferenceHero() {
       <div className="relative z-10 mx-auto flex min-h-[440px] max-w-7xl items-center">
         <div className="max-w-3xl">
           <p className="inline-flex rounded-md border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.24em] text-cyan-100">
-            Hakkimizda
+            Hakkımızda
           </p>
           <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
-            Guvenilir dijital analiz icin sade ve sorumlu teknoloji.
+            Güvenilir dijital analiz için sade ve sorumlu teknoloji.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
-            Dijital Iz Avcisi; alisveris guvenligi, siber farkindalik ve risk sinyallerini halkin anlayabilecegi sade raporlara donusturmek icin gelistirilen kurumsal bir platformdur.
+            Dijital İz Avcısı; alışveriş güvenliği, siber farkındalık ve risk sinyallerini halkın anlayabileceği sade raporlara dönüştürmek için geliştirilen kurumsal bir platformdur.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link className="btn-primary min-h-11 px-5" href="/sorgu-paneli">
-              Sorgu Panelini Ac
+              Sorgu Panelini Aç
             </Link>
             <Link className="btn-secondary min-h-11 px-5" href="/iletisim">
-              Iletisime Gec
+              İletişime Geç
             </Link>
           </div>
         </div>

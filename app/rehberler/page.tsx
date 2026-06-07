@@ -4,28 +4,28 @@ import { CyberPageShell } from "@/components/CyberPageShell";
 
 const guides = [
   {
-    category: "Site guvenligi",
+    category: "Site güvenliği",
     readTime: "4 dk",
-    summary: "Alan adi, SSL, marka taklidi ve odeme sayfasi sinyallerini kontrol etmek icin pratik rehber.",
-    title: "Sahte site nasil anlasilir?"
+    summary: "Alan adı, SSL, marka taklidi ve ödeme sayfası sinyallerini kontrol etmek için pratik rehber.",
+    title: "Sahte site nasıl anlaşılır?"
   },
   {
     category: "Mesaj analizi",
     readTime: "3 dk",
-    summary: "Aciliyet baskisi, kurum taklidi, link yonlendirmesi ve kod talebi gibi paternleri ayirt edin.",
-    title: "Riskli SMS nasil tespit edilir?"
+    summary: "Aciliyet baskısı, kurum taklidi, link yönlendirmesi ve kod talebi gibi paternleri ayırt edin.",
+    title: "Riskli SMS nasıl tespit edilir?"
   },
   {
-    category: "Alisveris guvenligi",
+    category: "Alışveriş güvenliği",
     readTime: "5 dk",
-    summary: "Tekrarlayan ifade, ani puan artisleri ve asiri benzer yorum sinyallerini sade sekilde okuyun.",
-    title: "Fake yorum nasil anlasilir?"
+    summary: "Tekrarlayan ifade, ani puan artisleri ve asiri benzer yorum sinyallerini sade şekilde okuyun.",
+    title: "Sahte yorum nasıl anlaşılır?"
   },
   {
-    category: "Siber farkindalik",
+    category: "Siber farkındalık",
     readTime: "4 dk",
-    summary: "2FA, oturum kontrolu, fake destek mesajlari ve hesap kurtarma riskleri icin temel kontrol listesi.",
-    title: "Instagram hesabi nasil korunur?"
+    summary: "2FA, oturum kontrolü, fake destek mesajları ve hesap kurtarma riskleri için temel kontrol listesi.",
+    title: "Instagram hesabı nasıl korunur?"
   }
 ];
 
@@ -76,17 +76,17 @@ function GuidesReferenceHero() {
             Rehberler
           </p>
           <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
-            Guvenlik bilgisi herkes icin.
+            Güvenlik bilgisi herkes için.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
-            Teknik tehditleri sade, uygulanabilir ve anlasilir rehberlere donusturen siber farkindalik alani.
+            Teknik tehditleri sade, uygulanabilir ve anlaşılır rehberlere dönüştüren siber farkındalık alanı.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link className="btn-primary min-h-11 px-5" href="/sorgu-paneli">
-              Sorgu Panelini Ac
+              Sorgu Panelini Aç
             </Link>
             <Link className="btn-secondary min-h-11 px-5" href="/iletisim">
-              Oneri Gonder
+              Öneri Gönder
             </Link>
           </div>
         </div>

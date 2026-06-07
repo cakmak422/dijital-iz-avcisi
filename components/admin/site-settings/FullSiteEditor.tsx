@@ -26,15 +26,15 @@ const textFields: Array<{
   },
   {
     key: "heroTitle",
-    label: "Ana sayfa hero basligi",
-    helper: "Ana sayfanin ilk ekranda gosterdigi buyuk baslik.",
+    label: "Ana sayfa hero başlığı",
+    helper: "Ana sayfanın ilk ekranda gösterdiği büyük başlık.",
     type: "text",
     maxLength: 160
   },
   {
     key: "heroSubtitle",
-    label: "Ana sayfa hero alt aciklamasi",
-    helper: "Hero basliginin altinda gorunen kisa aciklama metni.",
+    label: "Ana sayfa hero alt açıklaması",
+    helper: "Hero başlığının altında görünen kısa açıklama metni.",
     type: "text",
     maxLength: 320
   },

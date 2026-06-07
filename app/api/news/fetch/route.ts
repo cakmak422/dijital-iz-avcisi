@@ -27,14 +27,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Yetkisiz istek." }, { status: 401 });
     }
   } else {
-    console.warn("CRON_SECRET tanimli degil. /api/news/fetch development modunda korunmasiz calisiyor.");
+    console.warn("CRON_SECRET tanımlı değil. /api/news/fetch development modunda korumasız çalışıyor.");
   }
 
   try {
     const result = await fetchLatestCyberNews();
     return NextResponse.json(result);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Bilinmeyen haber guncelleme hatasi";
+    const message = error instanceof Error ? error.message : "Bilinmeyen haber güncelleme hatası";
     console.error("news_fetch_endpoint_failed", { error: message });
     return NextResponse.json(
       {

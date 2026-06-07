@@ -59,7 +59,7 @@ export function ContentEditorCard({ item }: { item: EditableContent }) {
       </div>
 
       <label className="mt-4 block text-sm font-semibold text-slate-600 dark:text-slate-300" htmlFor={item.id}>
-        Icerik metni
+        İçerik metni
       </label>
       <textarea
         className="mt-2 min-h-36 w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-100 dark:border-white/10 dark:bg-slate-950/70 dark:text-white dark:focus:border-cyan-300 dark:focus:ring-cyan-300/10"
@@ -72,13 +72,13 @@ export function ContentEditorCard({ item }: { item: EditableContent }) {
       />
 
       <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-950/60">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Canli onizleme</p>
-        <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700 dark:text-slate-200">{value || "Onizleme icin metin girin."}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Canlı onizleme</p>
+        <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700 dark:text-slate-200">{value || "Önizleme için metin girin."}</p>
       </div>
 
       <div className="mt-4 flex flex-col gap-3 border-t border-slate-200 pt-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
-          Son guncelleme: {formattedDate} / {item.updatedBy}
+          Son güncelleme: {formattedDate} / {item.updatedBy}
         </p>
         <div className="flex gap-2">
           <button
@@ -102,17 +102,17 @@ export function ContentEditorCard({ item }: { item: EditableContent }) {
 
       {status === "saved" ? (
         <p className="mt-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-100">
-          Icerik basariyla guncellendi.
+          İçerik başarıyla göncellendi.
         </p>
       ) : null}
       {status === "reset" ? (
         <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">
-          Icerik varsayilan degerlere donduruldu.
+          İçerik varsayılan değerlere döndürüldü.
         </p>
       ) : null}
       {status === "error" ? (
         <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 dark:border-red-400/30 dark:bg-red-400/10 dark:text-red-100">
-          Kayit sirasinda hata olustu. Lutfen tekrar deneyin.
+          Kayıt sırasında hata oluştu. Lütfen tekrar deneyin.
         </p>
       ) : null}
     </article>

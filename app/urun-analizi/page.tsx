@@ -17,11 +17,11 @@ export default function ProductAnalysisPage() {
         </nav>
       </header>
       <CyberHero
-        description="Urun linki, satici sinyali ve yorum oruntulerini sade bir guven raporu formatinda degerlendirmek icin analiz panelini kullanin."
-        eyebrow="Urun Analizi"
+        description="Ürün linki, satıcı sinyali ve yorum oruntulerini sade bir güven raporu formatinda değerlendirmek için analiz panelini kullanin."
+        eyebrow="Ürün Analizi"
         primaryAction={{ href: "#urun-analiz-paneli", label: "Analize Basla" }}
         secondaryAction={{ href: "/sorgu-paneli", label: "Sorgu Paneli" }}
-        title="Alisveris oncesi dijital izleri inceleyin."
+        title="Alışveriş öncesi dijital izleri inceleyin."
         variant="query"
       />
       <div id="urun-analiz-paneli">

@@ -11,7 +11,7 @@ const DEMO_SESSION_COOKIE = "dia_session";
 const DEMO_ROLE_COOKIE = "dia_role";
 
 // Demo admin is only for local/admin panel access in the current frontend MVP.
-// This is not production authentication; real deployment needs backend auth,
+// This is not production authentiçation; real deployment needs backend auth,
 // password hashing, server-side authorization, and HttpOnly Secure sessions.
 const seededUsers: DemoAuthRecord[] = [
   {

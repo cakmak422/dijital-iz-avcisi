@@ -10,10 +10,10 @@ import { archiveMessage, getAllContactMessages, markAsRead, subscribeToContactMe
 type MessageFilter = "all" | ContactMessageStatus;
 
 const filters: Array<{ label: string; value: MessageFilter }> = [
-  { label: "Tumu", value: "all" },
+  { label: "Tümü", value: "all" },
   { label: "Yeni", value: "new" },
   { label: "Okundu", value: "read" },
-  { label: "Arsiv", value: "archived" }
+  { label: "Arşiv", value: "archived" }
 ];
 
 export default function OpsConsoleMessagesPage() {
@@ -72,9 +72,9 @@ export default function OpsConsoleMessagesPage() {
         <section className="px-4 py-10 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Local MVP</p>
-            <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Iletisim mesajlari.</h1>
+            <h1 className="mt-2 text-3xl font-bold sm:text-4xl">İletişim mesajları.</h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-              Bu ekran iletisim formundan localStorage'a kaydedilen mesajlari listeler. Gercek e-posta, API veya veritabani baglantisi bu fazda eklenmedi.
+          Bu ekran iletişim formundan localStorage'a kaydedilen mesajları listeler. Gerçek e-posta, API veya veritabanı bağlantısı bu fazda eklenmedi.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2">
@@ -164,7 +164,7 @@ function MessageDetail({
   if (!message) {
     return (
       <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
-        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Detay goruntulemek icin bir mesaj secin.</p>
+        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Detay görüntulemek için bir mesaj secin.</p>
       </aside>
     );
   }
@@ -198,7 +198,7 @@ function MessageDetail({
           onClick={() => onArchive(message.id)}
           type="button"
         >
-          Arsivle
+          Arşivle
         </button>
       </div>
     </aside>

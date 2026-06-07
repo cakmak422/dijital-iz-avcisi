@@ -5,9 +5,9 @@ import { CyberPageShell } from "@/components/CyberPageShell";
 import { getCyberNewsItems, type CyberNewsRiskLevel } from "@/lib/newsStore";
 
 const riskStyles: Record<CyberNewsRiskLevel, string> = {
-  Düşük: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  "Düşük": "border-emerald-200 bg-emerald-50 text-emerald-700",
   Orta: "border-amber-200 bg-amber-50 text-amber-700",
-  Yüksek: "border-red-200 bg-red-50 text-red-700"
+  "Yüksek": "border-red-200 bg-red-50 text-red-700"
 };
 
 export default function NewsPage() {
@@ -17,7 +17,7 @@ export default function NewsPage() {
     <CyberPageShell className="news-reference-page" variant="news">
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
         <nav className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
-          <BrandLogo subtitle="Guncel Siber Haberler" />
+          <BrandLogo subtitle="Güncel Siber Haberler" />
           <Link className="btn-secondary px-4 py-2" href="/">
             Ana sayfa
           </Link>
@@ -45,7 +45,7 @@ export default function NewsPage() {
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{item.sourceName}</span>
                   <Link className="btn-primary min-h-10 px-4" href={`/haberler/${item.slug}`}>
-                    Detayi Oku
+                    Detayı Oku
                   </Link>
                 </div>
               </div>
@@ -63,17 +63,17 @@ function NewsReferenceHero() {
       <div className="relative z-10 mx-auto flex min-h-[440px] max-w-7xl items-center">
         <div className="max-w-3xl">
           <p className="inline-flex rounded-md border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.26em] text-cyan-100">
-            Guncel Siber Haberler
+            Güncel Siber Haberler
           </p>
           <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
-            Kaynakli siber guvenlik haberleri.
+            Kaynaklı siber güvenlik haberleri.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
-            Haberler kaynak basligi korunarak, metin birebir kopyalanmadan vatandas icin sade risk notuna donusturulur.
+          Haberler kaynak başlığı korunarak, metin birebir kopyalanmadan vatandaş için sade risk notuna dönüştürülür.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link className="btn-primary min-h-11 px-5" href="#haber-akisi">
-              Haberleri Incele
+              Haberleri İncele
             </Link>
             <Link className="btn-secondary min-h-11 px-5" href="/">
               Ana Sayfa

@@ -8,7 +8,7 @@ export default function LoginPage() {
     <CyberPageShell className="auth-reference-page" variant="auth">
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <BrandLogo subtitle="Giris Yap" />
+          <BrandLogo subtitle="Giriş Yap" />
           <Link className="rounded-md border border-cyan-900/12 px-4 py-2 text-sm font-semibold transition hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10" href="/">
             Ana sayfa
           </Link>
@@ -35,17 +35,17 @@ function AuthReferenceHero() {
             Oturum
           </p>
           <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
-            E-posta dogrulamali giris.
+            E-posta doğrulamalı giriş.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
-            Kayit olup e-posta dogrulamasini tamamlayan kullanicilar guvenli oturum akisiyle giris yapabilir.
+            Kayıt olup e-posta doğrulamasını tamamlayan kullanıcılar güvenli oturum akışıyla giriş yapabilir.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link className="btn-primary min-h-11 px-5" href="#giris-formu">
-              Giris Formuna Git
+              Giriş Formuna Git
             </Link>
             <Link className="btn-secondary min-h-11 px-5" href="/kayit-ol">
-              Kayit Ol
+              Kayıt Ol
             </Link>
           </div>
         </div>

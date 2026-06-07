@@ -19,7 +19,7 @@ export function LoginForm() {
 
     const rate = checkClientRateLimit("login-form", 6, 60_000);
     if (!rate.allowed) {
-      setError(`Cok fazla giris denemesi. Lutfen ${rate.retryAfterSeconds} saniye sonra tekrar deneyin.`);
+      setError(`Çok fazla giriş denemesi. Lütfen ${rate.retryAfterSeconds} saniye sonra tekrar deneyin.`);
       return;
     }
 
@@ -27,17 +27,17 @@ export function LoginForm() {
     const cleanPassword = password.trim().slice(0, 128);
 
     if (!cleanIdentifier || !cleanPassword) {
-      setError("E-posta/kullanici adi ve sifre alanlarini doldurun.");
+      setError("E-posta/kullanıcı adi ve Şifre alanlarıni doldÜrün.");
       return;
     }
 
     const user = loginDemoUser(cleanIdentifier, cleanPassword);
     if (!user) {
-      setError("Giris bilgileri eslesmedi veya e-posta dogrulamasi tamamlanmamis.");
+      setError("Giriş bilgileri eşleşmedi veya e-posta doğrulaması tamamlanmamış.");
       return;
     }
 
-    setSuccess("Giris basarili. Yonlendiriliyorsunuz.");
+    setSuccess("Giriş başarılı. Yönlendiriliyorsunuz.");
     const destination = user.role === "admin" ? getSafeNextPath() ?? "/ops-console" : "/kullanici-paneli";
     window.location.assign(destination);
     return;
@@ -47,15 +47,15 @@ export function LoginForm() {
     <section className="grid gap-5 lg:grid-cols-[1fr_360px]">
       <form className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5" onSubmit={handleSubmit}>
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Giris Yap</p>
-          <h2 className="mt-2 text-2xl font-bold">Hesabiniza giris yapin.</h2>
+          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Giriş Yap</p>
+          <h2 className="mt-2 text-2xl font-bold">Hesabınıza giriş yapın.</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-            Kayit olurken e-posta dogrulamasini tamamlayan kullanicilar oturum acabilir.
+            Kayıt olurken e-posta doğrulamasını tamamlayan kullanıcılar oturum açabilir.
           </p>
         </div>
 
         <label className="grid gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-          E-posta veya kullanici adi
+          E-posta veya kullanıcı adi
           <input
             className="min-h-11 rounded-md border border-slate-300 bg-white px-3 text-slate-950 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:ring-cyan-400/20"
             value={identifier}
@@ -64,7 +64,7 @@ export function LoginForm() {
         </label>
 
         <label className="grid gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-          Sifre
+          Şifre
           <input
             className="min-h-11 rounded-md border border-slate-300 bg-white px-3 text-slate-950 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:ring-cyan-400/20"
             type="password"
@@ -77,17 +77,17 @@ export function LoginForm() {
         {success ? <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">{success}</p> : null}
 
         <button className="min-h-11 rounded-md bg-slate-900 px-5 font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100" type="submit">
-          Giris Yap
+          Giriş Yap
         </button>
       </form>
 
       <aside className="grid h-fit gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
-        <h3 className="font-bold">Hesap erisimi</h3>
+        <h3 className="font-bold">Hesap erişimi</h3>
         <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
-          Hesabiniz yoksa kayit olusturabilir, e-posta dogrulamasindan sonra giris yapabilirsiniz.
+          Hesabınız yoksa kayıt oluşturabilir, e-posta doğrulamasından sonra giriş yapabilirsiniz.
         </p>
         <Link className="rounded-md border border-slate-300 px-4 py-2 text-center text-sm font-semibold transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/10" href="/kayit-ol">
-          Yeni hesap olustur
+          Yeni hesap oluştur
         </Link>
       </aside>
     </section>
