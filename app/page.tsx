@@ -14,8 +14,6 @@ import { EditableContent } from "@/components/admin/content/EditableContent";
 import { useEditableContent } from "@/lib/contentStore";
 import { getTodayCyberEvent } from "@/lib/cyberArchive";
 import { getCurrentDemoUser } from "@/lib/auth";
-import { usePageManagementState } from "@/lib/pageManagementStore";
-import type { ManagedHomeBlock, ManagedNavigationItem } from "@/types/pageManagement";
 import type { User } from "@/lib/users";
 
 type Theme = "light" | "dark";
@@ -31,16 +29,19 @@ const platformStats = [
 
 export default function Home() {
   const [theme, setTheme] = useState<Theme>("light");
-  const pageManagement = usePageManagementState();
-  const homeBlocks = pageManagement.homeBlocks.filter((block) => block.status === "active").sort((a, b) => a.order - b.order);
 
   return (
     <main className={theme === "dark" ? "dark" : ""}>
         <CyberPageShell as="div" className="home-reference-page home-general-theme overflow-x-hidden transition-colors" variant="home">
-        <Navbar navigation={pageManagement.navigation} theme={theme} setTheme={setTheme} />
-        {homeBlocks.map((block) => (
-          <HomeBlockRenderer block={block} key={block.id} />
-        ))}
+        <Navbar theme={theme} setTheme={setTheme} />
+        <Hero />
+        <AnnouncementBanner />
+        <StatsBand />
+        <CyberNewsCenter />
+        <TodayCyberEvent />
+        <FeedbackForm />
+        <GuidesPreview />
+        <AboutSection wide />
         <Footer />
       </CyberPageShell>
     </main>
@@ -48,18 +49,22 @@ export default function Home() {
 }
 
 function Navbar({
-  navigation,
   theme,
   setTheme
 }: {
-  navigation: ManagedNavigationItem[];
   theme: Theme;
   setTheme: (theme: Theme) => void;
 }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const navItems = navigation.filter((item) => item.status === "active").sort((a, b) => a.order - b.order);
+  const navItems = [
+    { href: "/hakkimizda", label: "Hakkımızda" },
+    { href: "/siber-arsiv", label: "Siber Arşiv" },
+    { href: "/haberler", label: "Haberler" },
+    { href: "/sorgu-paneli", label: "Sorgu Paneli" },
+    { href: "/dijital-arac-merkezi", label: "Dijital Araç Merkezi" }
+  ];
   const authItems = [
     { href: "/giris-yap", label: "Giriş Yap", variant: "secondary" },
     { href: "/kayit-ol", label: "Kayıt Ol", variant: "primary" }
@@ -118,18 +123,14 @@ function Navbar({
           {navItems.map((item) => {
             const active = pathname === item.href;
             return (
-              <Link
-                className={`focus-ring flex min-h-11 items-center rounded-md border px-3 py-2 shadow-sm transition hover:border-cyan-500/45 hover:bg-cyan-50 hover:text-cyan-950 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50 lg:shrink-0 ${active ? "border-cyan-500/40 bg-cyan-50 text-cyan-950 dark:border-cyan-300/30 dark:bg-cyan-300/15 dark:text-cyan-50" : "border-cyan-900/12 bg-white dark:border-cyan-300/15 dark:bg-cyan-300/5"}`}
-                href={item.href}
-                key={item.href}
-                onClick={() => setMenuOpen(false)}
-                rel={item.openInNewTab ? "noreferrer" : undefined}
-                target={item.openInNewTab ? "_blank" : undefined}
-              >
+              <Link className={`focus-ring flex min-h-11 items-center rounded-md border px-3 py-2 shadow-sm transition hover:border-cyan-500/45 hover:bg-cyan-50 hover:text-cyan-950 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50 lg:shrink-0 ${active ? "border-cyan-500/40 bg-cyan-50 text-cyan-950 dark:border-cyan-300/30 dark:bg-cyan-300/15 dark:text-cyan-50" : "border-cyan-900/12 bg-white dark:border-cyan-300/15 dark:bg-cyan-300/5"}`} href={item.href} key={item.href} onClick={() => setMenuOpen(false)}>
                 {item.label}
               </Link>
             );
           })}
+          <Link className="focus-ring flex min-h-11 items-center rounded-md border border-cyan-900/12 bg-white px-3 py-2 shadow-sm transition hover:border-cyan-500/45 hover:bg-cyan-50 hover:text-cyan-950 dark:border-cyan-300/15 dark:bg-cyan-300/5 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50 lg:shrink-0" href="/rehberler" onClick={() => setMenuOpen(false)}>
+            Rehberler
+          </Link>
           <div className="grid gap-2 border-t border-slate-200 pt-2 dark:border-white/10 lg:hidden">
             {isAdmin ? (
               <AdminSessionMenu
@@ -158,56 +159,6 @@ function Navbar({
         </div>
       </nav>
     </header>
-  );
-}
-
-function HomeBlockRenderer({ block }: { block: ManagedHomeBlock }) {
-  switch (block.type) {
-    case "hero":
-      return <Hero />;
-    case "risk-notes":
-      return (
-        <>
-          <AnnouncementBanner />
-          <StatsBand />
-        </>
-      );
-    case "news":
-      return <CyberNewsCenter />;
-    case "cyber-event":
-      return <TodayCyberEvent />;
-    case "contact":
-      return <FeedbackForm />;
-    case "guides":
-      return <GuidesPreview />;
-    case "about":
-      return <AboutSection wide />;
-    case "security-center":
-    case "awareness":
-    case "footer-cta":
-    default:
-      return <ManagedHomeBlockSection block={block} />;
-  }
-}
-
-function ManagedHomeBlockSection({ block }: { block: ManagedHomeBlock }) {
-  return (
-    <section className="px-4 py-10 sm:px-6 lg:px-8">
-      <div className={`${HOME_CONTAINER} rounded-2xl border border-cyan-300/15 bg-slate-950/72 p-6 text-white shadow-xl shadow-cyan-950/20 backdrop-blur-xl`}>
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-cyan-200">{block.icon || "cms"}</p>
-            <h2 className="mt-2 text-2xl font-black sm:text-3xl">{block.title}</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">{block.subtitle}</p>
-          </div>
-          {block.buttonLabel && block.buttonHref ? (
-            <Link className="focus-ring inline-flex min-h-11 items-center justify-center rounded-md bg-cyan-300 px-5 text-sm font-black text-slate-950 transition hover:bg-cyan-200" href={block.buttonHref}>
-              {block.buttonLabel}
-            </Link>
-          ) : null}
-        </div>
-      </div>
-    </section>
   );
 }
 

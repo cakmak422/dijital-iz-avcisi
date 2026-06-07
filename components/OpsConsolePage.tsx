@@ -105,15 +105,6 @@ export function OpsConsolePage() {
                   İçerik panelini aç
                 </Link>
               </article>
-              <article className="rounded-lg border border-cyan-200 bg-white p-5 shadow-sm dark:border-cyan-400/30 dark:bg-cyan-400/10">
-                <h2 className="text-xl font-bold">Sayfa Yönetimi</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-cyan-50">
-                  Ana sayfa blokları, kartlar, afişler, rehberler, menü sıralaması ve sayfa ayarlarını kod açmadan yönetin.
-                </p>
-                <Link className="mt-4 inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100" href="/ops-console/page-management">
-                  Sayfa yönetimini aç
-                </Link>
-              </article>
               <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
                 <h2 className="text-xl font-bold">Site Ayarlari</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">
