@@ -33,40 +33,80 @@ export type AnalysisHistoryItem = {
 };
 
 export type SiteSafetyResult = {
+  input?: string;
+  normalized_url?: string;
+  domain: string;
+  final_url?: string | null;
+  http_status?: number | null;
   risk_score: number;
   risk_level: RiskLevel;
+  risk_label?: string;
+  technical_risk_label?: string;
+  site_category?: string;
+  category_confidence?: number;
+  citizen_risk_level?: string;
+  citizen_risk_reason?: string;
+  category_warning?: string;
+  category_signals?: string[];
   risk_score_breakdown?: { label: string; points: number; detail: string }[];
   citizen_summary: string;
+  safe_summary?: string;
+  risk_summary?: string;
+  public_advice?: string[];
   technical_findings: { severity: RiskLevel; title: string; detail: string }[];
   url_analysis: {
+    original_url?: string | null;
     normalized_url: string;
     domain: string;
     final_url: string | null;
+    page_title?: string | null;
     redirect_chain: { url: string; status_code: number | null }[];
     https: boolean;
     http_status: number | null;
     is_short_link: boolean;
     suspicious_keywords: string[];
     typo_signals: string[];
+    notes?: string[];
+  };
+  security_headers?: {
+    content_security_policy: string | null;
+    x_frame_options: string | null;
+    x_content_type_options: string | null;
+    referrer_policy: string | null;
+    permissions_policy: string | null;
+    hsts: string | null;
+    missing: string[];
+    notes: string[];
   };
   domain_info: {
     created_at: string | null;
+    updated_at?: string | null;
     expires_at: string | null;
     domain_age_days: number | null;
     registrar: string | null;
+    registrar_iana_id?: string | null;
     abuse_contact: string | null;
+    nameservers?: string[];
+    status_codes?: string[];
     notes: string[];
   };
   dns_info: {
     a: string[];
     aaaa: string[];
+    cname?: string[];
     mx: string[];
     ns: string[];
     txt: string[];
+    soa?: string[];
+    caa?: string[];
+    ptr?: string[];
     nameservers: string[];
+    cdn_provider?: string | null;
+    waf_provider?: string | null;
     notes: string[];
   };
   mail_security: {
+    has_mx?: boolean;
     has_spf: boolean;
     has_dmarc: boolean;
     has_dkim_signal: boolean;
@@ -75,16 +115,44 @@ export type SiteSafetyResult = {
   };
   ssl_info: {
     valid: boolean;
+    status?: string;
+    valid_from?: string | null;
     expires_at: string | null;
     issuer: string | null;
+    subject?: string | null;
     days_remaining: number | null;
+    san?: string[];
+    tls_version?: string | null;
     notes: string[];
   };
   ip_info: {
     ip: string | null;
     country: string | null;
     asn: string | null;
+    organization?: string | null;
+    network_name?: string | null;
+    network_cidr?: string | null;
     hosting: string | null;
+    provider_type?: string | null;
+    abuse_contact?: string | null;
+    notes: string[];
+  };
+  ip_records?: {
+    ip: string;
+    country: string | null;
+    asn: string | null;
+    organization: string | null;
+    network_name: string | null;
+    provider: string | null;
+    provider_type: string | null;
+    abuse_contact: string | null;
+    notes: string[];
+  }[];
+  threat_intel?: {
+    checked_sources: string[];
+    skipped_sources: string[];
+    malicious_count: number;
+    suspicious_count: number;
     notes: string[];
   };
 };

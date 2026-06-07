@@ -295,8 +295,8 @@ export function AnalysisWorkspace() {
   }
 
   return (
-    <section className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[360px_1fr] lg:px-8">
-      <aside className="grid h-fit gap-3 lg:sticky lg:top-24">
+    <section className="mx-auto grid w-full max-w-[1680px] gap-6 px-4 py-6 sm:px-6 lg:px-8 xl:grid-cols-[320px_minmax(0,1fr)] 2xl:grid-cols-[340px_minmax(0,1fr)]">
+      <aside className="grid h-fit gap-3 xl:sticky xl:top-24">
         {modules.map((module) => {
           const active = module.id === activeModule;
           return (
@@ -385,7 +385,7 @@ function AnalyzerPanel({
   url: string;
 }) {
   return (
-    <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+    <section className={activeModule.id === "site" ? "grid gap-6" : "grid gap-6 2xl:grid-cols-[minmax(360px,0.78fr)_minmax(0,1.22fr)]"}>
       <div className="premium-card p-5">
         <div className="border-b border-slate-200 pb-4 dark:border-white/10">
           <p className="text-sm font-semibold uppercase tracking-[0.12em] text-blue-700 dark:text-blue-200">{activeModule.shortTitle} paneli</p>
@@ -519,7 +519,7 @@ function ResultPanel({
   }
 
   if (activeModule.id === "site" && siteResult) {
-    return <SiteSafetyResultPanel result={siteResult} />;
+    return <EnhancedSiteSafetyResultPanel result={siteResult} />;
   }
 
   if (activeModule.id === "ip" && ipResult) {
@@ -825,6 +825,247 @@ function IpIntelligenceResultPanel({ result }: { result: IpIntelligenceResult })
   );
 }
 
+function EnhancedSiteSafetyResultPanel({ result }: { result: SiteSafetyResult }) {
+  const riskBreakdown = result.risk_score_breakdown ?? [];
+  const securityHeaders = result.security_headers;
+  const threatIntel = result.threat_intel;
+  const generalEvaluation = buildSiteSafetyGeneralEvaluation(result);
+  const technicalRiskLabel = result.technical_risk_label ?? result.risk_label ?? riskLabels[result.risk_level];
+  const citizenRiskLevel = result.citizen_risk_level ?? "Düşük teknik risk, yine de doğrula";
+  const siteCategory = result.site_category ?? "Genel / Bilgilendirme";
+  const allNotes = [
+    ...(result.url_analysis.notes ?? []),
+    ...result.dns_info.notes,
+    ...result.domain_info.notes,
+    ...result.ssl_info.notes,
+    ...result.mail_security.notes,
+    ...result.ip_info.notes,
+    ...(securityHeaders?.notes ?? []),
+    ...(threatIntel?.notes ?? [])
+  ];
+
+  return (
+    <section className="premium-card min-w-0 p-4 sm:p-5 lg:p-6">
+      <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-white/10">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Site Güvenlik Kontrolü</p>
+          <h2 className="mt-1 break-words text-2xl font-bold [overflow-wrap:break-word] [word-break:normal]">{result.url_analysis.domain}</h2>
+          <p className="mt-2 whitespace-normal break-words text-sm leading-6 text-slate-600 [overflow-wrap:break-word] [word-break:normal] dark:text-slate-300">
+            {result.url_analysis.normalized_url}
+          </p>
+        </div>
+        <div className="grid w-full min-w-0 gap-2 sm:w-auto sm:min-w-[420px] sm:grid-cols-3">
+          <SummaryBadge label="Teknik Risk" tone={result.risk_level} value={`${result.risk_score} / ${technicalRiskLabel}`} />
+          <SummaryBadge label="Vatandaş Riski" tone={citizenRiskTone(citizenRiskLevel)} value={citizenRiskLevel} />
+          <SummaryBadge label="Site Türü" tone="caution" value={siteCategory} />
+        </div>
+      </div>
+
+      <article className="mt-5 rounded-lg border border-cyan-200/60 bg-cyan-50/80 p-4 shadow-sm sm:p-5 dark:border-cyan-300/20 dark:bg-cyan-300/10">
+        <p className="text-sm font-bold text-cyan-800 dark:text-cyan-100">Genel Değerlendirme</p>
+        <div className="mt-2 grid max-w-5xl gap-3 whitespace-normal break-words text-sm leading-7 text-slate-700 [overflow-wrap:break-word] [word-break:normal] sm:text-base dark:text-slate-200">
+          {generalEvaluation.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </div>
+      </article>
+
+      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <DecisionPanel
+          title="Bu site neden güvenli görünüyor?"
+          body={result.safe_summary ?? "Güvenli görünen sinyaller sınırlı; bu durum tek başına risk anlamına gelmez."}
+          footer="Bu alan kesin hüküm değil, teknik sinyal özetidir."
+        />
+        <DecisionPanel
+          title="Hangi noktalar riskli?"
+          body={result.risk_summary ?? "Risk puanını artıran belirgin bir teknik sinyal görülmedi."}
+          footer={`${riskBreakdown.length} risk puanı maddesi değerlendirildi.`}
+        />
+        <DecisionPanel
+          title="Vatandaş ne yapmalı?"
+          body={(result.public_advice ?? ["Adres çubuğundaki domaini işlem yapmadan önce tekrar kontrol edin."]).join(" ")}
+          footer="Şifre, ödeme veya kimlik bilgisi paylaşmadan önce resmi kaynağı doğrulayın."
+        />
+      </div>
+
+      <div className="mt-5 grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Metric label="HTTP durum" value={result.url_analysis.http_status?.toString() ?? "Tespit Edilemedi"} />
+        <Metric label="Alan adı yaşı" value={result.domain_info.domain_age_days !== null ? `${result.domain_info.domain_age_days} gün` : "Tespit Edilemedi"} />
+        <Metric label="SSL/TLS" value={result.ssl_info.status ?? (result.ssl_info.valid ? "Geçerli" : "Tespit Edilemedi")} />
+        <Metric
+          label="Posta güvenliği"
+          value={result.mail_security.spoofing_risk === "safe" ? "Temel kayıtlar mevcut" : result.mail_security.has_mx ? "Kontrol önerilir" : "Mail hizmeti belirsiz"}
+        />
+      </div>
+
+      <div className="mt-5 grid gap-3 xl:grid-cols-2">
+        <InfoPanel
+          title="URL ve yönlendirme"
+          rows={[
+            ["İlk URL", displayValue(result.url_analysis.original_url ?? result.url_analysis.normalized_url)],
+            ["Normalize URL", displayValue(result.url_analysis.normalized_url)],
+            ["Final URL", displayValue(result.url_analysis.final_url)],
+            ["Redirect sayısı", result.url_analysis.redirect_chain.length ? `${result.url_analysis.redirect_chain.length} adım` : "Yönlendirme görülmedi"],
+            ["Kısa link", yesNo(result.url_analysis.is_short_link)],
+            ["Şüpheli kelimeler", joinValues(result.url_analysis.suspicious_keywords, "Şüpheli kelime görülmedi")]
+          ]}
+        />
+        <InfoPanel
+          title="HTTP güvenlik başlıkları"
+          rows={[
+            ["HSTS", displayValue(securityHeaders?.hsts, "Tespit Edilemedi")],
+            ["CSP", displayValue(securityHeaders?.content_security_policy, "Tespit Edilemedi")],
+            ["X-Frame-Options", displayValue(securityHeaders?.x_frame_options, "Tespit Edilemedi")],
+            ["X-Content-Type-Options", displayValue(securityHeaders?.x_content_type_options, "Tespit Edilemedi")],
+            ["Referrer-Policy", displayValue(securityHeaders?.referrer_policy, "Tespit Edilemedi")],
+            ["Eksikler", joinValues(securityHeaders?.missing ?? [], "Eksik başlık görülmedi")]
+          ]}
+        />
+        <InfoPanel
+          title="Alan adı bilgileri"
+          rows={[
+            ["Registrar", displayValue(result.domain_info.registrar)],
+            ["Registrar IANA ID", displayValue(result.domain_info.registrar_iana_id)],
+            ["Kayıt tarihi", displayValue(result.domain_info.created_at)],
+            ["Güncelleme tarihi", displayValue(result.domain_info.updated_at)],
+            ["Bitiş tarihi", displayValue(result.domain_info.expires_at)],
+            ["Abuse contact", displayValue(result.domain_info.abuse_contact, "Tespit Edilemedi")],
+            ["Durum kodları", joinValues(result.domain_info.status_codes ?? [], "Veri Yok")]
+          ]}
+        />
+        <InfoPanel
+          title="SSL/TLS güvenliği"
+          rows={[
+            ["Durum", result.ssl_info.status ?? (result.ssl_info.valid ? "Geçerli" : "Tespit Edilemedi")],
+            ["Issuer", displayValue(result.ssl_info.issuer)],
+            ["Subject", displayValue(result.ssl_info.subject)],
+            ["Başlangıç", displayValue(result.ssl_info.valid_from)],
+            ["Bitiş", displayValue(result.ssl_info.expires_at)],
+            ["Kalan gün", result.ssl_info.days_remaining !== null ? result.ssl_info.days_remaining.toString() : "Tespit Edilemedi"],
+            ["TLS sürümü", displayValue(result.ssl_info.tls_version)]
+          ]}
+        />
+        <InfoPanel
+          title="DNS özeti"
+          rows={[
+            ["A", joinValues(result.dns_info.a, "A kaydı yok", 4)],
+            ["AAAA", joinValues(result.dns_info.aaaa, "AAAA kaydı yok", 3)],
+            ["CNAME", joinValues(result.dns_info.cname ?? [], "CNAME kaydı yok", 3)],
+            ["MX", joinValues(result.dns_info.mx, "MX kaydı yok", 3)],
+            ["NS", joinValues(result.dns_info.ns, "NS kaydı yok", 4)],
+            ["CDN/WAF", result.dns_info.waf_provider ?? result.dns_info.cdn_provider ?? "Tespit Edilemedi"]
+          ]}
+        />
+        <InfoPanel
+          title="E-posta güvenliği"
+          rows={[
+            ["MX", result.mail_security.has_mx ? "E-posta sunucusu tanımlı" : "Bu alan adına tanımlı e-posta sunucusu bulunamadı"],
+            ["SPF", yesNo(result.mail_security.has_spf)],
+            ["DMARC", yesNo(result.mail_security.has_dmarc)],
+            ["DKIM", result.mail_security.has_dkim_signal ? "DKIM sinyali görüldü" : "Doğrulanamadı"],
+            ["Spoofing riski", riskLabels[result.mail_security.spoofing_risk]]
+          ]}
+        />
+        <InfoPanel
+          title="IP bilgileri"
+          rows={[
+            ["IP", displayValue(result.ip_info.ip)],
+            ["Ülke", displayValue(result.ip_info.country, "Tespit Edilemedi")],
+            ["ASN", displayValue(result.ip_info.asn)],
+            ["Organizasyon", displayValue(result.ip_info.organization)],
+            ["Network", displayValue(result.ip_info.network_name)],
+            ["Hosting/CDN/ISP tahmini", displayValue(result.ip_info.hosting)]
+          ]}
+        />
+        <InfoPanel
+          title="Tehdit istihbaratı"
+          rows={[
+            ["Kontrol edilen kaynaklar", joinValues(threatIntel?.checked_sources ?? [], "Aktif kaynak yok")],
+            ["Atlanan kaynaklar", joinValues(threatIntel?.skipped_sources ?? [], "Atlanan kaynak yok")],
+            ["Zararlı kayıt", threatIntel?.malicious_count?.toString() ?? "0"],
+            ["Şüpheli kayıt", threatIntel?.suspicious_count?.toString() ?? "0"]
+          ]}
+        />
+      </div>
+
+      <details className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 sm:p-5 dark:border-white/10 dark:bg-white/5">
+        <summary className="cursor-pointer font-bold">Teknik detaylar, DNS kayıtları ve bulgular</summary>
+        <div className="mt-4 grid gap-3">
+          {riskBreakdown.length ? (
+            <div className="rounded-md border border-slate-200 bg-white p-3 text-sm dark:border-white/10 dark:bg-slate-950">
+              <p className="font-bold">Risk puanı açıklaması</p>
+              <div className="mt-3 grid gap-2">
+                {riskBreakdown.map((item) => (
+                  <div className="flex flex-col gap-2 rounded-md border border-slate-100 p-3 dark:border-white/10 md:flex-row md:items-start md:justify-between" key={`${item.label}-${item.points}`}>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-slate-900 dark:text-white">{item.label}</p>
+                      <p className="mt-1 whitespace-normal break-words leading-6 text-slate-600 [overflow-wrap:break-word] [word-break:normal] dark:text-slate-300">{item.detail}</p>
+                    </div>
+                    <span className="w-fit shrink-0 rounded-md bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800 dark:bg-amber-300/10 dark:text-amber-200">
+                      +{item.points}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-600 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300">
+              Risk puanını artıran belirgin bir teknik madde bulunmadı.
+            </p>
+          )}
+          <InfoPanel
+            title="Detaylı DNS kayıtları"
+            rows={[
+              ["TXT", joinValues(result.dns_info.txt, "TXT kaydı yok")],
+              ["SOA", joinValues(result.dns_info.soa ?? [], "SOA kaydı yok")],
+              ["CAA", joinValues(result.dns_info.caa ?? [], "CAA kaydı yok")],
+              ["PTR", joinValues(result.dns_info.ptr ?? [], "PTR kaydı yok")],
+              ["SAN", joinValues(result.ssl_info.san ?? [], "SAN alanı okunamadı")]
+            ]}
+          />
+          {result.ip_records?.length ? (
+            <InfoPanel
+              title="IP / ASN kayıtları"
+              rows={result.ip_records.map((record) => [
+                record.ip,
+                [record.asn, record.organization, record.network_name, record.provider, record.country].filter(Boolean).join(" · ") || "Detay tespit edilemedi"
+              ])}
+            />
+          ) : null}
+          {result.url_analysis.redirect_chain.length ? (
+            <InfoPanel
+              title="Redirect zinciri"
+              rows={result.url_analysis.redirect_chain.map((hop, index) => [`${index + 1}. adım`, `${hop.status_code ?? "Durum yok"} · ${hop.url}`])}
+            />
+          ) : null}
+          {result.technical_findings.length ? (
+            result.technical_findings.map((finding) => (
+              <article className={`rounded-md border p-3 text-sm ${riskStyles[finding.severity]}`} key={`${finding.title}-${finding.detail}`}>
+                <p className="font-bold">{finding.title}</p>
+                <p className="mt-1 whitespace-normal break-words leading-6 [overflow-wrap:break-word] [word-break:normal]">{finding.detail}</p>
+              </article>
+            ))
+          ) : (
+            <p className="text-sm text-slate-600 dark:text-slate-300">Belirgin teknik risk bulgusu listelenmedi.</p>
+          )}
+          {allNotes.length ? (
+            <div className="rounded-md border border-slate-200 bg-white p-3 text-sm dark:border-white/10 dark:bg-slate-950">
+              <p className="font-bold">Bilgi Notları / Doğrulanamayan Bilgiler</p>
+              <div className="mt-3 grid gap-2">
+                {allNotes.map((note) => (
+                  <p className="whitespace-normal break-words rounded-md border border-slate-100 p-3 text-slate-600 [overflow-wrap:break-word] [word-break:normal] dark:border-white/10 dark:text-slate-300" key={note}>
+                    {note}
+                  </p>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </details>
+    </section>
+  );
+}
+
 function SiteSafetyResultPanel({ result }: { result: SiteSafetyResult }) {
   const riskBreakdown = result.risk_score_breakdown ?? [];
 
@@ -887,7 +1128,7 @@ function SiteSafetyResultPanel({ result }: { result: SiteSafetyResult }) {
           rows={[
             ["SPF", yesNo(result.mail_security.has_spf)],
             ["DMARC", yesNo(result.mail_security.has_dmarc)],
-            ["DKIM sinyali", yesNo(result.mail_security.has_dkim_signal)],
+            ["DKIM", result.mail_security.has_dkim_signal ? "DKIM sinyali görüldü" : "Doğrulanamadı"],
             ["Spoofing riski", riskLabels[result.mail_security.spoofing_risk]]
           ]}
         />
@@ -959,13 +1200,13 @@ function SiteSafetyResultPanel({ result }: { result: SiteSafetyResult }) {
 
 function InfoPanel({ rows, title }: { rows: [string, string][]; title: string }) {
   return (
-    <article className="rounded-lg border border-slate-200 bg-slate-50 p-4 shadow-sm dark:border-white/10 dark:bg-white/5">
-      <h3 className="font-bold">{title}</h3>
-      <div className="mt-3 grid gap-2">
+    <article className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 p-4 shadow-sm sm:p-5 dark:border-white/10 dark:bg-white/5">
+      <h3 className="text-sm font-bold sm:text-base">{title}</h3>
+      <div className="mt-3 grid gap-3">
         {rows.map(([label, value]) => (
-          <div className="grid gap-1 text-sm" key={label}>
+          <div className="grid min-w-0 gap-1 text-sm" key={label}>
             <p className="font-semibold text-slate-500 dark:text-slate-400">{label}</p>
-            <p className="break-words text-slate-800 dark:text-slate-100">{value}</p>
+            <p className="whitespace-normal break-words text-sm leading-6 text-slate-800 [overflow-wrap:break-word] [word-break:normal] sm:text-[15px] dark:text-slate-100">{value}</p>
           </div>
         ))}
       </div>
@@ -978,7 +1219,7 @@ function CompactMetric({ clamp = false, helper, label, value }: { clamp?: boolea
     <div className="min-w-0 rounded-md border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
       <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">{label}</p>
       <p
-        className={`mt-2 min-w-0 break-words text-sm font-semibold leading-6 text-slate-900 dark:text-slate-100 ${
+        className={`mt-2 min-w-0 whitespace-normal break-words text-sm font-semibold leading-6 text-slate-900 [overflow-wrap:break-word] [word-break:normal] dark:text-slate-100 ${
           clamp ? "line-clamp-3" : ""
         }`}
         title={value}
@@ -992,6 +1233,115 @@ function CompactMetric({ clamp = false, helper, label, value }: { clamp?: boolea
 
 function yesNo(value: boolean) {
   return value ? "Var" : "Yok";
+}
+
+function displayValue(value: string | null | undefined, fallback = "Tespit Edilemedi") {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : fallback;
+}
+
+function joinValues(values: string[], fallback: string, limit?: number) {
+  const cleanValues = values.map((value) => value.trim()).filter(Boolean);
+  if (!cleanValues.length) return fallback;
+  const visible = typeof limit === "number" ? cleanValues.slice(0, limit) : cleanValues;
+  const suffix = typeof limit === "number" && cleanValues.length > limit ? ` (+${cleanValues.length - limit} kayıt teknik detayda)` : "";
+  return `${visible.join(", ")}${suffix}`;
+}
+
+function buildSiteSafetyGeneralEvaluation(result: SiteSafetyResult) {
+  const siteCategory = result.site_category ?? "Genel / Bilgilendirme";
+  const citizenRiskLevel = result.citizen_risk_level ?? "Düşük teknik risk, yine de doğrula";
+  const categoryWarning =
+    result.category_warning ??
+    "SSL/TLS veya HTTP erişimi tek başına sitenin güvenilir, yasal ya da resmi olduğu anlamına gelmez.";
+  const categoryIntro = categoryIntroForSiteSafety(siteCategory, result.risk_score);
+
+  const positiveSignals: string[] = [];
+  if (result.ssl_info.valid || result.ssl_info.status === "Geçerli") {
+    positiveSignals.push("✅ SSL/TLS sertifikası geçerli görünüyor.");
+  }
+
+  if (result.mail_security.has_spf && result.mail_security.has_dmarc) {
+    positiveSignals.push("✅ E-posta sahteciliğine karşı SPF ve DMARC kayıtları görüldü.");
+  } else if (result.mail_security.has_spf || result.mail_security.has_dmarc) {
+    positiveSignals.push("✅ E-posta güvenlik kayıtları mevcut.");
+  }
+
+  if (result.dns_info.waf_provider || result.dns_info.cdn_provider) {
+    positiveSignals.push("✅ Cloudflare/CDN koruma katmanı kullanıldığı görüldü.");
+  }
+
+  const domainAgeText = domainAgeLabel(result.domain_info.domain_age_days);
+  if (typeof result.domain_info.domain_age_days === "number" && result.domain_info.domain_age_days > 365) {
+    positiveSignals.push(`✅ ${domainAgeText}`);
+  }
+
+  const unverifiedSignals: string[] = [];
+  if (!result.ssl_info.valid && result.ssl_info.status === "Tespit Edilemedi") {
+    unverifiedSignals.push("ℹ️ SSL/TLS bağlantı testi doğrulanamadı.");
+  }
+  if (result.domain_info.domain_age_days === null) {
+    unverifiedSignals.push(`ℹ️ ${domainAgeText}`);
+  }
+  if (!result.mail_security.has_dkim_signal) {
+    unverifiedSignals.push("ℹ️ DKIM selector bilinmediği için doğrulanamadı.");
+  }
+
+  const riskSignals = (result.risk_score_breakdown ?? [])
+    .filter((item) => !/RDAP|WHOIS|DKIM/i.test(item.label))
+    .slice(0, 3)
+    .map((item) => item.label);
+
+  const technicalSignals = [
+    positiveSignals.length ? positiveSignals.join(" ") : "ℹ️ Olumlu teknik sinyaller sınırlı görünüyor; bu durum tek başına risk anlamına gelmez.",
+    riskSignals.length ? `⚠️ Teknik risk puanını artıran başlıca sinyaller: ${riskSignals.join(", ")}.` : "",
+    unverifiedSignals.length ? `ℹ️ Doğrulanamayan bilgiler: ${unverifiedSignals.join(" ")}` : ""
+  ].filter(Boolean);
+
+  return [
+    `Site türü: ${siteCategory}`,
+    `Vatandaş riski: ${citizenRiskLevel}`,
+    categoryIntro,
+    categoryWarning,
+    technicalSignals.join(" "),
+    "Bu değerlendirme kesin hüküm değildir; teknik ve kategori sinyallerinin otomatik özetidir. İşlem yapmadan önce adres bilgisini doğrulamanız tavsiye edilir."
+  ];
+}
+
+function categoryIntroForSiteSafety(category: string, score: number) {
+  if (category === "Bahis / Kumar") {
+    return "🎰 Bu alan adı çevrim içi bahis/kumar hizmeti sunuyor gibi görünmektedir.";
+  }
+  if (category === "Kripto") {
+    return "🪙 Bu site kripto para veya dijital varlık hizmeti sunuyor gibi görünmektedir.";
+  }
+  if (category === "Yatırım / Forex") {
+    return "📈 Bu site yatırım/forex hizmeti sunuyor gibi görünmektedir.";
+  }
+  if (category === "Kargo / Teslimat") {
+    return "📦 Bu site kargo/teslimat işlemiyle ilişkili görünüyor.";
+  }
+  if (category === "Banka / Finans") {
+    return "🏦 Bu site finansal işlem veya banka hizmetiyle ilişkili görünüyor.";
+  }
+  if (category === "E-Ticaret") {
+    return "🛒 Bu site alışveriş/e-ticaret hizmeti sunuyor gibi görünmektedir.";
+  }
+  if (score <= 20) {
+    return "🟢 Bu site için yapılan teknik incelemede belirgin bir tehdit göstergesi tespit edilmedi.";
+  }
+  if (score <= 49) {
+    return "🟡 Bu sitede dikkat gerektiren bazı teknik sinyaller tespit edildi.";
+  }
+  return "🔴 Bu siteyle ilgili birden fazla teknik risk göstergesi bulundu.";
+}
+
+function domainAgeLabel(ageDays: number | null) {
+  if (ageDays === null) return "Alan adı kayıt tarihi doğrulanamadı.";
+  if (ageDays <= 30) return "Alan adı çok yeni oluşturulmuş görünüyor.";
+  if (ageDays <= 90) return "Alan adı yeni sayılabilecek bir süredir aktif görünüyor.";
+  if (ageDays <= 365) return "Alan adı bir süredir aktif görünüyor.";
+  return "Alan adı uzun süredir aktif görünüyor.";
 }
 
 function privacyLabel(value: IpIntelligenceResult["privacy_signals"]["vpn_proxy_possibility"]) {
@@ -1040,19 +1390,35 @@ function getPhotoTypeSignal(result: ExifAnalysisResult) {
 
 function DecisionPanel({ body, footer, title }: { body: string; footer: string; title: string }) {
   return (
-    <article className="rounded-lg border border-slate-200 bg-slate-50 p-4 shadow-sm dark:border-white/10 dark:bg-white/5">
-      <h3 className="text-sm font-bold text-slate-950 dark:text-white">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{body}</p>
+    <article className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 p-4 shadow-sm sm:p-5 dark:border-white/10 dark:bg-white/5">
+      <h3 className="text-sm font-bold leading-6 text-slate-950 dark:text-white">{title}</h3>
+      <p className="mt-2 whitespace-normal break-words text-sm leading-7 text-slate-600 [overflow-wrap:break-word] [word-break:normal] dark:text-slate-300">{body}</p>
       <p className="mt-3 border-t border-slate-200 pt-3 text-xs font-semibold text-slate-500 dark:border-white/10 dark:text-slate-400">{footer}</p>
     </article>
   );
 }
 
+function SummaryBadge({ label, tone, value }: { label: string; tone: RiskLevel; value: string }) {
+  return (
+    <div className={`min-w-0 rounded-lg border px-3 py-3 text-left ${riskStyles[tone]}`}>
+      <p className="text-xs font-bold uppercase tracking-[0.06em]">{label}</p>
+      <p className="mt-1 whitespace-normal break-words text-sm font-bold leading-5 [overflow-wrap:break-word] [word-break:normal]">{value}</p>
+    </div>
+  );
+}
+
+function citizenRiskTone(value: string): RiskLevel {
+  const normalized = value.toLocaleLowerCase("tr-TR");
+  if (normalized.includes("yüksek")) return "risk";
+  if (normalized.includes("dikkat")) return "caution";
+  return "safe";
+}
+
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
-      <p className="text-sm text-slate-500 dark:text-slate-400">{label}</p>
-      <p className="mt-1 text-2xl font-bold">{value}</p>
+    <div className="min-w-0 rounded-md border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+      <p className="text-xs font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="mt-2 whitespace-normal break-words text-base font-bold leading-7 text-slate-950 [overflow-wrap:break-word] [word-break:normal] sm:text-lg dark:text-white">{value}</p>
     </div>
   );
 }

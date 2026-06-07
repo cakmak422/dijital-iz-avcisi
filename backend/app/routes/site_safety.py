@@ -12,3 +12,5 @@ def analyze_site(payload: SiteSafetyRequest) -> SiteSafetyResponse:
         return analyze_site_safety(payload.url)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Site güvenlik analizi tamamlanamadı: {str(exc)[:160]}") from exc
