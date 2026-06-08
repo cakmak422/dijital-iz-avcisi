@@ -170,10 +170,13 @@ OFFICIAL_BANK_DOMAINS = {
     "ziraatbank.com.tr",
     "vakifbank.com.tr",
     "halkbank.com.tr",
+    "garanti.com.tr",
     "garantibbva.com.tr",
     "isbank.com.tr",
     "akbank.com",
     "yapikredi.com.tr",
+    "enpara.com",
+    "papara.com",
 }
 
 OFFICIAL_CARGO_DOMAINS = {
@@ -186,6 +189,70 @@ OFFICIAL_CARGO_DOMAINS = {
 }
 
 OFFICIAL_ECOMMERCE_DOMAINS = {"trendyol.com", "hepsiburada.com", "n11.com", "amazon.com.tr"}
+
+OFFICIAL_BRAND_DOMAINS = {
+    "turkiye.gov.tr",
+    "giris.turkiye.gov.tr",
+    "ptt.gov.tr",
+    "pttavm.com",
+    "hepsiburada.com",
+    "trendyol.com",
+    "n11.com",
+    "amazon.com.tr",
+    "sahibinden.com",
+    "ziraatbank.com.tr",
+    "vakifbank.com.tr",
+    "halkbank.com.tr",
+    "garanti.com.tr",
+    "garantibbva.com.tr",
+    "isbank.com.tr",
+    "akbank.com",
+    "yapikredi.com.tr",
+    "enpara.com",
+    "papara.com",
+    "turkcell.com.tr",
+    "vodafone.com.tr",
+    "turktelekom.com.tr",
+}
+
+BRAND_KEYWORDS: dict[str, list[str]] = {
+    "PTT": ["ptt"],
+    "Türkiye / E-Devlet": ["turkiye", "e-devlet", "edevlet", "giris-turkiye", "turkiye-gov-tr", "turkiyegov"],
+    "Hepsiburada": ["hepsiburada"],
+    "Trendyol": ["trendyol"],
+    "N11": ["n11"],
+    "Amazon": ["amazon"],
+    "Sahibinden": ["sahibinden"],
+    "Ziraat Bankası": ["ziraat", "ziraatbank"],
+    "VakıfBank": ["vakifbank", "vakıfbank"],
+    "Halkbank": ["halkbank"],
+    "Garanti": ["garanti"],
+    "İşbank": ["isbank", "işbank"],
+    "Akbank": ["akbank"],
+    "Yapı Kredi": ["yapikredi", "yapı kredi"],
+    "Enpara": ["enpara"],
+    "Papara": ["papara"],
+    "Turkcell": ["turkcell"],
+    "Vodafone": ["vodafone"],
+    "Türk Telekom": ["turktelekom", "turk-telekom", "türk telekom"],
+}
+
+SECURITY_PORTAL_DOMAINS = {"dijitalizavcisi.com"}
+SECURITY_PORTAL_KEYWORDS = ["siber", "güvenlik", "guvenlik", "bilinçlendirme", "bilinclendirme", "dolandırıcılık", "dolandiricilik", "osint"]
+
+BANK_BRANDS = {
+    "Ziraat Bankası",
+    "VakıfBank",
+    "Halkbank",
+    "Garanti",
+    "İşbank",
+    "Akbank",
+    "Yapı Kredi",
+    "Enpara",
+    "Papara",
+}
+
+ECOMMERCE_BRANDS = {"Hepsiburada", "Trendyol", "N11", "Amazon", "Sahibinden"}
 
 
 def analyze_site_safety(input_url: str) -> SiteSafetyResponse:
@@ -237,6 +304,9 @@ def analyze_site_safety(input_url: str) -> SiteSafetyResponse:
         citizen_risk_reason=category_info.citizen_risk_reason,
         category_warning=category_info.category_warning,
         category_signals=category_info.category_signals,
+        brand_impersonation_risk=category_info.brand_impersonation_risk,
+        suspected_brand=category_info.suspected_brand,
+        brand_warning=category_info.brand_warning,
         risk_score_breakdown=risk_breakdown,
         citizen_summary=citizen_summary,
         safe_summary=safe_summary,
@@ -314,7 +384,7 @@ def _analyze_url(
                     TechnicalFinding(
                         severity="safe",
                         title="Cloudflare koruması",
-                        detail="Site 403 döndü ancak yanıt Cloudflare koruma katmanından geliyor. Bu durum tek başına risk puanı artırmaz.",
+                        detail="403 - Koruma sistemi veya bot engeli nedeniyle otomatik analiz sınırlanmış olabilir. Bu durum tek başına risk puanı artırmaz.",
                     )
                 )
             else:
@@ -322,9 +392,17 @@ def _analyze_url(
                     TechnicalFinding(
                         severity="safe",
                         title="HTTP 403",
-                        detail="Site erişimi sınırlamış olabilir. 403 durum kodu tek başına risk puanı artırmaz.",
+                        detail="403 - Koruma sistemi veya bot engeli nedeniyle otomatik analiz sınırlanmış olabilir. Bu durum tek başına risk puanı artırmaz.",
                     )
                 )
+        if status_code == 429:
+            findings.append(
+                TechnicalFinding(
+                    severity="safe",
+                    title="HTTP 429",
+                    detail="429 - Çok fazla istek nedeniyle geçici sınırlama uygulanmış olabilir. Bu durum tek başına risk puanı artırmaz.",
+                )
+            )
     except SsrfProtectionError as exc:
         notes.append(str(exc))
         findings.append(TechnicalFinding(severity="risk", title="SSRF koruması", detail=str(exc)))
@@ -693,6 +771,8 @@ def _build_ip_record(ip: str) -> IpRecord:
 
     cymru_asn, cymru_org = _team_cymru_lookup(ip)
     asn = cymru_asn or handle
+    if organization and _looks_like_date_value(organization):
+        organization = None
     if not organization and cymru_org:
         organization = cymru_org
 
@@ -737,13 +817,19 @@ def _team_cymru_lookup(ip: str) -> tuple[str | None, str | None]:
         answers = dns.resolver.resolve(f"{reversed_ip}.origin.asn.cymru.com", "TXT")
         value = _format_dns_answer("TXT", answers[0])
         parts = [part.strip() for part in value.split("|")]
+        if len(parts) >= 7:
+            return f"AS{parts[0]}", parts[6]
         if len(parts) >= 6:
-            return f"AS{parts[0]}", parts[5]
+            return f"AS{parts[0]}", None
         if len(parts) >= 1:
             return f"AS{parts[0]}", None
     except Exception:
         return None, None
     return None, None
+
+
+def _looks_like_date_value(value: str) -> bool:
+    return bool(re.fullmatch(r"\d{4}-\d{2}-\d{2}", value.strip()))
 
 
 def _collect_threat_intel(domain: str, url: str) -> ThreatIntelInfo:
@@ -844,6 +930,7 @@ def _check_alienvault_otx(domain: str, api_key: str, info: ThreatIntelInfo) -> N
 
 def _build_site_category_info(domain: str, normalized_url: str, url_analysis: UrlAnalysis, technical_score: int) -> SiteCategoryInfo:
     parsed = urlparse(normalized_url)
+    page_text = (url_analysis.page_title or "").lower()
     text = " ".join(
         filter(
             None,
@@ -856,6 +943,7 @@ def _build_site_category_info(domain: str, normalized_url: str, url_analysis: Ur
             ],
         )
     ).lower()
+    brand_risk, suspected_brand, brand_warning = _detect_brand_impersonation(domain, text)
 
     category_scores: dict[str, int] = {}
     category_signals: dict[str, list[str]] = {}
@@ -868,6 +956,13 @@ def _build_site_category_info(domain: str, normalized_url: str, url_analysis: Ur
     if domain.endswith(".gov.tr"):
         category_scores["Resmi kurum / Devlet"] = category_scores.get("Resmi kurum / Devlet", 0) + 4
         category_signals.setdefault("Resmi kurum / Devlet", []).append(".gov.tr")
+
+    if _domain_in_set(domain, SECURITY_PORTAL_DOMAINS):
+        category_scores["Bilgilendirme / Güvenlik Portalı"] = category_scores.get("Bilgilendirme / Güvenlik Portalı", 0) + 6
+        category_signals.setdefault("Bilgilendirme / Güvenlik Portalı", []).append("bilinen güvenlik portalı")
+    elif any(keyword in page_text for keyword in SECURITY_PORTAL_KEYWORDS):
+        category_scores["Bilgilendirme / Güvenlik Portalı"] = category_scores.get("Bilgilendirme / Güvenlik Portalı", 0) + 2
+        category_signals.setdefault("Bilgilendirme / Güvenlik Portalı", []).append("güvenlik/bilinçlendirme içerik sinyali")
 
     if any(word in text for word in ["kargo", "teslimat", "shipment", "cargo", "delivery", "takip"]):
         category_scores["Kargo / Teslimat"] = category_scores.get("Kargo / Teslimat", 0) + 2
@@ -884,6 +979,11 @@ def _build_site_category_info(domain: str, normalized_url: str, url_analysis: Ur
         category_scores["Bahis / Kumar"] = category_scores.get("Bahis / Kumar", 0) + 3
         category_signals.setdefault("Bahis / Kumar", []).append("affiliate kayıt paterni")
 
+    if brand_risk and suspected_brand:
+        brand_category = _category_for_suspected_brand(suspected_brand)
+        category_scores[brand_category] = category_scores.get(brand_category, 0) + 8
+        category_signals.setdefault(brand_category, []).append(f"marka taklidi sinyali: {suspected_brand}")
+
     if not category_scores:
         category = "Genel / Bilgilendirme" if technical_score <= 20 else "Bilinmeyen / Genel site"
         signals: list[str] = []
@@ -899,6 +999,11 @@ def _build_site_category_info(domain: str, normalized_url: str, url_analysis: Ur
         normalized_url=normalized_url,
         technical_score=technical_score,
     )
+    if brand_risk and suspected_brand:
+        citizen_risk_level = "Yüksek Risk"
+        citizen_risk_reason = f"Bu alan adı {suspected_brand} markasını veya resmi hizmetini çağrıştırıyor ancak bilinen resmi alan adıyla eşleşmiyor."
+        category_warning = brand_warning or "Bu alan adı bilinen bir marka veya resmi kuruma benziyor ancak resmi alan adıyla eşleşmiyor."
+        confidence = max(confidence, 0.92)
 
     return SiteCategoryInfo(
         site_category=category,
@@ -907,7 +1012,66 @@ def _build_site_category_info(domain: str, normalized_url: str, url_analysis: Ur
         citizen_risk_reason=citizen_risk_reason,
         category_warning=category_warning,
         category_signals=signals,
+        brand_impersonation_risk=brand_risk,
+        suspected_brand=suspected_brand,
+        brand_warning=brand_warning,
     )
+
+
+def _detect_brand_impersonation(domain: str, text: str) -> tuple[bool, str | None, str | None]:
+    if _domain_in_set(domain, OFFICIAL_BRAND_DOMAINS):
+        return False, None, None
+
+    normalized_text = _normalize_brand_text(text)
+    normalized_domain = _normalize_brand_text(domain)
+    for brand, keywords in BRAND_KEYWORDS.items():
+        for keyword in keywords:
+            normalized_keyword = _normalize_brand_text(keyword)
+            if normalized_keyword and (normalized_keyword in normalized_domain or normalized_keyword in normalized_text):
+                return True, brand, _brand_warning(brand)
+    return False, None, None
+
+
+def _normalize_brand_text(value: str) -> str:
+    translation = str.maketrans(
+        {
+            "ı": "i",
+            "İ": "i",
+            "ğ": "g",
+            "Ğ": "g",
+            "ü": "u",
+            "Ü": "u",
+            "ş": "s",
+            "Ş": "s",
+            "ö": "o",
+            "Ö": "o",
+            "ç": "c",
+            "Ç": "c",
+        }
+    )
+    return re.sub(r"[^a-z0-9]", "", value.lower().translate(translation))
+
+
+def _brand_warning(brand: str) -> str:
+    if brand == "PTT":
+        return "🚨 Bu alan adı PTT veya kargo hizmeti izlenimi veriyor ancak resmi PTT alan adıyla eşleşmiyor. SMS kodu, kimlik, ödeme veya kart bilgisi girilmemelidir."
+    if brand == "Türkiye / E-Devlet":
+        return "🚨 Bu alan adı resmi kamu hizmetini çağrıştırıyor ancak .gov.tr alan adıyla eşleşmiyor. E-Devlet şifresi, kimlik bilgisi veya SMS doğrulama kodu girilmemelidir."
+    if brand in BANK_BRANDS:
+        return f"🚨 Bu alan adı {brand} finans kurumunu çağrıştırıyor ancak resmi alan adıyla eşleşmiyor. Şifre, kart, hesap veya doğrulama kodu girilmemelidir."
+    return f"🚨 Bu alan adı {brand} markasını çağrıştırıyor ancak bilinen resmi alan adıyla eşleşmiyor. Hesap, ödeme veya kimlik bilgisi paylaşmadan önce adresi doğrulayın."
+
+
+def _category_for_suspected_brand(brand: str) -> str:
+    if brand == "Türkiye / E-Devlet":
+        return "Resmi kurum taklidi / Şüpheli"
+    if brand == "PTT":
+        return "Kargo / Teslimat"
+    if brand in BANK_BRANDS:
+        return "Banka / Finans"
+    if brand in ECOMMERCE_BRANDS:
+        return "E-Ticaret"
+    return "Bilinmeyen / Genel site"
 
 
 def _citizen_risk_for_category(category: str, domain: str, normalized_url: str, technical_score: int) -> tuple[str, str, str]:
@@ -983,6 +1147,13 @@ def _citizen_risk_for_category(category: str, domain: str, normalized_url: str, 
             "Resmi işlemler için alan adının gerçek kamu kurumuna ait olduğundan emin olunmalıdır.",
         )
 
+    if category == "Bilgilendirme / Güvenlik Portalı":
+        return (
+            "Düşük",
+            "Bu site bilgilendirme veya siber güvenlik farkındalığı içeriği sunuyor gibi görünmektedir.",
+            "Bilgilendirme siteleri için de adres çubuğundaki alan adı ve kaynak bağlantıları kontrol edilmelidir.",
+        )
+
     if technical_score >= 50:
         return (
             "Dikkatli İncele",
@@ -1042,8 +1213,18 @@ def _calculate_risk_breakdown(
         add("DNS çözümleme yok", 20, "Alan adı için A veya AAAA kaydı okunamadı; site erişilebilirliği doğrulanamadı.")
 
     if domain_info.domain_age_days is not None and domain_info.domain_age_days < 30:
-        add("Yeni domain", 22, f"Domain yaşı {domain_info.domain_age_days} gün.")
-        findings.append(TechnicalFinding(severity="caution", title="Yeni domain", detail=f"Domain yaşı {domain_info.domain_age_days} gün."))
+        if _has_strong_positive_baseline(url_analysis, dns_info, ssl_info, mail_security):
+            add("Yeni domain", 3, f"Domain yaşı {domain_info.domain_age_days} gün; ancak SSL/TLS, DNS ve posta güvenliği sinyalleri olumlu görünüyor.")
+            findings.append(
+                TechnicalFinding(
+                    severity="safe",
+                    title="Yeni domain bilgisi",
+                    detail=f"Domain yaşı {domain_info.domain_age_days} gün. Diğer temel sinyaller olumluysa yeni domain tek başına yüksek risk sayılmaz.",
+                )
+            )
+        else:
+            add("Yeni domain", 12, f"Domain yaşı {domain_info.domain_age_days} gün.")
+            findings.append(TechnicalFinding(severity="caution", title="Yeni domain", detail=f"Domain yaşı {domain_info.domain_age_days} gün."))
     elif domain_info.created_at is None:
         findings.append(
             TechnicalFinding(
@@ -1083,6 +1264,19 @@ def _calculate_risk_breakdown(
         add("Tehdit istihbaratı şüpheli eşleşme", min(20, threat_intel.suspicious_count * 5), f"{threat_intel.suspicious_count} şüpheli kayıt görüldü.")
 
     return items
+
+
+def _has_strong_positive_baseline(
+    url_analysis: UrlAnalysis,
+    dns_info: DnsInfo,
+    ssl_info: SslInfo,
+    mail_security: MailSecurityInfo,
+) -> bool:
+    has_dns = bool(dns_info.a or dns_info.aaaa)
+    has_mail_baseline = (mail_security.has_spf and mail_security.has_dmarc) or not mail_security.has_mx
+    has_infra_protection = bool(dns_info.waf_provider or dns_info.cdn_provider)
+    has_url_risk = bool(url_analysis.suspicious_keywords or url_analysis.typo_signals or url_analysis.is_short_link)
+    return bool(ssl_info.valid and has_dns and has_mail_baseline and has_infra_protection and not has_url_risk)
 
 
 def _risk_level_from_score(score: int) -> str:

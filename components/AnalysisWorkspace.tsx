@@ -833,6 +833,7 @@ function EnhancedSiteSafetyResultPanel({ result }: { result: SiteSafetyResult })
   const technicalRiskLabel = result.technical_risk_label ?? result.risk_label ?? riskLabels[result.risk_level];
   const citizenRiskLevel = result.citizen_risk_level ?? "Düşük teknik risk, yine de doğrula";
   const siteCategory = result.site_category ?? "Genel / Bilgilendirme";
+  const brandLabel = result.brand_impersonation_risk && result.suspected_brand ? result.suspected_brand : null;
   const allNotes = [
     ...(result.url_analysis.notes ?? []),
     ...result.dns_info.notes,
@@ -854,10 +855,11 @@ function EnhancedSiteSafetyResultPanel({ result }: { result: SiteSafetyResult })
             {result.url_analysis.normalized_url}
           </p>
         </div>
-        <div className="grid w-full min-w-0 gap-2 sm:w-auto sm:min-w-[420px] sm:grid-cols-3">
+        <div className={`grid w-full min-w-0 gap-2 sm:w-auto ${brandLabel ? "sm:min-w-[520px] sm:grid-cols-2 lg:grid-cols-4" : "sm:min-w-[420px] sm:grid-cols-3"}`}>
           <SummaryBadge label="Teknik Risk" tone={result.risk_level} value={`${result.risk_score} / ${technicalRiskLabel}`} />
           <SummaryBadge label="Vatandaş Riski" tone={citizenRiskTone(citizenRiskLevel)} value={citizenRiskLevel} />
           <SummaryBadge label="Site Türü" tone="caution" value={siteCategory} />
+          {brandLabel ? <SummaryBadge label="Marka Sinyali" tone="risk" value={brandLabel} /> : null}
         </div>
       </div>
 
@@ -889,7 +891,7 @@ function EnhancedSiteSafetyResultPanel({ result }: { result: SiteSafetyResult })
       </div>
 
       <div className="mt-5 grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Metric label="HTTP durum" value={result.url_analysis.http_status?.toString() ?? "Tespit Edilemedi"} />
+        <Metric label="HTTP durum" value={httpStatusLabel(result.url_analysis.http_status)} />
         <Metric label="Alan adı yaşı" value={result.domain_info.domain_age_days !== null ? `${result.domain_info.domain_age_days} gün` : "Tespit Edilemedi"} />
         <Metric label="SSL/TLS" value={result.ssl_info.status ?? (result.ssl_info.valid ? "Geçerli" : "Tespit Edilemedi")} />
         <Metric
@@ -1089,7 +1091,7 @@ function SiteSafetyResultPanel({ result }: { result: SiteSafetyResult }) {
       </p>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric label="HTTP durum" value={result.url_analysis.http_status?.toString() ?? "Yok"} />
+        <Metric label="HTTP durum" value={httpStatusLabel(result.url_analysis.http_status)} />
         <Metric label="Domain yaşı" value={result.domain_info.domain_age_days !== null ? `${result.domain_info.domain_age_days} gün` : "Bilinmiyor"} />
         <Metric label="SSL" value={result.ssl_info.valid ? "Geçerli" : "Kontrol gerekli"} />
         <Metric label="Mail güvenliği" value={result.mail_security.spoofing_risk === "safe" ? "İyi" : result.mail_security.spoofing_risk === "caution" ? "Dikkat" : "Risk"} />
@@ -1240,6 +1242,19 @@ function displayValue(value: string | null | undefined, fallback = "Tespit Edile
   return trimmed ? trimmed : fallback;
 }
 
+function httpStatusLabel(status: number | null | undefined) {
+  if (status === 403) {
+    return "403 - Koruma sistemi veya bot engeli nedeniyle otomatik analiz sınırlanmış olabilir.";
+  }
+  if (status === 429) {
+    return "429 - Çok fazla istek nedeniyle geçici sınırlama uygulanmış olabilir.";
+  }
+  if (status === null || typeof status === "undefined") {
+    return "Otomatik analiz sırasında HTTP durumu doğrulanamadı.";
+  }
+  return status.toString();
+}
+
 function joinValues(values: string[], fallback: string, limit?: number) {
   const cleanValues = values.map((value) => value.trim()).filter(Boolean);
   if (!cleanValues.length) return fallback;
@@ -1255,36 +1270,49 @@ function buildSiteSafetyGeneralEvaluation(result: SiteSafetyResult) {
     result.category_warning ??
     "SSL/TLS veya HTTP erişimi tek başına sitenin güvenilir, yasal ya da resmi olduğu anlamına gelmez.";
   const categoryIntro = categoryIntroForSiteSafety(siteCategory, result.risk_score);
+  const paragraphs: string[] = [];
+
+  if (result.brand_impersonation_risk && result.brand_warning) {
+    paragraphs.push(result.brand_warning);
+  }
+
+  paragraphs.push(`Site türü: ${siteCategory}`);
+  paragraphs.push(`Vatandaş riski: ${citizenRiskLevel}`);
+  paragraphs.push(categoryIntro);
+
+  if (!result.brand_impersonation_risk) {
+    paragraphs.push(categoryWarning);
+  }
 
   const positiveSignals: string[] = [];
   if (result.ssl_info.valid || result.ssl_info.status === "Geçerli") {
-    positiveSignals.push("✅ SSL/TLS sertifikası geçerli görünüyor.");
+    positiveSignals.push("SSL/TLS sertifikası geçerli görünüyor.");
   }
 
   if (result.mail_security.has_spf && result.mail_security.has_dmarc) {
-    positiveSignals.push("✅ E-posta sahteciliğine karşı SPF ve DMARC kayıtları görüldü.");
+    positiveSignals.push("E-posta sahteciliğine karşı SPF ve DMARC kayıtları görüldü.");
   } else if (result.mail_security.has_spf || result.mail_security.has_dmarc) {
-    positiveSignals.push("✅ E-posta güvenlik kayıtları mevcut.");
+    positiveSignals.push("E-posta güvenlik kayıtları mevcut.");
   }
 
   if (result.dns_info.waf_provider || result.dns_info.cdn_provider) {
-    positiveSignals.push("✅ Cloudflare/CDN koruma katmanı kullanıldığı görüldü.");
+    positiveSignals.push("Cloudflare/CDN koruma katmanı kullanıldığı görüldü.");
   }
 
   const domainAgeText = domainAgeLabel(result.domain_info.domain_age_days);
   if (typeof result.domain_info.domain_age_days === "number" && result.domain_info.domain_age_days > 365) {
-    positiveSignals.push(`✅ ${domainAgeText}`);
+    positiveSignals.push(domainAgeText);
   }
 
   const unverifiedSignals: string[] = [];
   if (!result.ssl_info.valid && result.ssl_info.status === "Tespit Edilemedi") {
-    unverifiedSignals.push("ℹ️ SSL/TLS bağlantı testi doğrulanamadı.");
+    unverifiedSignals.push("SSL/TLS bağlantı testi doğrulanamadı.");
   }
   if (result.domain_info.domain_age_days === null) {
-    unverifiedSignals.push(`ℹ️ ${domainAgeText}`);
+    unverifiedSignals.push(domainAgeText);
   }
   if (!result.mail_security.has_dkim_signal) {
-    unverifiedSignals.push("ℹ️ DKIM selector bilinmediği için doğrulanamadı.");
+    unverifiedSignals.push("DKIM selector bilinmediği için doğrulanamadı.");
   }
 
   const riskSignals = (result.risk_score_breakdown ?? [])
@@ -1292,20 +1320,25 @@ function buildSiteSafetyGeneralEvaluation(result: SiteSafetyResult) {
     .slice(0, 3)
     .map((item) => item.label);
 
-  const technicalSignals = [
-    positiveSignals.length ? positiveSignals.join(" ") : "ℹ️ Olumlu teknik sinyaller sınırlı görünüyor; bu durum tek başına risk anlamına gelmez.",
-    riskSignals.length ? `⚠️ Teknik risk puanını artıran başlıca sinyaller: ${riskSignals.join(", ")}.` : "",
-    unverifiedSignals.length ? `ℹ️ Doğrulanamayan bilgiler: ${unverifiedSignals.join(" ")}` : ""
-  ].filter(Boolean);
+  paragraphs.push("Teknik sinyaller:");
+  if (positiveSignals.length) {
+    positiveSignals.forEach((signal) => paragraphs.push(`• ${signal}`));
+  } else {
+    paragraphs.push("• Olumlu teknik sinyaller sınırlı görünüyor; bu durum tek başına risk anlamına gelmez.");
+  }
+  if (riskSignals.length) {
+    paragraphs.push(`• Teknik risk puanını artıran başlıca sinyaller: ${riskSignals.join(", ")}.`);
+  }
 
-  return [
-    `Site türü: ${siteCategory}`,
-    `Vatandaş riski: ${citizenRiskLevel}`,
-    categoryIntro,
-    categoryWarning,
-    technicalSignals.join(" "),
-    "Bu değerlendirme kesin hüküm değildir; teknik ve kategori sinyallerinin otomatik özetidir. İşlem yapmadan önce adres bilgisini doğrulamanız tavsiye edilir."
-  ];
+  if (unverifiedSignals.length) {
+    paragraphs.push("Doğrulanamayan bilgiler:");
+    unverifiedSignals.forEach((signal) => paragraphs.push(`• ${signal}`));
+  }
+
+  paragraphs.push(
+    "Bu değerlendirme kesin hüküm değildir; teknik sinyallerin otomatik özetidir. İşlem yapmadan önce adres bilgisini doğrulamanız tavsiye edilir."
+  );
+  return paragraphs;
 }
 
 function categoryIntroForSiteSafety(category: string, score: number) {
@@ -1326,6 +1359,12 @@ function categoryIntroForSiteSafety(category: string, score: number) {
   }
   if (category === "E-Ticaret") {
     return "🛒 Bu site alışveriş/e-ticaret hizmeti sunuyor gibi görünmektedir.";
+  }
+  if (category === "Bilgilendirme / Güvenlik Portalı") {
+    return "🛡️ Bu site bilgilendirme veya siber güvenlik farkındalığı içeriği sunuyor gibi görünmektedir.";
+  }
+  if (category === "Resmi kurum taklidi / Şüpheli") {
+    return "🚨 Bu alan adı resmi kamu hizmeti izlenimi veriyor ancak resmi .gov.tr alan adıyla eşleşmiyor.";
   }
   if (score <= 20) {
     return "🟢 Bu site için yapılan teknik incelemede belirgin bir tehdit göstergesi tespit edilmedi.";

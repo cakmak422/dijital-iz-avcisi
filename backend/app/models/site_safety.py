@@ -132,6 +132,9 @@ class SiteCategoryInfo(BaseModel):
     citizen_risk_reason: str = "Site türü için belirgin bir yüksek dikkat sinyali tespit edilmedi."
     category_warning: str = "SSL/TLS veya HTTP erişimi tek başına sitenin güvenilir, yasal ya da resmi olduğu anlamına gelmez."
     category_signals: list[str] = Field(default_factory=list)
+    brand_impersonation_risk: bool = False
+    suspected_brand: str | None = None
+    brand_warning: str | None = None
 
 
 class TechnicalFinding(BaseModel):
@@ -162,6 +165,9 @@ class SiteSafetyResponse(BaseModel):
     citizen_risk_reason: str
     category_warning: str
     category_signals: list[str] = Field(default_factory=list)
+    brand_impersonation_risk: bool = False
+    suspected_brand: str | None = None
+    brand_warning: str | None = None
     risk_score_breakdown: list[RiskScoreItem] = Field(default_factory=list)
     citizen_summary: str
     safe_summary: str

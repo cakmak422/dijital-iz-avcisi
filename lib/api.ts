@@ -48,6 +48,9 @@ export type SiteSafetyResult = {
   citizen_risk_reason?: string;
   category_warning?: string;
   category_signals?: string[];
+  brand_impersonation_risk?: boolean;
+  suspected_brand?: string | null;
+  brand_warning?: string | null;
   risk_score_breakdown?: { label: string; points: number; detail: string }[];
   citizen_summary: string;
   safe_summary?: string;
