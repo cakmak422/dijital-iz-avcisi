@@ -341,7 +341,7 @@ export function AnalysisWorkspace() {
           setSelectedExifFile={setSelectedExifFile}
           url={url}
         />
-        <HistoryPanel history={history} />
+        {history.length ? <HistoryPanel history={history} /> : null}
       </div>
     </section>
   );
@@ -575,14 +575,13 @@ function ResultPanel({
 }
 
 function PhishingResultPanel({ result }: { result: PhishingResult }) {
-  const riskLevel: RiskLevel = result.risk_level ?? result.riskLevel ?? "caution";
   const riskScore =
     typeof result.phishing_risk_score === "number"
       ? result.phishing_risk_score
       : typeof result.trustScore === "number"
         ? Math.max(0, 100 - result.trustScore)
         : 0;
-  const riskLabel = result.phishing_risk_label ?? result.verdict ?? riskLabels[riskLevel];
+  const riskDisplay = phishingRiskDisplay(riskScore);
   const normalizedUrl = result.normalized_url ?? result.url ?? "";
   const finalUrl = result.final_url ?? normalizedUrl;
   const phishingSignals = result.phishing_signals ?? result.signals ?? [];
@@ -590,9 +589,14 @@ function PhishingResultPanel({ result }: { result: PhishingResult }) {
   const uncertainSignals = result.uncertain_signals ?? [];
   const technicalNotes = result.technical_notes ?? result.reasons ?? [];
   const sortedPhishingSignals = sortPhishingSignals(phishingSignals);
+  const prioritizedPhishingSignals = buildPrioritizedPhishingSignals(result, sortedPhishingSignals);
   const officialMatch = Boolean(result.official_domain_match);
-  const brandLabel = result.brand_impersonation_risk ? "Marka Taklidi" : "Marka";
   const brandValue = result.suspected_brand ?? "Tespit edilmedi";
+  const brandStatusValue = result.brand_impersonation_risk
+    ? `🔴 Marka Taklidi: ${brandValue}`
+    : officialMatch && result.suspected_brand
+      ? `🟢 Resmi Marka: ${brandValue}`
+      : brandValue;
   const topSummary = phishingTopSummary(riskScore);
   const scoreExplanation = phishingScoreExplanation(sortedPhishingSignals, result.brand_impersonation_risk, result.is_short_link);
   const citizenSummary = result.citizen_summary ?? result.summary ?? "Bu bağlantı için otomatik phishing özeti üretildi.";
@@ -610,9 +614,9 @@ function PhishingResultPanel({ result }: { result: PhishingResult }) {
           </p>
         </div>
         <div className={`w-full rounded-lg border px-4 py-3 text-center sm:w-auto sm:min-w-64 ${phishingRiskStyle(riskScore)}`}>
-          <p className="text-sm font-semibold">Oltalama Risk Skoru</p>
-          <p className="text-3xl font-bold">{riskScore}</p>
-          <p className="text-sm font-semibold">{riskLabel}</p>
+          <p className="text-sm font-semibold">{riskDisplay.icon} Oltalama Riski</p>
+          <p className="mt-1 text-3xl font-black tracking-wide">{riskDisplay.label}</p>
+          <p className="text-xs font-semibold opacity-90">Risk Skoru: {riskScore}/100</p>
           <p className="mt-2 text-xs font-medium leading-5 opacity-90">{scoreExplanation}</p>
         </div>
       </div>
@@ -623,7 +627,7 @@ function PhishingResultPanel({ result }: { result: PhishingResult }) {
           <p className="mt-2 text-sm leading-6">{topSummary}</p>
         </article>
         <StatusBadge label="Resmi Domain Eşleşmesi" value={officialMatch ? "🟢 Evet" : "🔴 Hayır"} tone={officialMatch ? "safe" : "risk"} />
-        <StatusBadge label={brandLabel} value={brandValue} tone={result.brand_impersonation_risk ? "risk" : officialMatch ? "safe" : "caution"} />
+        <StatusBadge label="Marka Durumu" value={brandStatusValue} tone={result.brand_impersonation_risk ? "risk" : officialMatch ? "safe" : "caution"} />
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -641,7 +645,7 @@ function PhishingResultPanel({ result }: { result: PhishingResult }) {
       </article>
 
       <div className="mt-5 grid gap-3 lg:grid-cols-3">
-        <DecisionPanel title="Neden bu sonuç?" body={sortedPhishingSignals.join(" ") || "Belirgin oltalama sinyali görülmedi."} footer={`${sortedPhishingSignals.length} oltalama sinyali değerlendirildi.`} />
+        <DecisionPanel title="Neden bu sonuç?" body={prioritizedPhishingSignals.join(" ") || "Belirgin oltalama sinyali görülmedi."} footer={`${prioritizedPhishingSignals.length} oltalama sinyali değerlendirildi.`} />
         <DecisionPanel title="Olumlu sinyaller" body={positiveSignals.join(" ") || "Olumlu sinyaller sınırlı; bu durum tek başına risk anlamına gelmez."} footer="Pozitif sinyaller marka taklidi varsa riski düşürmez." />
         <DecisionPanel title="Kullanıcı Önerisi" body={citizenRecommendation} footer="Kesin hüküm değil, bilgilendirme amaçlı risk değerlendirmesidir." />
       </div>
@@ -936,7 +940,7 @@ function EnhancedSiteSafetyResultPanel({ result }: { result: SiteSafetyResult })
           <SummaryBadge label="Teknik Risk" tone={result.risk_level} value={`${result.risk_score} / ${technicalRiskLabel}`} />
           <SummaryBadge label="Vatandaş Riski" tone={citizenRiskTone(citizenRiskLevel)} value={citizenRiskLevel} />
           <SummaryBadge label="Site Türü" tone="caution" value={siteCategory} />
-          {brandLabel ? <SummaryBadge label="Marka Sinyali" tone="risk" value={brandLabel} /> : null}
+          {brandLabel ? <SummaryBadge label="Marka Taklidi" tone="risk" value={brandLabel} /> : null}
         </div>
       </div>
 
@@ -1545,6 +1549,12 @@ function phishingRiskStyle(score: number) {
   return "border-red-200 bg-red-50 text-red-700 dark:border-red-400/30 dark:bg-red-400/10 dark:text-red-200";
 }
 
+function phishingRiskDisplay(score: number) {
+  if (score <= 20) return { icon: "🟢", label: "DÜŞÜK" };
+  if (score <= 49) return { icon: "🟡", label: "ŞÜPHELİ" };
+  return { icon: "🔴", label: "YÜKSEK" };
+}
+
 function phishingTopSummary(score: number) {
   if (score <= 20) return "Belirgin oltalama sinyali görülmedi.";
   if (score <= 49) return "Bağlantı dikkatli incelenmelidir.";
@@ -1561,6 +1571,18 @@ function phishingScoreExplanation(signals: string[], brandRisk?: boolean, isShor
   if (!reasons.length && signals.length) reasons.push("teknik sinyaller");
   if (!reasons.length) return "Risk puanı; belirgin oltalama sinyali görülmediği için düşük hesaplanmıştır.";
   return `Risk puanı; ${reasons.slice(0, 4).join(", ")} üzerinden hesaplanmıştır.`;
+}
+
+function buildPrioritizedPhishingSignals(result: PhishingResult, signals: string[]) {
+  const brand = result.suspected_brand;
+  if (!result.brand_impersonation_risk || !brand) return signals;
+
+  const criticalSignals = [
+    `🚨 ${brand} marka taklidi tespit edildi.`,
+    brand === "PTT" ? "🚨 Resmi PTT alan adıyla eşleşmiyor." : "🚨 Resmi alan adıyla eşleşmiyor."
+  ];
+  const remainingSignals = signals.filter((signal) => !signal.toLocaleLowerCase("tr-TR").includes("marka/resmi kurum taklidi"));
+  return [...criticalSignals, ...remainingSignals];
 }
 
 function sortPhishingSignals(signals: string[]) {
