@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import {
   analyzeExifImage,
   analyzeIpIntelligence,
+  analyzePhishing,
   analyzeProduct,
   analyzeSiteSafety,
   AnalysisHistoryItem,
@@ -12,6 +13,7 @@ import {
   ExifAnalysisResult,
   fetchAnalysisHistory,
   IpIntelligenceResult,
+  PhishingAnalysisResult,
   RiskLevel,
   SiteSafetyResult
 } from "@/lib/api";
@@ -129,17 +131,7 @@ const riskStyles: Record<RiskLevel, string> = {
   risk: "border-red-200 bg-red-50 text-red-700 dark:border-red-400/30 dark:bg-red-400/10 dark:text-red-200"
 };
 
-type PhishingResult = {
-  url: string;
-  domain: string;
-  trustScore: number;
-  riskLevel: RiskLevel;
-  verdict: string;
-  summary: string;
-  signals: string[];
-  reasons: string[];
-  recommendation: string;
-};
+type PhishingResult = PhishingAnalysisResult;
 
 type MessageResult = {
   message: string;
@@ -253,9 +245,13 @@ export function AnalysisWorkspace() {
     setExifResult(null);
 
     if (activeModule === "phishing") {
-      await new Promise((resolve) => setTimeout(resolve, 350));
-      setPhishingResult(analyzePhishingUrl(sanitizedInput));
-      setIsLoading(false);
+      try {
+        setPhishingResult(await analyzePhishing(sanitizedInput));
+      } catch {
+        setError("Phishing analizi tamamlanamadı. Backend bağlantısını ve OSINT servislerini kontrol edin.");
+      } finally {
+        setIsLoading(false);
+      }
       return;
     }
 
@@ -579,30 +575,111 @@ function ResultPanel({
 }
 
 function PhishingResultPanel({ result }: { result: PhishingResult }) {
+  const riskLevel: RiskLevel = result.risk_level ?? result.riskLevel ?? "caution";
+  const riskScore =
+    typeof result.phishing_risk_score === "number"
+      ? result.phishing_risk_score
+      : typeof result.trustScore === "number"
+        ? Math.max(0, 100 - result.trustScore)
+        : 0;
+  const riskLabel = result.phishing_risk_label ?? result.verdict ?? riskLabels[riskLevel];
+  const normalizedUrl = result.normalized_url ?? result.url ?? "";
+  const finalUrl = result.final_url ?? normalizedUrl;
+  const phishingSignals = result.phishing_signals ?? result.signals ?? [];
+  const positiveSignals = result.positive_signals ?? [];
+  const uncertainSignals = result.uncertain_signals ?? [];
+  const technicalNotes = result.technical_notes ?? result.reasons ?? [];
+  const sortedPhishingSignals = sortPhishingSignals(phishingSignals);
+  const officialMatch = Boolean(result.official_domain_match);
+  const brandLabel = result.brand_impersonation_risk ? "Marka Taklidi" : "Marka";
+  const brandValue = result.suspected_brand ?? "Tespit edilmedi";
+  const topSummary = phishingTopSummary(riskScore);
+  const scoreExplanation = phishingScoreExplanation(sortedPhishingSignals, result.brand_impersonation_risk, result.is_short_link);
+  const citizenSummary = result.citizen_summary ?? result.summary ?? "Bu bağlantı için otomatik phishing özeti üretildi.";
+  const citizenRecommendation =
+    result.citizen_recommendation ?? result.recommendation ?? "Adres çubuğundaki alan adını kontrol edin ve hassas bilgi girmeden önce resmi kaynağı doğrulayın.";
+
   return (
-    <section className="premium-card p-5">
+    <section className="premium-card min-w-0 p-4 sm:p-5 lg:p-6">
       <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-white/10">
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Phishing Kontrolü</p>
-          <h2 className="mt-1 break-words text-2xl font-bold">{result.domain}</h2>
-          <p className="mt-2 break-words text-sm text-slate-600 dark:text-slate-300">{result.url}</p>
+          <h2 className="mt-1 break-words text-2xl font-bold [overflow-wrap:break-word] [word-break:normal]">{result.domain}</h2>
+          <p className="mt-2 whitespace-normal break-words text-sm leading-6 text-slate-600 [overflow-wrap:anywhere] [word-break:normal] dark:text-slate-300">
+            {normalizedUrl}
+          </p>
         </div>
-        <div className={`rounded-lg border px-4 py-3 text-center ${riskStyles[result.riskLevel]}`}>
-          <p className="text-sm font-semibold">Güven Skoru</p>
-          <p className="text-3xl font-bold">{result.trustScore}</p>
-          <p className="text-sm font-semibold">{result.verdict}</p>
+        <div className={`w-full rounded-lg border px-4 py-3 text-center sm:w-auto sm:min-w-64 ${phishingRiskStyle(riskScore)}`}>
+          <p className="text-sm font-semibold">Oltalama Risk Skoru</p>
+          <p className="text-3xl font-bold">{riskScore}</p>
+          <p className="text-sm font-semibold">{riskLabel}</p>
+          <p className="mt-2 text-xs font-medium leading-5 opacity-90">{scoreExplanation}</p>
         </div>
       </div>
 
-      <p className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 leading-7 text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
-        {result.summary}
-      </p>
+      <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px_260px]">
+        <article className={`min-w-0 rounded-lg border p-4 shadow-sm ${phishingRiskStyle(riskScore)}`}>
+          <p className="text-sm font-bold">Kısa Özet</p>
+          <p className="mt-2 text-sm leading-6">{topSummary}</p>
+        </article>
+        <StatusBadge label="Resmi Domain Eşleşmesi" value={officialMatch ? "🟢 Evet" : "🔴 Hayır"} tone={officialMatch ? "safe" : "risk"} />
+        <StatusBadge label={brandLabel} value={brandValue} tone={result.brand_impersonation_risk ? "risk" : officialMatch ? "safe" : "caution"} />
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Metric label="Site kategorisi" value={result.site_category ?? "Bilinmeyen / Genel site"} />
+        <Metric label="Redirect sayısı" value={`${result.redirect_count ?? result.redirect_chain?.length ?? 0}`} />
+        <Metric label="Kısa link" value={result.is_short_link ? `Var${result.short_link_provider ? `: ${result.short_link_provider}` : ""}` : "Yok"} />
+        <Metric label="HTTPS" value={result.is_https ? "Var" : "Yok"} />
+      </div>
+
+      <article className="mt-5 rounded-lg border border-cyan-200/60 bg-cyan-50/80 p-4 shadow-sm sm:p-5 dark:border-cyan-300/20 dark:bg-cyan-300/10">
+        <p className="text-sm font-bold text-cyan-800 dark:text-cyan-100">Vatandaş Özeti</p>
+        <p className="mt-2 whitespace-normal break-words text-sm leading-7 text-slate-700 [overflow-wrap:break-word] [word-break:normal] sm:text-base dark:text-slate-200">
+          {citizenSummary}
+        </p>
+      </article>
 
       <div className="mt-5 grid gap-3 lg:grid-cols-3">
-        <DecisionPanel title="Neden bu sonuç?" body={result.reasons.join(" ")} footer={`Güven skoru ${result.trustScore}/100 olarak hesaplandı.`} />
-        <DecisionPanel title="Görülen sinyaller" body={result.signals.join(" ")} footer={`${result.signals.length} sinyal değerlendirildi.`} />
-        <DecisionPanel title="Kullanıcı Önerisi" body={result.recommendation} footer="Kesin hüküm değil, bilgilendirme amaçlı risk değerlendirmesidir." />
+        <DecisionPanel title="Neden bu sonuç?" body={sortedPhishingSignals.join(" ") || "Belirgin oltalama sinyali görülmedi."} footer={`${sortedPhishingSignals.length} oltalama sinyali değerlendirildi.`} />
+        <DecisionPanel title="Olumlu sinyaller" body={positiveSignals.join(" ") || "Olumlu sinyaller sınırlı; bu durum tek başına risk anlamına gelmez."} footer="Pozitif sinyaller marka taklidi varsa riski düşürmez." />
+        <DecisionPanel title="Kullanıcı Önerisi" body={citizenRecommendation} footer="Kesin hüküm değil, bilgilendirme amaçlı risk değerlendirmesidir." />
       </div>
+
+      <div className="mt-5 grid gap-3 xl:grid-cols-2">
+        <InfoPanel
+          title="URL ve yönlendirme"
+          rows={[
+            ["Normalize URL", displayValue(normalizedUrl)],
+            ["Final URL", displayValue(finalUrl)],
+            ["Root domain", displayValue(result.root_domain)],
+            ["HTTPS", result.is_https ? "Var" : "Yok"],
+            ["Resmi domain eşleşmesi", result.official_domain_match ? "Var" : "Yok"],
+            ["Marka taklidi", result.brand_impersonation_risk ? "Var" : "Yok"]
+          ]}
+        />
+        <InfoPanel
+          title="Şüpheli ve belirsiz sinyaller"
+          rows={[
+            ["Şüpheli path/query", joinValues(phishingSignals, "Belirgin şüpheli sinyal yok", 5)],
+            ["Belirsiz bilgiler", joinValues(uncertainSignals, "Belirsiz bilgi yok", 5)],
+            ["Teknik notlar", joinValues(technicalNotes, "Ek teknik not yok", 5)]
+          ]}
+        />
+      </div>
+
+      {result.redirect_chain?.length ? (
+        <details className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+          <summary className="cursor-pointer font-bold">Redirect zinciri</summary>
+          <div className="mt-4 grid gap-2">
+            {result.redirect_chain.map((hop, index) => (
+              <p className="whitespace-normal break-words rounded-md border border-slate-100 p-3 text-sm leading-6 [overflow-wrap:anywhere] [word-break:normal] dark:border-white/10" key={`${hop.url}-${index}`}>
+                {index + 1}. adım: {hop.status_code ?? "Durum yok"} · {hop.url}
+              </p>
+            ))}
+          </div>
+        </details>
+      ) : null}
     </section>
   );
 }
@@ -1444,6 +1521,62 @@ function SummaryBadge({ label, tone, value }: { label: string; tone: RiskLevel; 
       <p className="mt-1 whitespace-normal break-words text-sm font-bold leading-5 [overflow-wrap:break-word] [word-break:normal]">{value}</p>
     </div>
   );
+}
+
+function StatusBadge({ label, tone, value }: { label: string; tone: RiskLevel; value: string }) {
+  return (
+    <div className={`min-w-0 rounded-lg border px-4 py-3 shadow-sm ${riskStyles[tone]}`}>
+      <p className="text-xs font-bold uppercase tracking-[0.06em]">{label}</p>
+      <p className="mt-2 whitespace-normal break-words text-base font-bold leading-6 [overflow-wrap:break-word] [word-break:normal]">{value}</p>
+    </div>
+  );
+}
+
+function phishingRiskStyle(score: number) {
+  if (score <= 20) {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200";
+  }
+  if (score <= 49) {
+    return "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200";
+  }
+  if (score <= 79) {
+    return "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-400/30 dark:bg-orange-400/10 dark:text-orange-200";
+  }
+  return "border-red-200 bg-red-50 text-red-700 dark:border-red-400/30 dark:bg-red-400/10 dark:text-red-200";
+}
+
+function phishingTopSummary(score: number) {
+  if (score <= 20) return "Belirgin oltalama sinyali görülmedi.";
+  if (score <= 49) return "Bağlantı dikkatli incelenmelidir.";
+  return "Bu bağlantı oltalama amacı taşıyor olabilir.";
+}
+
+function phishingScoreExplanation(signals: string[], brandRisk?: boolean, isShortLink?: boolean) {
+  const reasons: string[] = [];
+  if (brandRisk) reasons.push("marka taklidi");
+  if (signals.some((signal) => /ödeme|odeme|kart|iban|payment/i.test(signal))) reasons.push("ödeme kelimeleri");
+  if (signals.some((signal) => /sms|otp|kod/i.test(signal))) reasons.push("kimlik doğrulama sinyalleri");
+  if (signals.some((signal) => /login|verify|giriş|giris|hesap/i.test(signal))) reasons.push("giriş/hesap sinyalleri");
+  if (isShortLink) reasons.push("kısa link kullanımı");
+  if (!reasons.length && signals.length) reasons.push("teknik sinyaller");
+  if (!reasons.length) return "Risk puanı; belirgin oltalama sinyali görülmediği için düşük hesaplanmıştır.";
+  return `Risk puanı; ${reasons.slice(0, 4).join(", ")} üzerinden hesaplanmıştır.`;
+}
+
+function sortPhishingSignals(signals: string[]) {
+  const priority = (signal: string) => {
+    const lowered = signal.toLocaleLowerCase("tr-TR");
+    if (lowered.includes("marka") && lowered.includes("taklidi")) return 1;
+    if (["banka", "resmi", "kurum", "e-devlet", "edevlet"].some((word) => lowered.includes(word))) return 2;
+    if (["ödeme", "odeme", "kart", "iban", "payment"].some((word) => lowered.includes(word))) return 3;
+    if (["sms", "otp", "kod"].some((word) => lowered.includes(word))) return 4;
+    if (["login", "verify", "giriş", "giris", "hesap"].some((word) => lowered.includes(word))) return 5;
+    if (["kargo", "teslimat", "cargo", "delivery"].some((word) => lowered.includes(word))) return 6;
+    if (lowered.includes("kısa link")) return 7;
+    if (["redirect", "yönlendirme"].some((word) => lowered.includes(word))) return 8;
+    return 9;
+  };
+  return [...signals].sort((first, second) => priority(first) - priority(second));
 }
 
 function citizenRiskTone(value: string): RiskLevel {

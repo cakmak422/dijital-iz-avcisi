@@ -160,6 +160,39 @@ export type SiteSafetyResult = {
   };
 };
 
+export type PhishingAnalysisResult = {
+  normalized_url?: string;
+  final_url?: string | null;
+  domain: string;
+  root_domain?: string;
+  redirect_count?: number;
+  redirect_chain?: { url: string; status_code: number | null }[];
+  is_https?: boolean;
+  is_short_link?: boolean;
+  short_link_provider?: string | null;
+  brand_impersonation_risk?: boolean;
+  suspected_brand?: string | null;
+  official_domain_match?: boolean;
+  site_category?: string;
+  phishing_risk_score?: number;
+  phishing_risk_label?: string;
+  phishing_signals?: string[];
+  positive_signals?: string[];
+  uncertain_signals?: string[];
+  citizen_summary?: string;
+  citizen_recommendation?: string;
+  technical_notes?: string[];
+  risk_level?: RiskLevel;
+  url?: string;
+  trustScore?: number;
+  riskLevel?: RiskLevel;
+  verdict?: string;
+  summary?: string;
+  signals?: string[];
+  reasons?: string[];
+  recommendation?: string;
+};
+
 export type IpIntelligenceResult = {
   input: string;
   ip: string | null;
@@ -288,6 +321,24 @@ export async function analyzeSiteSafety(url: string): Promise<SiteSafetyResult> 
   }
 
   return (await response.json()) as SiteSafetyResult;
+}
+
+export async function analyzePhishing(url: string): Promise<PhishingAnalysisResult> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+
+  const response = await fetch(`${apiUrl}/api/phishing/analyze`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ url })
+  });
+
+  if (!response.ok) {
+    throw new Error("Phishing analysis request failed");
+  }
+
+  return (await response.json()) as PhishingAnalysisResult;
 }
 
 export async function analyzeIpIntelligence(ip: string): Promise<IpIntelligenceResult> {
