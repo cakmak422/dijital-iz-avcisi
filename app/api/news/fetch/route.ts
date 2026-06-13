@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { fetchLatestCyberNews } from "@/lib/newsFetcher";
-import { upsertNewsItems } from "@/lib/newsDb";
+import { getNewsDbDebugState, upsertNewsItems } from "@/lib/newsDb";
 import { getLatestNewsForPublic } from "@/lib/newsReadService";
 import { getCachedRuntimeNewsItems } from "@/lib/newsRuntimeStore";
 
@@ -45,6 +45,7 @@ async function handleNewsFetch(request: Request) {
   try {
     const result = await fetchLatestCyberNews();
     const dbWrite = await upsertNewsItems(result.fetchedItems ?? []);
+    const dbDebug = getNewsDbDebugState();
     const runtimeCacheCountAfterWrite = (await getCachedRuntimeNewsItems()).length;
     if (process.env.NODE_ENV === "production") {
       lastProductionFetchAt = Date.now();
@@ -61,6 +62,12 @@ async function handleNewsFetch(request: Request) {
       dbUpserted: dbWrite.inserted,
       dbFailed: dbWrite.failed,
       dbErrors: dbWrite.errors.slice(0, 3),
+      dbReadOk: dbDebug.dbReadOk,
+      dbReadStatus: dbDebug.dbReadStatus,
+      dbReadError: dbDebug.dbReadError,
+      dbWriteOk: dbDebug.dbWriteOk,
+      dbWriteStatus: dbDebug.dbWriteStatus,
+      dbWriteError: dbDebug.dbWriteError,
       runtimeCacheCountAfterWrite,
       database: {
         enabled: dbWrite.usingDatabase,
@@ -72,6 +79,7 @@ async function handleNewsFetch(request: Request) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Bilinmeyen haber guncelleme hatasi";
+    const dbDebug = getNewsDbDebugState();
     console.error("news_fetch_endpoint_failed", { error: message });
     return NextResponse.json({
       found: 0,
@@ -86,6 +94,12 @@ async function handleNewsFetch(request: Request) {
       dbUpserted: 0,
       dbFailed: 0,
       dbErrors: [],
+      dbReadOk: dbDebug.dbReadOk,
+      dbReadStatus: dbDebug.dbReadStatus,
+      dbReadError: dbDebug.dbReadError,
+      dbWriteOk: dbDebug.dbWriteOk,
+      dbWriteStatus: dbDebug.dbWriteStatus,
+      dbWriteError: dbDebug.dbWriteError,
       runtimeCacheCountAfterWrite: (await getCachedRuntimeNewsItems()).length,
       sources: []
     });

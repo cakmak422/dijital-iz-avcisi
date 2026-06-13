@@ -22,6 +22,12 @@ export async function GET(request: NextRequest) {
     seedCount: result.sourceBreakdown.seedFallback,
     supabaseUrlPresent: dbDebug.supabaseUrlPresent,
     supabaseServiceRolePresent: dbDebug.supabaseServiceRolePresent,
+    dbReadOk: dbDebug.dbReadOk,
+    dbReadStatus: dbDebug.dbReadStatus,
+    dbReadError: dbDebug.dbReadError,
+    dbWriteOk: dbDebug.dbWriteOk,
+    dbWriteStatus: dbDebug.dbWriteStatus,
+    dbWriteError: dbDebug.dbWriteError,
     limit,
     generatedAt: new Date().toISOString(),
     sourceBreakdown: result.sourceBreakdown

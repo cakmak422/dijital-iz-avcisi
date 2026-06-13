@@ -44,6 +44,21 @@ export type NewsDbReadResult = {
 export type NewsDbDebugState = {
   supabaseUrlPresent: boolean;
   supabaseServiceRolePresent: boolean;
+  dbReadOk: boolean | null;
+  dbReadStatus: number | null;
+  dbReadError: string | null;
+  dbWriteOk: boolean | null;
+  dbWriteStatus: number | null;
+  dbWriteError: string | null;
+};
+
+const dbOperationDebugState = {
+  dbReadOk: null as boolean | null,
+  dbReadStatus: null as number | null,
+  dbReadError: null as string | null,
+  dbWriteOk: null as boolean | null,
+  dbWriteStatus: null as number | null,
+  dbWriteError: null as string | null
 };
 
 const fallbackResult: NewsDbWriteResult = {
@@ -100,13 +115,21 @@ export async function getNewsBySlugFromDb(slug: string): Promise<NewsDbReadResul
 export function getNewsDbDebugState(): NewsDbDebugState {
   return {
     supabaseUrlPresent: Boolean((process.env.SUPABASE_URL ?? "").trim()),
-    supabaseServiceRolePresent: Boolean((process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim())
+    supabaseServiceRolePresent: Boolean((process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim()),
+    ...dbOperationDebugState
   };
 }
 
 export async function upsertNewsItems(items: CyberNewsItem[]): Promise<NewsDbWriteResult> {
-  if (!items.length) return { ...fallbackResult, skipped: 0 };
-  if (!isSupabaseConfigured()) return { ...fallbackResult, skipped: items.length };
+  if (!items.length) {
+    setDbWriteDebug(true, null, null);
+    return { ...fallbackResult, skipped: 0 };
+  }
+  if (!isSupabaseConfigured()) {
+    const errorMessage = getSupabaseConfigurationError();
+    setDbWriteDebug(false, null, errorMessage);
+    return { ...fallbackResult, skipped: items.length, errors: [errorMessage] };
+  }
 
   try {
     const batches = chunkItems(items, 10);
@@ -133,6 +156,7 @@ export async function upsertNewsItems(items: CyberNewsItem[]): Promise<NewsDbWri
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Bilinmeyen Supabase insert hatası";
+    setDbWriteDebug(false, null, errorMessage);
     console.error("supabase_cyber_news_upsert_exception", {
       error: errorMessage,
       itemCount: items.length
@@ -154,6 +178,7 @@ async function upsertNewsBatch(items: CyberNewsItem[]): Promise<NewsDbWriteResul
 
     if (!response.ok) {
       const errorMessage = await readSupabaseError(response);
+      setDbWriteDebug(false, response.status, errorMessage);
       console.error("supabase_cyber_news_upsert_failed", {
         status: response.status,
         statusText: response.statusText,
@@ -166,6 +191,7 @@ async function upsertNewsBatch(items: CyberNewsItem[]): Promise<NewsDbWriteResul
 
     const insertedRows = (await response.json()) as CyberNewsDbRow[];
     const insertedItems = insertedRows.map(fromDbRow);
+    setDbWriteDebug(true, response.status, null);
     return {
       inserted: insertedItems.length,
       skipped: Math.max(0, items.length - insertedItems.length),
@@ -176,6 +202,7 @@ async function upsertNewsBatch(items: CyberNewsItem[]): Promise<NewsDbWriteResul
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Bilinmeyen Supabase insert hatası";
+    setDbWriteDebug(false, null, errorMessage);
     console.error("supabase_cyber_news_batch_exception", {
       error: errorMessage,
       itemCount: items.length
@@ -197,7 +224,10 @@ function isSupabaseConfigured() {
 }
 
 async function fetchRows(query: string): Promise<CyberNewsDbRow[] | null> {
-  if (!isSupabaseConfigured()) return null;
+  if (!isSupabaseConfigured()) {
+    setDbReadDebug(false, null, getSupabaseConfigurationError());
+    return null;
+  }
 
   try {
     const response = await fetch(`${getSupabaseBaseUrl()}/rest/v1/cyber_news?${query}`, {
@@ -205,15 +235,51 @@ async function fetchRows(query: string): Promise<CyberNewsDbRow[] | null> {
       cache: "no-store",
       signal: AbortSignal.timeout(3500)
     });
-    if (!response.ok) return null;
+    if (!response.ok) {
+      const errorMessage = await readSupabaseError(response);
+      setDbReadDebug(false, response.status, errorMessage);
+      return null;
+    }
     const data = (await response.json()) as unknown;
-    return Array.isArray(data) ? (data as CyberNewsDbRow[]) : null;
+    if (!Array.isArray(data)) {
+      setDbReadDebug(false, response.status, "Supabase response array formatinda degil.");
+      return null;
+    }
+    setDbReadDebug(true, response.status, null);
+    return data as CyberNewsDbRow[];
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Bilinmeyen Supabase okuma hatasi";
+    setDbReadDebug(false, null, errorMessage);
     console.error("supabase_cyber_news_read_failed", {
       error: error instanceof Error ? error.message : "Bilinmeyen Supabase okuma hatası"
     });
     return null;
   }
+}
+
+function setDbReadDebug(ok: boolean, status: number | null, error: string | null) {
+  dbOperationDebugState.dbReadOk = ok;
+  dbOperationDebugState.dbReadStatus = status;
+  dbOperationDebugState.dbReadError = sanitizeDbDebugError(error);
+}
+
+function setDbWriteDebug(ok: boolean, status: number | null, error: string | null) {
+  dbOperationDebugState.dbWriteOk = ok;
+  dbOperationDebugState.dbWriteStatus = status;
+  dbOperationDebugState.dbWriteError = sanitizeDbDebugError(error);
+}
+
+function sanitizeDbDebugError(error: string | null) {
+  if (!error) return null;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+  return (serviceKey ? error.replace(serviceKey, "[redacted]") : error).slice(0, 600);
+}
+
+function getSupabaseConfigurationError() {
+  if (!(process.env.SUPABASE_URL ?? "").trim()) return "SUPABASE_URL tanimli degil.";
+  if (!getSupabaseBaseUrl()) return "SUPABASE_URL gecerli http/https URL formatinda degil.";
+  if (!(process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim()) return "SUPABASE_SERVICE_ROLE_KEY tanimli degil.";
+  return "Supabase konfigrasyonu tamamlanamadi.";
 }
 
 function getSupabaseBaseUrl() {
