@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { fetchLatestCyberNews } from "@/lib/newsFetcher";
 import { upsertNewsItems } from "@/lib/newsDb";
 import { getLatestNewsForPublic } from "@/lib/newsReadService";
+import { getCachedRuntimeNewsItems } from "@/lib/newsRuntimeStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,6 +45,7 @@ async function handleNewsFetch(request: Request) {
   try {
     const result = await fetchLatestCyberNews();
     const dbWrite = await upsertNewsItems(result.fetchedItems ?? []);
+    const runtimeCacheCountAfterWrite = (await getCachedRuntimeNewsItems()).length;
     if (process.env.NODE_ENV === "production") {
       lastProductionFetchAt = Date.now();
     }
@@ -54,6 +56,12 @@ async function handleNewsFetch(request: Request) {
       failed: dbWrite.usingDatabase ? dbWrite.failed : 0,
       errors: dbWrite.usingDatabase ? dbWrite.errors : result.errors,
       items: dbWrite.usingDatabase && dbWrite.items.length ? dbWrite.items : result.items,
+      cachePersisted: result.cache?.persisted ?? 0,
+      databaseEnabled: dbWrite.usingDatabase,
+      dbUpserted: dbWrite.inserted,
+      dbFailed: dbWrite.failed,
+      dbErrors: dbWrite.errors.slice(0, 3),
+      runtimeCacheCountAfterWrite,
       database: {
         enabled: dbWrite.usingDatabase,
         inserted: dbWrite.inserted,
@@ -73,6 +81,12 @@ async function handleNewsFetch(request: Request) {
       failed: 1,
       errors: [message],
       items: (await getLatestNewsForPublic(12)).items,
+      cachePersisted: 0,
+      databaseEnabled: false,
+      dbUpserted: 0,
+      dbFailed: 0,
+      dbErrors: [],
+      runtimeCacheCountAfterWrite: (await getCachedRuntimeNewsItems()).length,
       sources: []
     });
   }

@@ -1,50 +1,58 @@
-import { getAllNewsFromDb, getLatestNewsFromDb, getNewsBySlugFromDb } from "@/lib/newsDb";
+import { getAllNewsFromDb, getNewsBySlugFromDb } from "@/lib/newsDb";
 import { normalizeNewsItem } from "@/lib/newsNormalizer";
-import {
-  getCachedRuntimeNewsBySlug,
-  getCachedRuntimeNewsItems,
-  getLatestCachedRuntimeNews
-} from "@/lib/newsRuntimeStore";
-import { getCyberNewsBySlug, getCyberNewsItems, getLatestCyberNews, type CyberNewsItem } from "@/lib/newsStore";
+import { getCachedRuntimeNewsBySlug, getCachedRuntimeNewsItems } from "@/lib/newsRuntimeStore";
+import { getCyberNewsBySlug, getCyberNewsItems, type CyberNewsItem } from "@/lib/newsStore";
 
-export type NewsReadSource = "database" | "runtime-cache" | "seed-fallback";
+export type NewsReadSource = "merged";
+
+export type NewsSourceBreakdown = {
+  database: number;
+  runtimeCache: number;
+  seedFallback: number;
+  total: number;
+};
 
 export type NewsReadResult = {
   items: CyberNewsItem[];
   source: NewsReadSource;
+  dbEnabled: boolean;
+  sourceBreakdown: NewsSourceBreakdown;
 };
 
 export type NewsDetailReadResult = {
   item?: CyberNewsItem;
-  source: NewsReadSource;
+  source: "database" | "runtime-cache" | "seed-fallback";
 };
 
-export async function getLatestNewsForPublic(limit = 3): Promise<NewsReadResult> {
-  const dbResult = await getLatestNewsFromDb(limit);
-  if (dbResult.items.length) {
-    return { items: dbResult.items.map(normalizeNewsItem), source: "database" };
-  }
-
-  const cachedItems = await getLatestCachedRuntimeNews(limit);
-  if (cachedItems.length) {
-    return { items: cachedItems.map(normalizeNewsItem), source: "runtime-cache" };
-  }
-
-  return { items: getLatestCyberNews(limit).map(normalizeNewsItem), source: "seed-fallback" };
+export async function getLatestNewsForPublic(limit = 30): Promise<NewsReadResult> {
+  const result = await getMergedNewsForPublic();
+  return {
+    ...result,
+    items: result.items.slice(0, limit)
+  };
 }
 
 export async function getAllNewsForPublic(): Promise<NewsReadResult> {
+  return getMergedNewsForPublic();
+}
+
+async function getMergedNewsForPublic(): Promise<NewsReadResult> {
   const dbResult = await getAllNewsFromDb();
-  if (dbResult.items.length) {
-    return { items: dbResult.items.map(normalizeNewsItem), source: "database" };
-  }
-
   const cachedItems = await getCachedRuntimeNewsItems();
-  if (cachedItems.length) {
-    return { items: cachedItems.map(normalizeNewsItem), source: "runtime-cache" };
-  }
+  const seedItems = getCyberNewsItems();
+  const items = mergeUniqueNewsItems([...dbResult.items, ...cachedItems, ...seedItems]);
 
-  return { items: getCyberNewsItems().map(normalizeNewsItem), source: "seed-fallback" };
+  return {
+    items,
+    source: "merged",
+    dbEnabled: dbResult.usingDatabase,
+    sourceBreakdown: {
+      database: dbResult.items.length,
+      runtimeCache: cachedItems.length,
+      seedFallback: seedItems.length,
+      total: items.length
+    }
+  };
 }
 
 export async function getNewsBySlugForPublic(slug: string): Promise<NewsDetailReadResult> {
@@ -60,4 +68,17 @@ export async function getNewsBySlugForPublic(slug: string): Promise<NewsDetailRe
 
   const seedItem = getCyberNewsBySlug(slug);
   return { item: seedItem ? normalizeNewsItem(seedItem) : undefined, source: "seed-fallback" };
+}
+
+function mergeUniqueNewsItems(items: CyberNewsItem[]) {
+  const seen = new Set<string>();
+  return items
+    .map(normalizeNewsItem)
+    .filter((item) => {
+      const key = item.sourceUrl || item.slug;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
 }
