@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getNewsDbDebugState } from "@/lib/newsDb";
 import { normalizeNewsItem } from "@/lib/newsNormalizer";
 import { getLatestNewsForPublic } from "@/lib/newsReadService";
 
@@ -10,6 +11,7 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(Math.max(Number(limitParam) || 30, 1), 60);
   const result = await getLatestNewsForPublic(limit);
   const items = result.items.map(normalizeNewsItem);
+  const dbDebug = getNewsDbDebugState();
   return NextResponse.json({
     items,
     source: result.source,
@@ -18,6 +20,8 @@ export async function GET(request: NextRequest) {
     dbCount: result.sourceBreakdown.database,
     runtimeCacheCount: result.sourceBreakdown.runtimeCache,
     seedCount: result.sourceBreakdown.seedFallback,
+    supabaseUrlPresent: dbDebug.supabaseUrlPresent,
+    supabaseServiceRolePresent: dbDebug.supabaseServiceRolePresent,
     limit,
     generatedAt: new Date().toISOString(),
     sourceBreakdown: result.sourceBreakdown

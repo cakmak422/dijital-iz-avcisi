@@ -41,6 +41,11 @@ export type NewsDbReadResult = {
   usingDatabase: boolean;
 };
 
+export type NewsDbDebugState = {
+  supabaseUrlPresent: boolean;
+  supabaseServiceRolePresent: boolean;
+};
+
 const fallbackResult: NewsDbWriteResult = {
   inserted: 0,
   skipped: 0,
@@ -89,6 +94,13 @@ export async function getNewsBySlugFromDb(slug: string): Promise<NewsDbReadResul
   return {
     items: rows && rows[0] ? [fromDbRow(rows[0])] : [],
     usingDatabase: Boolean(rows)
+  };
+}
+
+export function getNewsDbDebugState(): NewsDbDebugState {
+  return {
+    supabaseUrlPresent: Boolean((process.env.SUPABASE_URL ?? "").trim()),
+    supabaseServiceRolePresent: Boolean((process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim())
   };
 }
 
