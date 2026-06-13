@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { fetchLatestCyberNews } from "@/lib/newsFetcher";
-import { getLatestRuntimeNews } from "@/lib/newsRuntimeStore";
+import { upsertNewsItems } from "@/lib/newsDb";
+import { getLatestNewsForPublic } from "@/lib/newsReadService";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,7 +33,7 @@ async function handleNewsFetch(request: Request) {
           ok: false,
           cooldown: true,
           retryAfterSeconds: Math.ceil((NEWS_FETCH_COOLDOWN_MS - elapsed) / 1000),
-          items: await getLatestRuntimeNews(12),
+          items: (await getLatestNewsForPublic(12)).items,
           message: "News fetch cooldown is active. Last cache is still available."
         },
         { status: 429 }
@@ -42,10 +43,25 @@ async function handleNewsFetch(request: Request) {
 
   try {
     const result = await fetchLatestCyberNews();
+    const dbWrite = await upsertNewsItems(result.fetchedItems ?? []);
     if (process.env.NODE_ENV === "production") {
       lastProductionFetchAt = Date.now();
     }
-    return NextResponse.json(result);
+    return NextResponse.json({
+      ...result,
+      inserted: dbWrite.usingDatabase ? dbWrite.inserted : 0,
+      skipped: dbWrite.usingDatabase ? dbWrite.skipped : result.found,
+      failed: dbWrite.usingDatabase ? dbWrite.failed : 0,
+      errors: dbWrite.usingDatabase ? dbWrite.errors : result.errors,
+      items: dbWrite.usingDatabase && dbWrite.items.length ? dbWrite.items : result.items,
+      database: {
+        enabled: dbWrite.usingDatabase,
+        inserted: dbWrite.inserted,
+        skipped: dbWrite.skipped,
+        failed: dbWrite.failed,
+        errors: dbWrite.errors
+      }
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Bilinmeyen haber guncelleme hatasi";
     console.error("news_fetch_endpoint_failed", { error: message });
@@ -56,7 +72,7 @@ async function handleNewsFetch(request: Request) {
       skipped: 0,
       failed: 1,
       errors: [message],
-      items: await getLatestRuntimeNews(12),
+      items: (await getLatestNewsForPublic(12)).items,
       sources: []
     });
   }

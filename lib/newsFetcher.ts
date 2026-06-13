@@ -40,6 +40,7 @@ export type NewsFetchReport = {
   failed: number;
   errors: string[];
   items: CyberNewsItem[];
+  fetchedItems?: CyberNewsItem[];
   sources: NewsSourceFetchReport[];
   cache?: {
     persisted: number;
@@ -126,10 +127,11 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
       processed: uniqueFetched.length
     },
     inserted: 0,
-    skipped: uniqueFetched.length,
+    skipped: 0,
     failed: 0,
-    errors: ["Database write temporarily disabled in safe mode"],
+    errors: [],
     items: cacheResult.items.length ? cacheResult.items : getCyberNewsItems(),
+    fetchedItems: uniqueFetched,
     sources: sourceReports,
     cache: {
       persisted: cacheResult.persisted,

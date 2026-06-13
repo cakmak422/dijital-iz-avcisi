@@ -36,6 +36,11 @@ export type NewsDbWriteResult = {
   errors: string[];
 };
 
+export type NewsDbReadResult = {
+  items: CyberNewsItem[];
+  usingDatabase: boolean;
+};
+
 const fallbackResult: NewsDbWriteResult = {
   inserted: 0,
   skipped: 0,
@@ -51,16 +56,40 @@ export async function getLatestNews(limit = 3): Promise<CyberNewsItem[]> {
   return rows.map(fromDbRow);
 }
 
+export async function getLatestNewsFromDb(limit = 3): Promise<NewsDbReadResult> {
+  const rows = await fetchRows(`select=*&order=published_at.desc.nullslast,fetched_at.desc&limit=${limit}`);
+  return {
+    items: rows ? rows.map(fromDbRow) : [],
+    usingDatabase: Boolean(rows)
+  };
+}
+
 export async function getAllNews(): Promise<CyberNewsItem[]> {
   const rows = await fetchRows("select=*&order=published_at.desc.nullslast,fetched_at.desc");
   if (!rows) return getCyberNewsItems();
   return rows.map(fromDbRow);
 }
 
+export async function getAllNewsFromDb(): Promise<NewsDbReadResult> {
+  const rows = await fetchRows("select=*&order=published_at.desc.nullslast,fetched_at.desc");
+  return {
+    items: rows ? rows.map(fromDbRow) : [],
+    usingDatabase: Boolean(rows)
+  };
+}
+
 export async function getNewsBySlug(slug: string): Promise<CyberNewsItem | undefined> {
   const rows = await fetchRows(`select=*&slug=eq.${encodeURIComponent(slug)}&limit=1`);
   if (!rows) return getCyberNewsBySlug(slug);
   return rows[0] ? fromDbRow(rows[0]) : undefined;
+}
+
+export async function getNewsBySlugFromDb(slug: string): Promise<NewsDbReadResult> {
+  const rows = await fetchRows(`select=*&slug=eq.${encodeURIComponent(slug)}&limit=1`);
+  return {
+    items: rows && rows[0] ? [fromDbRow(rows[0])] : [],
+    usingDatabase: Boolean(rows)
+  };
 }
 
 export async function upsertNewsItems(items: CyberNewsItem[]): Promise<NewsDbWriteResult> {
@@ -103,9 +132,9 @@ export async function upsertNewsItems(items: CyberNewsItem[]): Promise<NewsDbWri
 async function upsertNewsBatch(items: CyberNewsItem[]): Promise<NewsDbWriteResult> {
   try {
     const payload = items.map(toDbRow);
-    const response = await fetch(`${getSupabaseBaseUrl()}/rest/v1/cyber_news?on_conflict=source_url`, {
+      const response = await fetch(`${getSupabaseBaseUrl()}/rest/v1/cyber_news?on_conflict=source_url`, {
       method: "POST",
-      headers: getSupabaseHeaders("resolution=ignore-duplicates,return=representation"),
+      headers: getSupabaseHeaders("resolution=merge-duplicates,return=representation"),
       body: JSON.stringify(payload),
       cache: "no-store",
       signal: AbortSignal.timeout(8000)

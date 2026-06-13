@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberNewsVisual } from "@/components/CyberNewsCard";
 import { CyberPageShell } from "@/components/CyberPageShell";
-import { getRuntimeNewsBySlug } from "@/lib/newsRuntimeStore";
+import { getNewsBySlugForPublic } from "@/lib/newsReadService";
 import {
   getCyberNewsItems,
   getNewsAffectedGroups,
@@ -32,7 +32,7 @@ export function generateStaticParams() {
 
 export default async function NewsDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const item = await getRuntimeNewsBySlug(slug);
+  const { item } = await getNewsBySlugForPublic(slug);
   if (!item) notFound();
 
   const title = getNewsTitle(item);

@@ -25,10 +25,10 @@ export type NewsRuntimeStoreResult = {
 export async function persistRuntimeNewsItems(items: CyberNewsItem[]): Promise<NewsRuntimeStoreResult> {
   const validItems = upsertUniqueNewsItems(items.map(normalizeNewsItem)).filter((item) => item.sourceUrl && item.slug);
   if (!validItems.length) {
-    return { items: await getRuntimeNewsItems(), persisted: 0, usingRuntimeCache: true };
+    return { items: await getCachedRuntimeNewsItems(), persisted: 0, usingRuntimeCache: true };
   }
 
-  const existingItems = await getRuntimeNewsItems();
+  const existingItems = await getCachedRuntimeNewsItems();
   const mergedItems = mergeNewsItems(validItems, existingItems).slice(0, MAX_CACHED_ITEMS);
   memoryNewsItems = mergedItems;
   cacheLoaded = true;
@@ -46,12 +46,17 @@ export async function persistRuntimeNewsItems(items: CyberNewsItem[]): Promise<N
 }
 
 export async function getRuntimeNewsItems() {
+  const cachedItems = await getCachedRuntimeNewsItems();
+  return mergeNewsItems(cachedItems, getCyberNewsItems()).map(normalizeNewsItem);
+}
+
+export async function getCachedRuntimeNewsItems() {
   if (!cacheLoaded) {
     memoryNewsItems = await readCachedNewsItems();
     cacheLoaded = true;
   }
 
-  return mergeNewsItems(memoryNewsItems, getCyberNewsItems()).map(normalizeNewsItem);
+  return upsertUniqueNewsItems(memoryNewsItems.map(normalizeNewsItem));
 }
 
 export async function getLatestRuntimeNews(limit = 3) {
@@ -67,9 +72,19 @@ export async function getLatestRuntimeNews(limit = 3) {
   return getLatestCyberNews(limit);
 }
 
+export async function getLatestCachedRuntimeNews(limit = 3) {
+  const cachedItems = await getCachedRuntimeNewsItems();
+  return rankNewsForVisualFeed(cachedItems).slice(0, limit);
+}
+
 export async function getRuntimeNewsBySlug(slug: string) {
   const runtimeItems = await getRuntimeNewsItems();
   return runtimeItems.find((item) => item.slug === slug) ?? getCyberNewsBySlug(slug);
+}
+
+export async function getCachedRuntimeNewsBySlug(slug: string) {
+  const runtimeItems = await getCachedRuntimeNewsItems();
+  return runtimeItems.find((item) => item.slug === slug);
 }
 
 async function readCachedNewsItems() {

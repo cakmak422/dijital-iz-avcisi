@@ -3,12 +3,12 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { CyberNewsCard } from "@/components/CyberNewsCard";
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { ManagedPageHero } from "@/components/ManagedPageHero";
-import { getRuntimeNewsItems } from "@/lib/newsRuntimeStore";
+import { getAllNewsForPublic } from "@/lib/newsReadService";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewsPage() {
-  const news = await getRuntimeNewsItems();
+  const { items: news } = await getAllNewsForPublic();
 
   return (
     <CyberPageShell className="news-reference-page" variant="news">
