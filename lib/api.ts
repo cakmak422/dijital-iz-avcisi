@@ -226,6 +226,7 @@ export type IpIntelligenceResult = {
 export type ExifAnalysisResult = {
   file_name: string;
   file_size: number;
+  file_type?: string;
   image_width: number | null;
   image_height: number | null;
   camera_make: string | null;
@@ -238,6 +239,97 @@ export type ExifAnalysisResult = {
   privacy_risk: "safe" | "caution";
   citizen_summary: string;
   technical_findings: { severity: "safe" | "caution"; title: string; detail: string }[];
+  metadata_status?: string;
+  overall_result?: "original" | "review" | "suspicious";
+  confidence_score?: number;
+  risk_score?: number;
+  ai_risk_score?: number;
+  ai_risk_level?: string;
+  ai_risk_reasons?: string[];
+  ai_signal_breakdown?: { signal: string; source: string; points: number; detail: string }[];
+  filename_ai_signals?: string[];
+  metadata_ai_signals?: string[];
+  pixel_ai_signals?: string[];
+  ai_generation_likelihood?: "low" | "medium" | "high";
+  editing_trace_present?: boolean;
+  source_estimate?: string;
+  trust_indicators?: string[];
+  review_points?: string[];
+  risk_score_breakdown?: { label: string; points: number; detail: string }[];
+  general_summary?: {
+    file_type: string;
+    overall_result: "original" | "review" | "suspicious";
+    overall_label: string;
+    confidence_score: number;
+    risk_score: number;
+    ai_risk_score?: number;
+    ai_risk_level?: string;
+    ai_generation_likelihood: "low" | "medium" | "high";
+    editing_trace_present: boolean;
+    source_estimate: string;
+    gps_present: boolean;
+    exif_present: boolean;
+    citizen_comment: string;
+    trust_indicators: string[];
+    review_points: string[];
+  } | null;
+  manipulation_analysis?: {
+    ai_generation_likelihood: "low" | "medium" | "high";
+    editing_trace_present: boolean;
+    editing_software_found: string[];
+    content_credentials_present: boolean;
+    ela_difference_score: number | null;
+    ela_suspicion: boolean;
+    signals: string[];
+    summary: string;
+  } | null;
+  visual_content_analysis?: {
+    ai_content_signal: "low" | "medium" | "high";
+    camera_noise: string;
+    edge_consistency: string;
+    texture_smoothness: string;
+    color_histogram_signal: string;
+    pixel_comment: string;
+    signals: string[];
+    noise_score: number | null;
+    edge_score: number | null;
+    texture_score: number | null;
+    histogram_score: number | null;
+  } | null;
+  source_analysis?: {
+    likely_source: string;
+    camera_photo_probability: number;
+    screenshot_probability: number;
+    downloaded_probability: number;
+    whatsapp_probability: number;
+    telegram_probability: number;
+    social_media_probability: number;
+    ai_generated_probability: number;
+    signals: string[];
+    summary: string;
+  } | null;
+  forensic_hashes?: {
+    md5: string;
+    sha1: string;
+    sha256: string;
+  } | null;
+  file_integrity?: {
+    file_extension: string;
+    declared_content_type: string | null;
+    detected_format: string | null;
+    extension_matches_content: boolean;
+    mime_matches_signature: boolean;
+    warnings: string[];
+  } | null;
+  osint_links?: {
+    google_lens: string;
+    yandex_images: string;
+    bing_visual_search: string;
+    notes: string[];
+  } | null;
+  ela_image_base64?: string | null;
+  ela_difference_score?: number | null;
+  ela_warning?: string | null;
 };
 
 const fallbackResult: AnalysisResult = {
@@ -362,10 +454,10 @@ export async function analyzeIpIntelligence(ip: string): Promise<IpIntelligenceR
 export async function analyzeExifImage(file: File): Promise<ExifAnalysisResult> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
   const lowerName = file.name.toLowerCase();
-  const hasJpegExtension = lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg");
-  const hasJpegType = file.type === "image/jpeg";
-  if (!hasJpegExtension && !hasJpegType) {
-    throw new Error(`Sadece JPG/JPEG destekleniyor. Seçilen dosya: ${file.name}, type: ${file.type || "yok"}`);
+  const hasSupportedExtension = lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg") || lowerName.endsWith(".png");
+  const hasSupportedType = file.type === "image/jpeg" || file.type === "image/jpg" || file.type === "image/png";
+  if (!hasSupportedExtension && !hasSupportedType) {
+    throw new Error(`Sadece JPG/JPEG/PNG destekleniyor. Seçilen dosya: ${file.name}, type: ${file.type || "yok"}`);
   }
 
   console.log("exif_upload_request", {

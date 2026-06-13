@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, ReactNode, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   analyzeExifImage,
@@ -196,7 +196,7 @@ export function AnalysisWorkspace() {
 
     if (activeModule === "exif") {
       if (!selectedExifFile) {
-      setError("Analiz için bir JPG/JPEG fotoğraf seçin.");
+      setError("Analiz için bir JPG/JPEG/PNG fotoğraf seçin.");
         return;
       }
       setIsLoading(true);
@@ -209,7 +209,7 @@ export function AnalysisWorkspace() {
       try {
         setExifResult(await analyzeExifImage(selectedExifFile));
       } catch (error) {
-      setError(error instanceof Error ? error.message : "EXIF analizi tamamlanamadı. JPG/JPEG dosyası seçtiğinizden emin olun.");
+      setError(error instanceof Error ? error.message : "EXIF analizi tamamlanamadı. JPG/JPEG/PNG dosyası seçtiğinizden emin olun.");
       } finally {
         setIsLoading(false);
       }
@@ -397,10 +397,10 @@ function AnalyzerPanel({
             <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-5 text-center dark:border-white/15 dark:bg-white/5">
               <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Dosya yukleme alanı</p>
               <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                  JPG/JPEG aktif. PNG ve HEIC için hazırlık.
+                  JPG, JPEG ve PNG aktif. HEIC için hazırlık devam ediyor.
               </p>
               <input
-                accept=".jpg,.jpeg,image/jpeg"
+                accept=".jpg,.jpeg,.png,image/jpeg,image/png"
                 className="mt-4 block w-full cursor-pointer rounded-md border border-slate-300 bg-white text-sm text-slate-700 file:mr-4 file:border-0 file:bg-slate-900 file:px-4 file:py-3 file:text-sm file:font-semibold file:text-white dark:border-white/10 dark:bg-slate-950 dark:text-slate-200 dark:file:bg-white dark:file:text-slate-950"
                 id="analysis-input"
                 onChange={(event) => {
@@ -523,7 +523,7 @@ function ResultPanel({
   }
 
   if (activeModule.id === "exif") {
-    return exifResult ? <ExifResultPanel result={exifResult} /> : <ExifPreviewPanel />;
+    return exifResult ? <ExifResultPanelV2 result={exifResult} /> : <ExifPreviewPanel />;
   }
 
   if (!result) {
@@ -802,6 +802,221 @@ function ExifResultPanel({ result }: { result: ExifAnalysisResult }) {
               <p className="mt-1 leading-6">{finding.detail}</p>
             </article>
           ))}
+        </div>
+      </details>
+    </section>
+  );
+}
+
+function ExifResultPanelV2({ result }: { result: ExifAnalysisResult }) {
+  const metadataStatus = result.metadata_status ?? getExifMetadataStatus(result);
+  const general = result.general_summary;
+  const overallLabel = general?.overall_label ?? exifOverallLabel(result.overall_result, result.privacy_risk);
+  const confidenceScore = general?.confidence_score ?? result.confidence_score ?? (result.privacy_risk === "caution" ? 78 : 92);
+  const riskScore = general?.risk_score ?? result.risk_score ?? (result.privacy_risk === "caution" ? 15 : 0);
+  const aiRiskScore = general?.ai_risk_score ?? result.ai_risk_score ?? 0;
+  const aiRiskLevel = general?.ai_risk_level ?? result.ai_risk_level ?? exifAiRiskLevel(aiRiskScore);
+  const aiLikelihood = general?.ai_generation_likelihood ?? result.ai_generation_likelihood ?? "low";
+  const editingTrace = Boolean(general?.editing_trace_present ?? result.editing_trace_present);
+  const sourceEstimate = general?.source_estimate ?? result.source_estimate ?? getPhotoTypeSignal(result);
+  const trustIndicators = general?.trust_indicators ?? result.trust_indicators ?? [];
+  const reviewPoints = general?.review_points ?? result.review_points ?? [];
+
+  return (
+    <section className="premium-card p-5">
+      <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-white/10">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Fotoğraf EXIF Analizi</p>
+          <h2 className="mt-1 break-words text-2xl font-bold">{result.file_name}</h2>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+            {result.image_width && result.image_height ? `${result.image_width} x ${result.image_height}` : "Görsel boyutu okunamadı"} · {formatBytes(result.file_size)}
+          </p>
+        </div>
+        <div className={`rounded-lg border px-4 py-3 text-center ${exifOverallStyle(result.overall_result, result.privacy_risk)}`}>
+          <p className="text-sm font-semibold">Genel Sonuç</p>
+          <p className="text-xl font-bold">{overallLabel}</p>
+          <p className="text-sm font-semibold">Risk {riskScore}/100</p>
+        </div>
+      </div>
+
+      <ExifSection title="Genel Özet" tone={result.overall_result === "suspicious" ? "risk" : result.overall_result === "review" || result.privacy_risk === "caution" ? "caution" : "safe"}>
+        <p className="leading-7 text-slate-700 dark:text-slate-200">
+          {general?.citizen_comment ?? result.citizen_summary}
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <CompactMetric label="Dosya türü" value={general?.file_type ?? result.file_type ?? "Tespit Edilemedi"} />
+          <CompactMetric label="Güven skoru" value={`${confidenceScore}/100`} />
+          <CompactMetric label="Risk skoru" value={`${riskScore}/100`} />
+          <CompactMetric label="AI risk skoru" value={`${aiRiskScore}/100 (${aiRiskLevel})`} />
+          <CompactMetric label="AI üretim olasılığı" value={exifLikelihoodLabel(aiLikelihood)} />
+          <CompactMetric label="Düzenleme izi" value={editingTrace ? "Var" : "Yok"} />
+          <CompactMetric label="Kaynak tahmini" value={sourceEstimate} />
+          <CompactMetric label="GPS" value={result.gps_present ? "Var" : "Yok"} />
+          <CompactMetric label="EXIF" value={metadataStatus} />
+        </div>
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          <SignalList title="Güven göstergeleri" items={trustIndicators.length ? trustIndicators : ["Hash üretildi", metadataStatus]} emptyText="Güven göstergesi sınırlı." />
+          <SignalList title="İnceleme gerektiren noktalar" items={reviewPoints} emptyText="İnceleme gerektiren güçlü bir sinyal tespit edilmedi." />
+        </div>
+      </ExifSection>
+
+      <ExifSection title="EXIF Bilgileri">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <CompactMetric label="Çekim tarihi" value={formatExifDate(result.datetime_original)} />
+          <CompactMetric label="Marka" value={result.camera_make ?? "Veri Yok"} />
+          <CompactMetric label="Model" value={result.camera_model ?? "Veri Yok"} />
+          <CompactMetric label="Firmware / Yazılım" value={result.software ?? "Veri Yok"} />
+          <CompactMetric label="GPS durumu" value={result.gps_present ? "Konum verisi var" : "Konum verisi yok"} />
+          <CompactMetric label="Metadata durumu" value={metadataStatus} />
+        </div>
+      </ExifSection>
+
+      {result.gps_present ? (
+        <InfoPanel
+          title="GPS koordinatları"
+          rows={[
+            ["Enlem", result.gps_latitude?.toString() ?? "Yok"],
+            ["Boylam", result.gps_longitude?.toString() ?? "Yok"]
+          ]}
+        />
+      ) : null}
+
+      <ExifSection title="Manipülasyon Analizi" tone={result.manipulation_analysis?.ela_suspicion || editingTrace || aiLikelihood !== "low" ? "caution" : "safe"}>
+        <p className="leading-7 text-slate-700 dark:text-slate-200">
+          {result.manipulation_analysis?.summary ?? "Manipülasyon veya AI üretimi için güçlü bir teknik sinyal tespit edilmedi."}
+        </p>
+        <div className="mt-4 grid gap-3">
+          <SignalList title="Manipülasyon sinyalleri" items={result.manipulation_analysis?.signals ?? []} emptyText="Belirgin manipülasyon sinyali yok." />
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <CompactMetric label="AI olasılığı" value={exifLikelihoodLabel(aiLikelihood)} />
+            <CompactMetric label="AI risk skoru" value={`${aiRiskScore}/100`} />
+            <CompactMetric label="Düzenleme izi" value={editingTrace ? "Var" : "Yok"} />
+            <CompactMetric label="Düzenleme yazılımı" value={joinValues(result.manipulation_analysis?.editing_software_found ?? [], "Tespit edilmedi", 4)} />
+            <CompactMetric label="C2PA / Content Credentials" value={result.manipulation_analysis?.content_credentials_present ? "Sinyal var" : "Tespit edilmedi"} />
+          </div>
+        </div>
+      </ExifSection>
+
+      <ExifSection title="Görsel İçerik Analizi" tone={result.visual_content_analysis?.ai_content_signal === "high" ? "risk" : result.visual_content_analysis?.ai_content_signal === "medium" ? "caution" : "safe"}>
+        <p className="leading-7 text-slate-700 dark:text-slate-200">
+          {result.visual_content_analysis?.pixel_comment ?? "Piksel istatistikleri belirgin AI/manipülasyon sinyali üretmedi."}
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <CompactMetric label="AI içerik sinyali" value={exifLikelihoodLabel(result.visual_content_analysis?.ai_content_signal ?? "low")} />
+          <CompactMetric label="Kamera gürültüsü" value={result.visual_content_analysis?.camera_noise ?? "Belirsiz"} />
+          <CompactMetric label="Kenar tutarlılığı" value={result.visual_content_analysis?.edge_consistency ?? "Belirsiz"} />
+          <CompactMetric label="Doku pürüzsüzlüğü" value={result.visual_content_analysis?.texture_smoothness ?? "Belirsiz"} />
+          <CompactMetric label="Renk/histogram sinyali" value={result.visual_content_analysis?.color_histogram_signal ?? "Belirsiz"} />
+          <CompactMetric label="Piksel skorları" value={exifPixelScoreSummary(result)} />
+        </div>
+        <SignalList title="Piksel/görsel sinyaller" items={result.visual_content_analysis?.signals ?? []} emptyText="Piksel tabanlı güçlü bir anomali sinyali tespit edilmedi." />
+        <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+          Bu bölüm piksel istatistiklerine dayalı ön incelemedir. Tek başına kesin AI/manipülasyon tespiti değildir.
+        </p>
+      </ExifSection>
+
+      <ExifSection title="Kaynak Tahmini">
+        <p className="leading-7 text-slate-700 dark:text-slate-200">
+          {result.source_analysis?.summary ?? "Kaynak türü için güçlü bir özel sinyal bulunamadı."}
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <CompactMetric label="Kamera fotoğrafı" value={`${result.source_analysis?.camera_photo_probability ?? 0}%`} />
+          <CompactMetric label="Ekran görüntüsü" value={`${result.source_analysis?.screenshot_probability ?? 0}%`} />
+          <CompactMetric label="İndirilmiş olabilir" value={`${result.source_analysis?.downloaded_probability ?? 0}%`} />
+          <CompactMetric label="WhatsApp aktarımı" value={`${result.source_analysis?.whatsapp_probability ?? 0}%`} />
+          <CompactMetric label="Telegram aktarımı" value={`${result.source_analysis?.telegram_probability ?? 0}%`} />
+          <CompactMetric label="Sosyal medya sıkıştırması" value={`${result.source_analysis?.social_media_probability ?? 0}%`} />
+          <CompactMetric label="AI üretimi" value={`${result.source_analysis?.ai_generated_probability ?? 0}%`} />
+          <CompactMetric label="En güçlü tahmin" value={result.source_analysis?.likely_source ?? sourceEstimate} />
+        </div>
+        <SignalList title="Kaynak sinyalleri" items={result.source_analysis?.signals ?? []} emptyText="Kaynak için güçlü sinyal bulunamadı." />
+      </ExifSection>
+
+      <ExifSection title="ELA Haritası" tone={result.manipulation_analysis?.ela_suspicion ? "caution" : "safe"}>
+        <p className="leading-7 text-slate-700 dark:text-slate-200">
+          {result.ela_warning ?? "ELA ön inceleme sinyalidir; tek başına kesin delil değildir."}
+        </p>
+        {result.ela_image_base64 ? (
+          <img alt="ELA fark haritası" className="mt-4 max-h-[420px] w-full rounded-lg border border-slate-200 object-contain dark:border-white/10" src={result.ela_image_base64} />
+        ) : (
+          <p className="mt-4 rounded-lg border border-dashed border-slate-200 p-4 text-sm text-slate-600 dark:border-white/10 dark:text-slate-300">
+            Bu dosya için ELA görseli üretilemedi veya format JPEG değil.
+          </p>
+        )}
+        <div className="mt-4">
+          <CompactMetric label="ELA fark skoru" value={result.ela_difference_score !== null && result.ela_difference_score !== undefined ? `${result.ela_difference_score}/100` : "Uygulanmadı"} />
+        </div>
+      </ExifSection>
+
+      <ExifSection title="Adli Bilişim Bilgileri">
+        <div className="grid gap-3">
+          <InfoPanel
+            title="Dosya hash değerleri"
+            rows={[
+              ["MD5", result.forensic_hashes?.md5 ?? "Üretilmedi"],
+              ["SHA1", result.forensic_hashes?.sha1 ?? "Üretilmedi"],
+              ["SHA256", result.forensic_hashes?.sha256 ?? "Üretilmedi"]
+            ]}
+          />
+          <InfoPanel
+            title="Dosya tutarlılığı"
+            rows={[
+              ["Uzantı", result.file_integrity?.file_extension ?? "Tespit edilemedi"],
+              ["MIME type", result.file_integrity?.declared_content_type ?? "Tespit edilemedi"],
+              ["Tespit edilen format", result.file_integrity?.detected_format ?? "Tespit edilemedi"],
+              ["Uzantı / içerik uyumu", result.file_integrity?.extension_matches_content === false ? "Uyumsuz" : "Uyumlu"],
+              ["MIME / imza uyumu", result.file_integrity?.mime_matches_signature === false ? "Uyumsuz" : "Uyumlu"]
+            ]}
+          />
+          <SignalList title="Tutarlılık uyarıları" items={result.file_integrity?.warnings ?? []} emptyText="Dosya yapısında belirgin uyumsuzluk tespit edilmedi." />
+        </div>
+      </ExifSection>
+
+      <ExifSection title="OSINT Kontrol Önerileri">
+        <p className="leading-7 text-slate-700 dark:text-slate-200">
+          Görsel otomatik olarak üçüncü taraf servislere yüklenmez. Aşağıdaki bağlantılar yalnızca manuel kontrol için sunulur.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <a className="btn-secondary" href={result.osint_links?.google_lens ?? "https://lens.google.com/"} rel="noreferrer" target="_blank">Google Lens</a>
+          <a className="btn-secondary" href={result.osint_links?.yandex_images ?? "https://yandex.com/images/"} rel="noreferrer" target="_blank">Yandex Images</a>
+          <a className="btn-secondary" href={result.osint_links?.bing_visual_search ?? "https://www.bing.com/visualsearch"} rel="noreferrer" target="_blank">Bing Visual Search</a>
+        </div>
+        <SignalList title="Manuel kontrol notları" items={result.osint_links?.notes ?? []} emptyText="OSINT önerisi bulunamadı." />
+      </ExifSection>
+
+      <details className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+        <summary className="cursor-pointer font-bold">Teknik Detaylar</summary>
+        <div className="mt-4 grid gap-3">
+          {result.risk_score_breakdown?.length ? (
+            <InfoPanel
+              title="Risk puanı kırılımı"
+              rows={result.risk_score_breakdown.map((item) => [item.label, `${item.points} puan - ${item.detail}`])}
+            />
+          ) : null}
+          {result.ai_signal_breakdown?.length ? (
+            <InfoPanel
+              title="AI risk puanı kırılımı"
+              rows={result.ai_signal_breakdown.map((item) => [
+                item.signal,
+                `${item.points} puan - Kaynak: ${item.source}. ${item.detail}`
+              ])}
+            />
+          ) : null}
+          <div className="grid gap-3 lg:grid-cols-2">
+            <SignalList title="Dosya adı sinyalleri" items={result.filename_ai_signals ?? []} emptyText="Dosya adında AI üretim kalıbı görülmedi." />
+            <SignalList title="Metadata sinyalleri" items={result.metadata_ai_signals ?? []} emptyText="Metadata içinde AI/prompt/model sinyali görülmedi." />
+            <SignalList title="Piksel/gürültü sinyalleri" items={result.pixel_ai_signals ?? []} emptyText="Piksel/gürültü tarafında güçlü sinyal yok." />
+            <SignalList title="Kaynak tahmini sinyalleri" items={result.source_analysis?.signals ?? []} emptyText="Kaynak tahmini için güçlü sinyal yok." />
+          </div>
+          {result.technical_findings.map((finding) => (
+            <article className={`rounded-md border p-3 text-sm ${riskStyles[finding.severity]}`} key={`${finding.title}-${finding.detail}`}>
+              <p className="font-bold">{finding.title}</p>
+              <p className="mt-1 leading-6">{finding.detail}</p>
+            </article>
+          ))}
+          <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+            Bu analiz ön inceleme niteliğindedir. Kesin adli delil niteliği için uzman incelemesi gerekir.
+          </p>
         </div>
       </details>
     </section>
@@ -1506,6 +1721,63 @@ function getPhotoTypeSignal(result: ExifAnalysisResult) {
   return "Ekran görüntüsü veya düzenlenmiş görsel olabilir";
   }
   return "Kaynak turu net değil";
+}
+
+function exifOverallLabel(overallResult: ExifAnalysisResult["overall_result"], privacyRisk: ExifAnalysisResult["privacy_risk"]) {
+  if (overallResult === "suspicious") return "Manipülasyon Şüphesi";
+  if (overallResult === "review") return "İncelenmeli";
+  return privacyRisk === "caution" ? "İncelenmeli" : "Orijinal Görünüyor";
+}
+
+function exifOverallStyle(overallResult: ExifAnalysisResult["overall_result"], privacyRisk: ExifAnalysisResult["privacy_risk"]) {
+  if (overallResult === "suspicious") return riskStyles.risk;
+  if (overallResult === "review" || privacyRisk === "caution") return riskStyles.caution;
+  return riskStyles.safe;
+}
+
+function exifLikelihoodLabel(value: ExifAnalysisResult["ai_generation_likelihood"]) {
+  if (value === "high") return "Yüksek";
+  if (value === "medium") return "Orta";
+  return "Düşük";
+}
+
+function exifAiRiskLevel(score: number) {
+  if (score >= 50) return "Yüksek";
+  if (score >= 25) return "Orta";
+  return "Düşük";
+}
+
+function exifPixelScoreSummary(result: ExifAnalysisResult) {
+  const analysis = result.visual_content_analysis;
+  if (!analysis) return "Veri yok";
+  return `Gürültü ${analysis.noise_score ?? "-"} · Kenar ${analysis.edge_score ?? "-"} · Doku ${analysis.texture_score ?? "-"}`;
+}
+
+function ExifSection({ children, title, tone = "safe" }: { children: ReactNode; title: string; tone?: RiskLevel }) {
+  return (
+    <section className={`mt-5 rounded-lg border p-4 sm:p-5 ${tone === "risk" ? riskStyles.risk : tone === "caution" ? riskStyles.caution : "border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/5"}`}>
+      <h3 className="text-base font-bold text-slate-950 dark:text-white">{title}</h3>
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+function SignalList({ emptyText, items, title }: { emptyText: string; items: string[]; title: string }) {
+  const visibleItems = items.filter(Boolean);
+  return (
+    <article className="rounded-lg border border-slate-200 bg-white/70 p-4 dark:border-white/10 dark:bg-slate-950/40">
+      <p className="text-sm font-bold text-slate-900 dark:text-white">{title}</p>
+      {visibleItems.length ? (
+        <ul className="mt-3 grid gap-2 text-sm leading-6 text-slate-700 dark:text-slate-300">
+          {visibleItems.map((item) => (
+            <li className="break-words [overflow-wrap:anywhere]" key={item}>• {item}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{emptyText}</p>
+      )}
+    </article>
+  );
 }
 
 function DecisionPanel({ body, footer, title }: { body: string; footer: string; title: string }) {
