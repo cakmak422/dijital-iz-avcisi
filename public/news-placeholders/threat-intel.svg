@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Tehdit istihbaratı temsili siber görsel</title>
+  <desc id="desc">Radar taraması, IOC düğümleri ve istihbarat akışı.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#020617"/>
+      <stop offset=".5" stop-color="#083344"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".5" cy=".5" r=".55">
+      <stop stop-color="#22d3ee" stop-opacity=".42"/>
+      <stop offset=".5" stop-color="#34d399" stop-opacity=".13"/>
+      <stop offset="1" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <rect width="1280" height="720" fill="url(#glow)"/>
+  <g transform="translate(470 122)" fill="none" stroke="#67e8f9">
+    <circle cx="180" cy="238" r="210" stroke-opacity=".18"/>
+    <circle cx="180" cy="238" r="150" stroke-opacity=".28"/>
+    <circle cx="180" cy="238" r="82" stroke-opacity=".38"/>
+    <path d="M180 238 346 118" stroke-width="10" stroke-linecap="round" stroke-opacity=".75"/>
+    <circle cx="180" cy="238" r="10" fill="#67e8f9"/>
+  </g>
+  <g fill="#67e8f9">
+    <circle cx="296" cy="208" r="8"/>
+    <circle cx="384" cy="438" r="6" opacity=".7"/>
+    <circle cx="894" cy="224" r="9"/>
+    <circle cx="1014" cy="452" r="7" opacity=".7"/>
+    <circle cx="840" cy="522" r="5" opacity=".6"/>
+  </g>
+  <g stroke="#67e8f9" stroke-opacity=".32">
+    <path d="M296 208 384 438 650 360 894 224 1014 452 840 522"/>
+  </g>
+  <rect x="88" y="78" width="300" height="54" rx="14" fill="#061826" stroke="#22d3ee" stroke-opacity=".32"/>
+  <text x="116" y="113" fill="#a5f3fc" font-family="Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="4">THREAT INTEL</text>
+</svg>

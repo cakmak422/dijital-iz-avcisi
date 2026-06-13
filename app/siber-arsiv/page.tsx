@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
+import { CyberArchiveExplorer } from "@/components/CyberArchiveExplorer";
 import { CyberPageShell } from "@/components/CyberPageShell";
-import { CyberEventVisual } from "@/components/CyberEventVisual";
 import { ManagedPageHero } from "@/components/ManagedPageHero";
 import { getCyberArchiveEvents, getTodayCyberEvent } from "@/lib/cyberArchive";
 
@@ -39,32 +39,7 @@ export default function CyberArchivePage() {
       </section>
 
       <section id="arsiv-listesi" className="px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-2">
-          {events.map((event) => (
-            <article className="grid overflow-hidden rounded-lg border border-cyan-300/20 bg-slate-950/70 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300/40 hover:shadow-cyan-950/30" id={event.slug} key={event.slug}>
-              <CyberEventVisual category={event.category} title={event.title} tone={event.visualTone} year={event.year} />
-              <div className="p-5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-md border border-cyan-300/20 bg-cyan-300/10 px-2 py-1 text-xs font-semibold text-cyan-100">
-                    {event.dateLabel}
-                  </span>
-                  <span className="rounded-md border border-cyan-300/20 bg-cyan-300/10 px-2 py-1 text-xs font-semibold text-cyan-100">
-                    {event.category}
-                  </span>
-                </div>
-                <h2 className="mt-4 text-2xl font-bold text-white">{event.title}</h2>
-                <p className="mt-3 leading-7 text-slate-300">{event.summary}</p>
-                <div className="mt-4 rounded-md border border-amber-300/25 bg-amber-300/10 p-4 text-sm leading-6 text-amber-100">
-                  <span className="font-bold">Etkisi: </span>
-                  {event.impact}
-                </div>
-                <a className="mt-4 inline-flex min-h-10 items-center rounded-md border border-cyan-300/25 bg-cyan-300/10 px-4 text-sm font-semibold text-cyan-100 transition hover:border-cyan-200 hover:bg-cyan-300/15" href={event.sourceUrl} rel="noreferrer" target="_blank">
-                  Kaynagi ac: {event.sourceName}
-                </a>
-              </div>
-            </article>
-          ))}
-        </div>
+        <CyberArchiveExplorer events={events} />
       </section>
     </CyberPageShell>
   );

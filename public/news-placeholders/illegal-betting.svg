@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Yasa dışı bahis ve finansal dolandırıcılık riski</title>
+  <desc id="desc">Koyu siber güvenlik temalı, uyarı ve finansal risk simgeleri içeren temsili görsel.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#082f49"/>
+      <stop offset="0.46" stop-color="#020617"/>
+      <stop offset="1" stop-color="#451a03"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="70%" cy="38%" r="54%">
+      <stop offset="0" stop-color="#f59e0b" stop-opacity=".38"/>
+      <stop offset=".52" stop-color="#22d3ee" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <rect width="1200" height="675" fill="url(#glow)"/>
+  <g opacity=".16" stroke="#22d3ee" stroke-width="1">
+    <path d="M0 118h1200M0 238h1200M0 358h1200M0 478h1200M0 598h1200"/>
+    <path d="M95 0v675M235 0v675M375 0v675M515 0v675M655 0v675M795 0v675M935 0v675M1075 0v675"/>
+  </g>
+  <g fill="none" stroke="#22d3ee" stroke-width="3" opacity=".42">
+    <circle cx="760" cy="326" r="184"/>
+    <circle cx="760" cy="326" r="132"/>
+    <circle cx="760" cy="326" r="78"/>
+  </g>
+  <g filter="url(#soft)" opacity=".55">
+    <circle cx="770" cy="330" r="90" fill="#22d3ee"/>
+    <circle cx="842" cy="250" r="64" fill="#f59e0b"/>
+  </g>
+  <g transform="translate(680 185)">
+    <path d="M98 0 196 170H0Z" fill="#f59e0b" opacity=".92"/>
+    <path d="M98 48v63" stroke="#020617" stroke-linecap="round" stroke-width="18"/>
+    <circle cx="98" cy="140" r="11" fill="#020617"/>
+  </g>
+  <g transform="translate(230 168)" fill="none" stroke="#67e8f9" stroke-linecap="round" stroke-linejoin="round" stroke-width="8">
+    <rect x="0" y="34" width="272" height="178" rx="28" opacity=".82"/>
+    <path d="M42 34V18h188v16M52 92h168M52 138h122M52 184h70"/>
+    <path d="m205 124 42 42m0-42-42 42" stroke="#f59e0b"/>
+  </g>
+  <g fill="#cffafe">
+    <text x="72" y="542" font-family="Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="3">YASA DIŞI BAHİS RİSKİ</text>
+    <text x="72" y="590" font-family="Arial, sans-serif" font-size="23" opacity=".76">Ödeme, sahte vaat ve hesap güvenliği sinyalleri için temsili uyarı görseli</text>
+  </g>
+</svg>

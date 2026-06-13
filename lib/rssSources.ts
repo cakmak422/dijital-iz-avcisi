@@ -55,6 +55,24 @@ export const rssSources: RssSource[] = [
     language: "tr",
     enabled: true,
     keywords: cyberNewsKeywords
+  },
+  {
+    id: "bleepingcomputer",
+    name: "BleepingComputer",
+    rssUrl: "https://www.bleepingcomputer.com/feed/",
+    homepageUrl: "https://www.bleepingcomputer.com/",
+    language: "en",
+    enabled: true,
+    keywords: cyberNewsKeywords
+  },
+  {
+    id: "the-hacker-news",
+    name: "The Hacker News",
+    rssUrl: "https://feeds.feedburner.com/TheHackersNews",
+    homepageUrl: "https://thehackernews.com/",
+    language: "en",
+    enabled: true,
+    keywords: cyberNewsKeywords
   }
 ];
 
@@ -64,17 +82,18 @@ export function parseRssItems(xml: string, source: RssSource): ParsedRssItem[] {
   const blocks = itemBlocks.length ? itemBlocks : entryBlocks;
 
   const parsedItems: Array<ParsedRssItem | null> = blocks.map((block) => {
-      const title = decodeXml(readTag(block, "title"));
+      const rawTitle = decodeXml(readTag(block, "title"));
       const link = decodeXml(readLink(block)) || source.homepageUrl;
       const publishedAt = decodeXml(readTag(block, "pubDate") || readTag(block, "published") || readTag(block, "updated"));
       const textSnippet = stripHtml(decodeXml(readTag(block, "description") || readTag(block, "summary") || readTag(block, "content:encoded")));
       const imageUrl = readImageUrl(block);
+      const { sourceName, title } = normalizeRssTitleAndSource(rawTitle, source);
 
       if (!title || !link) return null;
 
       return {
         title,
-        sourceName: source.name,
+        sourceName,
         sourceUrl: link,
         publishedAt: normalizePublishedAt(publishedAt),
         ...(imageUrl ? { imageUrl } : {}),
@@ -90,6 +109,24 @@ export function filterRssItemsByKeywords(items: ParsedRssItem[], keywords = cybe
     const haystack = `${item.title} ${item.textSnippet}`.toLocaleLowerCase("tr-TR");
     return keywords.some((keyword) => haystack.includes(keyword.toLocaleLowerCase("tr-TR")));
   });
+}
+
+function normalizeRssTitleAndSource(title: string, source: RssSource) {
+  if (!source.id.startsWith("google-news-")) {
+    return { title, sourceName: source.name };
+  }
+
+  const separatorIndex = title.lastIndexOf(" - ");
+  if (separatorIndex < 1) {
+    return { title, sourceName: source.name };
+  }
+
+  const cleanTitle = title.slice(0, separatorIndex).trim();
+  const publisher = title.slice(separatorIndex + 3).trim();
+  return {
+    title: cleanTitle || title,
+    sourceName: publisher || source.name
+  };
 }
 
 function readTag(block: string, tagName: string) {
@@ -109,17 +146,26 @@ function readImageUrl(block: string) {
   const enclosure = block.match(/<enclosure\b[^>]*url=["']([^"']+)["'][^>]*>/i)?.[1];
   const media = block.match(/<media:content\b[^>]*url=["']([^"']+)["'][^>]*>/i)?.[1];
   const thumbnail = block.match(/<media:thumbnail\b[^>]*url=["']([^"']+)["'][^>]*>/i)?.[1];
-  return enclosure || media || thumbnail || undefined;
+  const encodedDescription = readTag(block, "description") || readTag(block, "summary") || readTag(block, "content:encoded");
+  const description = decodeXml(encodedDescription);
+  const inlineImage =
+    description.match(/<img\b[^>]*src=["']([^"']+)["'][^>]*>/i)?.[1] ||
+    description.match(/<img\b[^>]*srcset=["']([^"',\s]+)[^"']*["'][^>]*>/i)?.[1];
+  const candidate = enclosure || media || thumbnail || inlineImage;
+  return isSafeImageUrl(candidate) ? candidate : undefined;
 }
 
 function decodeXml(value: string) {
   return value
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&nbsp;|&#160;|&#xA0;/gi, " ")
     .replace(/&amp;/g, "&")
     .replace(/&quot;/g, "\"")
-    .replace(/&#39;/g, "'")
+    .replace(/&#39;|&apos;/g, "'")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
+    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code: string) => String.fromCodePoint(Number.parseInt(code, 16)))
     .trim();
 }
 
@@ -132,4 +178,14 @@ function normalizePublishedAt(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value.slice(0, 10);
   return date.toISOString().slice(0, 10);
+}
+
+function isSafeImageUrl(value: string | undefined) {
+  if (!value) return false;
+  try {
+    const parsed = new URL(decodeXml(value));
+    return ["http:", "https:"].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
 }

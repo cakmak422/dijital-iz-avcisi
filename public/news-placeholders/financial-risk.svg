@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Finansal risk temsili siber görsel</title>
+  <desc id="desc">Kart, ödeme uyarısı ve güvenlik tarama çizgileri.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#020617"/>
+      <stop offset=".5" stop-color="#1e1b4b"/>
+      <stop offset="1" stop-color="#082f49"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".7" cy=".48" r=".55">
+      <stop stop-color="#22d3ee" stop-opacity=".33"/>
+      <stop offset=".48" stop-color="#fbbf24" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <rect width="1280" height="720" fill="url(#glow)"/>
+  <g transform="translate(330 190)">
+    <rect width="530" height="310" rx="34" fill="#020617" fill-opacity=".7" stroke="#67e8f9" stroke-opacity=".42" stroke-width="6"/>
+    <rect x="0" y="86" width="530" height="58" fill="#67e8f9" fill-opacity=".16"/>
+    <rect x="62" y="202" width="150" height="18" rx="9" fill="#fbbf24" fill-opacity=".7"/>
+    <rect x="62" y="242" width="250" height="18" rx="9" fill="#67e8f9" fill-opacity=".38"/>
+    <circle cx="420" cy="236" r="42" fill="#fbbf24" fill-opacity=".18" stroke="#fbbf24" stroke-opacity=".55" stroke-width="6"/>
+    <path d="M420 196v40l26 26" stroke="#fde68a" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <g stroke="#67e8f9" stroke-opacity=".22">
+    <path d="M184 180h140M184 238h92M184 296h116M934 250h180M934 308h110M934 366h156"/>
+  </g>
+  <rect x="88" y="78" width="320" height="54" rx="14" fill="#090b1b" stroke="#fbbf24" stroke-opacity=".32"/>
+  <text x="116" y="113" fill="#fde68a" font-family="Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="4">FINANCIAL RISK</text>
+</svg>

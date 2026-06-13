@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Fidye yazılımı temsili siber görsel</title>
+  <desc id="desc">Koyu kırmızı siber zemin üzerinde kilit ve şifreli veri blokları.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#13070b"/>
+      <stop offset=".52" stop-color="#2b0b16"/>
+      <stop offset="1" stop-color="#020617"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".66" cy=".43" r=".58">
+      <stop stop-color="#fb7185" stop-opacity=".34"/>
+      <stop offset=".52" stop-color="#22d3ee" stop-opacity=".11"/>
+      <stop offset="1" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="46" height="46" patternUnits="userSpaceOnUse">
+      <path d="M46 0H0v46" fill="none" stroke="#fb7185" stroke-opacity=".11"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <rect width="1280" height="720" fill="url(#grid)"/>
+  <rect width="1280" height="720" fill="url(#glow)"/>
+  <g transform="translate(678 164)" fill="none" stroke="#fecdd3" stroke-linejoin="round">
+    <rect x="0" y="178" width="250" height="180" rx="28" fill="#090b16" fill-opacity=".58" stroke-width="8"/>
+    <path d="M58 178v-65c0-74 134-74 134 0v65" stroke-width="22" stroke-linecap="round"/>
+    <circle cx="126" cy="263" r="24" fill="#fb7185" stroke="none"/>
+    <path d="M126 286v45" stroke-width="14" stroke-linecap="round"/>
+  </g>
+  <g fill="#fb7185" opacity=".9">
+    <rect x="230" y="178" width="300" height="18" rx="9"/>
+    <rect x="230" y="238" width="220" height="18" rx="9" opacity=".62"/>
+    <rect x="230" y="298" width="360" height="18" rx="9" opacity=".78"/>
+    <rect x="230" y="358" width="260" height="18" rx="9" opacity=".5"/>
+  </g>
+  <g stroke="#67e8f9" stroke-opacity=".3">
+    <path d="M182 520h912M182 554h760M182 588h840"/>
+  </g>
+  <rect x="88" y="78" width="290" height="54" rx="14" fill="#160a12" stroke="#fb7185" stroke-opacity=".36"/>
+  <text x="116" y="113" fill="#fecdd3" font-family="Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="4">RANSOMWARE</text>
+</svg>

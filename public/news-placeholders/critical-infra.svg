@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Kritik altyapı temsili siber görsel</title>
+  <desc id="desc">Şehir altyapısı, ağ kuleleri ve koruma halkaları.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#020617"/>
+      <stop offset=".45" stop-color="#082f49"/>
+      <stop offset="1" stop-color="#022c22"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".74" cy=".38" r=".52">
+      <stop stop-color="#22d3ee" stop-opacity=".34"/>
+      <stop offset=".5" stop-color="#34d399" stop-opacity=".15"/>
+      <stop offset="1" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <rect width="1280" height="720" fill="url(#glow)"/>
+  <g fill="#0f172a" stroke="#67e8f9" stroke-opacity=".42" stroke-width="4">
+    <rect x="190" y="330" width="110" height="220" rx="12"/>
+    <rect x="332" y="260" width="130" height="290" rx="12"/>
+    <rect x="500" y="360" width="96" height="190" rx="12"/>
+    <rect x="636" y="230" width="148" height="320" rx="12"/>
+  </g>
+  <g stroke="#67e8f9" stroke-opacity=".24">
+    <path d="M245 330V208l210 52M397 260V154l313 76M710 230V130"/>
+    <circle cx="245" cy="208" r="14" fill="#22d3ee" fill-opacity=".55"/>
+    <circle cx="397" cy="154" r="14" fill="#22d3ee" fill-opacity=".55"/>
+    <circle cx="710" cy="130" r="14" fill="#22d3ee" fill-opacity=".55"/>
+  </g>
+  <g transform="translate(840 176)" fill="none" stroke="#a7f3d0" stroke-width="7">
+    <circle cx="122" cy="122" r="110" stroke-opacity=".42"/>
+    <path d="M122 36 194 78v86c0 52-34 96-72 110-38-14-72-58-72-110V78z" fill="#020617" fill-opacity=".5"/>
+    <path d="M82 128l28 28 60-72" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <rect x="88" y="78" width="330" height="54" rx="14" fill="#061826" stroke="#22d3ee" stroke-opacity=".32"/>
+  <text x="116" y="113" fill="#a5f3fc" font-family="Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="4">CRITICAL INFRA</text>
+</svg>

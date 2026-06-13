@@ -1,15 +1,30 @@
-/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { ReactNode } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { CyberNewsVisual } from "@/components/CyberNewsCard";
 import { CyberPageShell } from "@/components/CyberPageShell";
-import { getCyberNewsBySlug, getCyberNewsItems, type CyberNewsRiskLevel } from "@/lib/newsStore";
+import { getRuntimeNewsBySlug } from "@/lib/newsRuntimeStore";
+import {
+  getCyberNewsItems,
+  getNewsAffectedGroups,
+  getNewsLongSummary,
+  getNewsRecommendations,
+  getNewsSeverity,
+  getNewsShortSummary,
+  getNewsTechnicalSignals,
+  getNewsTitle,
+  getNewsWhyItMatters,
+  type CyberNewsRiskLevel
+} from "@/lib/newsStore";
 
 const riskStyles: Record<CyberNewsRiskLevel, string> = {
-  "Düşük": "border-emerald-200 bg-emerald-50 text-emerald-700",
-  Orta: "border-amber-200 bg-amber-50 text-amber-700",
-  "Yüksek": "border-red-200 bg-red-50 text-red-700"
+  Düşük: "border-emerald-300/35 bg-emerald-300/10 text-emerald-100",
+  Orta: "border-amber-300/35 bg-amber-300/10 text-amber-100",
+  Yüksek: "border-red-300/35 bg-red-300/10 text-red-100"
 };
+
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return getCyberNewsItems().map((item) => ({ slug: item.slug }));
@@ -17,8 +32,11 @@ export function generateStaticParams() {
 
 export default async function NewsDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const item = getCyberNewsBySlug(slug);
+  const item = await getRuntimeNewsBySlug(slug);
   if (!item) notFound();
+
+  const title = getNewsTitle(item);
+  const severity = getNewsSeverity(item);
 
   return (
     <CyberPageShell variant="news">
@@ -32,64 +50,104 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
       </header>
 
       <section className="news-detail-hero border-b border-cyan-300/15 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
-          <p className="inline-flex rounded-md border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.22em] text-cyan-100">
-            {item.category} / {item.publishedAt}
-          </p>
-          <h1 className="mt-5 text-3xl font-extrabold leading-tight text-white sm:text-5xl">{item.title}</h1>
-          <p className="mt-4 max-w-3xl text-base leading-8 text-slate-200">{item.summary}</p>
-          <Link className="btn-secondary mt-6 min-h-11 px-5" href="/haberler">
-            Tüm Haberler
-          </Link>
+        <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[1fr_0.82fr] lg:items-center">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`rounded-md border px-2.5 py-1 text-xs font-bold ${riskStyles[severity]}`}>{severity}</span>
+              <span className="rounded-md border border-cyan-300/25 bg-cyan-300/10 px-2.5 py-1 text-xs font-semibold text-cyan-100">
+                {item.category}
+              </span>
+              <span className="text-xs font-semibold text-slate-400">{item.publishedAt}</span>
+            </div>
+            <h1 className="mt-5 text-3xl font-extrabold leading-tight text-white sm:text-5xl">{title}</h1>
+            <p className="mt-4 max-w-3xl text-base leading-8 text-slate-200">{getNewsShortSummary(item)}</p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <a className="btn-primary min-h-11 px-5" href={item.sourceUrl} rel="noreferrer" target="_blank">
+                Orijinal kaynağı aç
+              </a>
+              <Link className="btn-secondary min-h-11 px-5" href="/haberler">
+                Tüm Haberler
+              </Link>
+            </div>
+          </div>
+          <CyberNewsVisual className="min-h-[320px] rounded-xl border border-cyan-300/20" item={item} />
         </div>
       </section>
 
       <article className="px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`rounded-md border px-2 py-1 text-xs font-bold ${riskStyles[item.riskLevel]}`}>{item.riskLevel}</span>
-            <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{item.category}</span>
-            <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{item.publishedAt}</span>
+        <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[1fr_360px]">
+          <div className="grid gap-4">
+            <NewsDetailSection title="Olayın Özeti">
+              <p>{getNewsLongSummary(item)}</p>
+            </NewsDetailSection>
+
+            <NewsDetailSection title="Neden Önemli?">
+              <p>{getNewsWhyItMatters(item)}</p>
+            </NewsDetailSection>
+
+            <NewsDetailSection title="Kimleri Etkileyebilir?">
+              <BulletList items={getNewsAffectedGroups(item)} />
+            </NewsDetailSection>
+
+            <NewsDetailSection title="Teknik Sinyaller">
+              <BulletList items={getNewsTechnicalSignals(item)} />
+            </NewsDetailSection>
+
+            <NewsDetailSection title="Kullanıcı/Kurum İçin Öneriler">
+              <BulletList items={getNewsRecommendations(item)} />
+            </NewsDetailSection>
           </div>
-          <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
-            Kaynak: <a className="font-semibold text-cyan-700 underline dark:text-cyan-200" href={item.sourceUrl} rel="noreferrer" target="_blank">{item.sourceName}</a>
-          </p>
 
-          {item.imageUrl ? (
-            <img alt={item.title} className="mt-6 max-h-[420px] w-full rounded-lg border border-slate-200 object-cover shadow-sm dark:border-white/10" loading="lazy" src={item.imageUrl} />
-          ) : null}
-
-          <section className="mt-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
-            <h2 className="text-xl font-bold">Kısa özet</h2>
-            <p className="mt-3 leading-7 text-slate-600 dark:text-slate-300">{item.summary}</p>
-          </section>
-
-          <section className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-5 text-amber-950 shadow-sm dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">
-            <h2 className="text-xl font-bold">Bu haber neden önemli?</h2>
-            <p className="mt-3 leading-7">{item.riskNote}</p>
-          </section>
-
-          <section className="mt-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
-            <h2 className="text-xl font-bold">Vatandaş ne yapmalı?</h2>
-            <ul className="mt-3 grid gap-2">
-              {item.publicAdvice.map((advice) => (
-                <li className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200" key={advice}>
-                  {advice}
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <a className="btn-primary min-h-11 px-5" href={item.sourceUrl} rel="noreferrer" target="_blank">
+          <aside className="h-fit rounded-xl border border-cyan-300/20 bg-slate-950/72 p-5 shadow-[0_20px_70px_rgba(2,6,23,0.35)]">
+            <h2 className="text-xl font-extrabold text-white">Kaynaklar</h2>
+            <div className="mt-4 grid gap-3 text-sm leading-6 text-slate-300">
+              <p>
+                <span className="font-bold text-cyan-100">Kaynak adı: </span>
+                {item.sourceName}
+              </p>
+              <p>
+                <span className="font-bold text-cyan-100">Orijinal başlık: </span>
+                {item.originalTitle || item.title}
+              </p>
+              <p>
+                <span className="font-bold text-cyan-100">Yayın tarihi: </span>
+                {item.publishedAt}
+              </p>
+              <p>
+                <span className="font-bold text-cyan-100">Çekilme zamanı: </span>
+                {item.fetchedAt}
+              </p>
+            </div>
+            <a className="btn-primary mt-5 min-h-11 w-full px-5" href={item.originalUrl || item.sourceUrl} rel="noreferrer" target="_blank">
               Orijinal haberi oku
             </a>
-            <Link className="btn-secondary min-h-11 px-5" href="/haberler">
-              Tüm haberler
-            </Link>
-          </div>
+            <p className="mt-4 rounded-lg border border-amber-300/25 bg-amber-300/10 p-3 text-xs leading-5 text-amber-100">
+              Bu sayfa kaynak metni birebir kopyalamaz; başlığı ve bağlantıyı koruyarak kısa, bilgilendirici bir özet sunar.
+            </p>
+          </aside>
         </div>
       </article>
     </CyberPageShell>
+  );
+}
+
+function NewsDetailSection({ children, title }: { children: ReactNode; title: string }) {
+  return (
+    <section className="rounded-xl border border-cyan-300/20 bg-slate-950/72 p-5 text-slate-300 shadow-[0_20px_70px_rgba(2,6,23,0.32)]">
+      <h2 className="text-xl font-extrabold text-white">{title}</h2>
+      <div className="mt-3 leading-7">{children}</div>
+    </section>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="grid gap-2">
+      {items.map((item) => (
+        <li className="rounded-lg border border-cyan-300/15 bg-cyan-300/10 p-3 text-sm leading-6" key={item}>
+          {item}
+        </li>
+      ))}
+    </ul>
   );
 }

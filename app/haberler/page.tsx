@@ -1,18 +1,14 @@
-/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
+import { CyberNewsCard } from "@/components/CyberNewsCard";
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { ManagedPageHero } from "@/components/ManagedPageHero";
-import { getCyberNewsItems, type CyberNewsRiskLevel } from "@/lib/newsStore";
+import { getRuntimeNewsItems } from "@/lib/newsRuntimeStore";
 
-const riskStyles: Record<CyberNewsRiskLevel, string> = {
-  "Düşük": "border-emerald-200 bg-emerald-50 text-emerald-700",
-  Orta: "border-amber-200 bg-amber-50 text-amber-700",
-  "Yüksek": "border-red-200 bg-red-50 text-red-700"
-};
+export const dynamic = "force-dynamic";
 
-export default function NewsPage() {
-  const news = getCyberNewsItems();
+export default async function NewsPage() {
+  const news = await getRuntimeNewsItems();
 
   return (
     <CyberPageShell className="news-reference-page" variant="news">
@@ -28,29 +24,18 @@ export default function NewsPage() {
       <NewsReferenceHero />
 
       <section className="px-4 py-8 sm:px-6 lg:px-8" id="haber-akisi">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-200">Kaynaklı akış</p>
+              <h2 className="mt-2 text-2xl font-extrabold text-white">Son güvenlik başlıkları</h2>
+            </div>
+            <p className="text-sm text-slate-400">{news.length} kaynaklı içerik</p>
+          </div>
+        </div>
         <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-2 xl:grid-cols-3">
           {news.map((item) => (
-            <article className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-md dark:border-white/10 dark:bg-white/5" key={item.id}>
-              {item.imageUrl ? (
-                <img alt={item.title} className="h-40 w-full object-cover" loading="lazy" src={item.imageUrl} />
-              ) : (
-                <div className="h-40 bg-gradient-to-br from-slate-950 via-cyan-950 to-emerald-950" />
-              )}
-              <div className="p-5">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className={`rounded-md border px-2 py-1 text-xs font-bold ${riskStyles[item.riskLevel]}`}>{item.riskLevel}</span>
-                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{item.publishedAt}</span>
-                </div>
-                <h2 className="mt-4 text-lg font-bold">{item.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{item.summary}</p>
-                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{item.sourceName}</span>
-                  <Link className="btn-primary min-h-10 px-4" href={`/haberler/${item.slug}`}>
-                    Detayı Oku
-                  </Link>
-                </div>
-              </div>
-            </article>
+            <CyberNewsCard item={item} key={item.id} />
           ))}
         </div>
       </section>

@@ -3,6 +3,7 @@ import {
   getCyberNewsItems,
   getLatestCyberNews,
   type CyberNewsItem,
+  type CyberNewsImageSource,
   type CyberNewsRiskLevel
 } from "@/lib/newsStore";
 
@@ -17,6 +18,9 @@ type CyberNewsDbRow = {
   source_name: string;
   source_url: string;
   image_url: string | null;
+  image_source: CyberNewsImageSource | null;
+  image_checked_at: string | null;
+  image_alt_tr: string | null;
   published_at: string | null;
   fetched_at: string | null;
   risk_level: CyberNewsRiskLevel | null;
@@ -207,6 +211,9 @@ function toDbRow(item: CyberNewsItem) {
     source_name: item.sourceName,
     source_url: item.sourceUrl,
     image_url: item.imageUrl ?? null,
+    image_source: item.imageSource ?? null,
+    image_checked_at: toTimestamp(item.imageCheckedAt),
+    image_alt_tr: item.imageAltTr ?? null,
     published_at: toTimestamp(item.publishedAt),
     fetched_at: toTimestamp(item.fetchedAt) ?? new Date().toISOString(),
     risk_level: item.riskLevel
@@ -237,6 +244,9 @@ function fromDbRow(row: CyberNewsDbRow): CyberNewsItem {
     sourceName: row.source_name,
     sourceUrl: row.source_url,
     imageUrl: row.image_url ?? "/news-fallback-cyber.svg",
+    imageSource: row.image_source ?? (row.image_url ? "og" : "fallback"),
+    imageCheckedAt: row.image_checked_at ?? undefined,
+    imageAltTr: row.image_alt_tr ?? undefined,
     publishedAt: toDateLabel(row.published_at ?? row.fetched_at),
     fetchedAt: row.fetched_at ?? new Date().toISOString(),
     riskLevel: row.risk_level ?? "Orta"
