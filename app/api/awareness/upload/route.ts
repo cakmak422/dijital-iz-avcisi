@@ -1,0 +1,152 @@
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import type { ManagedImageFormat } from "@/types/pageManagement";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const bucketName = "awareness";
+const maxUploadSize = 5 * 1024 * 1024;
+const acceptedTypes = new Map<string, { extension: string; format: ManagedImageFormat }>([
+  ["image/jpeg", { extension: "jpg", format: "jpg" }],
+  ["image/png", { extension: "png", format: "png" }],
+  ["image/webp", { extension: "webp", format: "webp" }]
+]);
+
+export async function POST(request: Request) {
+  const auth = await validateAdminUploadAccess();
+  if (!auth.allowed) {
+    return NextResponse.json({ ok: false, error: auth.error }, { status: auth.status });
+  }
+
+  const supabaseUrl = getSupabaseBaseUrl();
+  const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
+
+  if (!supabaseUrl || !serviceKey) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Supabase Storage yapılandırması eksik. SUPABASE_URL ve SUPABASE_SERVICE_ROLE_KEY tanımlanmalıdır."
+      },
+      { status: 503 }
+    );
+  }
+
+  try {
+    const formData = await request.formData();
+    const file = formData.get("file");
+
+    if (!isUploadFile(file)) {
+      return NextResponse.json({ ok: false, error: "Yüklenecek görsel dosyası bulunamadı." }, { status: 400 });
+    }
+
+    const typeInfo = acceptedTypes.get(file.type);
+    if (!typeInfo) {
+      return NextResponse.json({ ok: false, error: "Sadece PNG, JPG/JPEG ve WEBP görseller desteklenir." }, { status: 400 });
+    }
+
+    if (file.size > maxUploadSize) {
+      return NextResponse.json({ ok: false, error: "Görsel boyutu en fazla 5 MB olabilir." }, { status: 400 });
+    }
+
+    const safePath = createSafeStoragePath(file.name, typeInfo.extension);
+    const uploadResponse = await fetch(`${supabaseUrl}/storage/v1/object/${bucketName}/${safePath}`, {
+      method: "POST",
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        "Content-Type": file.type,
+        "x-upsert": "false"
+      },
+      body: await file.arrayBuffer()
+    });
+
+    if (!uploadResponse.ok) {
+      const message = await readStorageError(uploadResponse);
+      return NextResponse.json(
+        {
+          ok: false,
+          error: `Görsel yüklenemedi. Supabase Storage bucket '${bucketName}' erişimini kontrol edin. ${message}`
+        },
+        { status: uploadResponse.status === 404 ? 502 : 500 }
+      );
+    }
+
+    return NextResponse.json({
+      ok: true,
+      bucket: bucketName,
+      format: typeInfo.format,
+      imageUrl: `${supabaseUrl}/storage/v1/object/public/${bucketName}/${safePath}`,
+      path: safePath
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Bilinmeyen upload hatası";
+    console.error("awareness_upload_failed", { error: message });
+    return NextResponse.json({ ok: false, error: "Görsel yüklenirken beklenmeyen bir hata oluştu." }, { status: 500 });
+  }
+}
+
+async function validateAdminUploadAccess() {
+  const cookieStore = await cookies();
+  const allowDemoCookies = process.env.NEXT_PUBLIC_ENABLE_DEMO_AUTH === "true" || process.env.NODE_ENV !== "production";
+  const sessionCookie = cookieStore.get("__Host-dia_session")?.value ?? (allowDemoCookies ? cookieStore.get("dia_session")?.value : undefined);
+  const sessionRole = cookieStore.get("__Host-dia_role")?.value ?? (allowDemoCookies ? cookieStore.get("dia_role")?.value : undefined);
+
+  if (sessionCookie && sessionRole === "admin") {
+    return { allowed: true, status: 200, error: "" };
+  }
+
+  return { allowed: false, status: 401, error: "Bu işlem için admin oturumu gerekir." };
+}
+
+function getSupabaseBaseUrl() {
+  const rawUrl = (process.env.SUPABASE_URL ?? "").trim().replace(/\/$/, "");
+  if (!rawUrl) return "";
+
+  try {
+    const parsed = new URL(rawUrl);
+    if (!["http:", "https:"].includes(parsed.protocol)) return "";
+    return parsed.origin;
+  } catch {
+    return "";
+  }
+}
+
+function isUploadFile(value: FormDataEntryValue | null): value is File {
+  return typeof File !== "undefined" && value instanceof File;
+}
+
+function createSafeStoragePath(fileName: string, extension: string) {
+  const nameWithoutExtension = fileName.replace(/\.[^.]+$/, "");
+  const safeName =
+    normalizeForFileName(nameWithoutExtension)
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 60) || "afis";
+
+  return `banners/${Date.now()}-${crypto.randomUUID()}-${safeName}.${extension}`;
+}
+
+function normalizeForFileName(value: string) {
+  return value
+    .toLocaleLowerCase("tr-TR")
+    .replace(/ğ/g, "g")
+    .replace(/ü/g, "u")
+    .replace(/ş/g, "s")
+    .replace(/ı/g, "i")
+    .replace(/ö/g, "o")
+    .replace(/ç/g, "c")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "-");
+}
+
+async function readStorageError(response: Response) {
+  try {
+    const text = await response.text();
+    return text ? text.slice(0, 300) : "";
+  } catch {
+    return "";
+  }
+}

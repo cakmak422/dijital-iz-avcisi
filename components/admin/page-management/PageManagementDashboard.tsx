@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { ChangeEvent } from "react";
 import {
   createHomeBlock,
   createManagedBanner,
@@ -28,6 +29,13 @@ import type {
 
 type SectionKey = "home" | "cards" | "banners" | "guides" | "navigation" | "theme" | "pages";
 type SaveState = "idle" | "saved" | "reset" | "error";
+type BannerUploadState = "idle" | "uploading" | "success" | "error";
+type BannerUploadResponse = {
+  error?: string;
+  format?: ManagedImageFormat;
+  imageUrl?: string;
+  ok: boolean;
+};
 
 const sections: Array<{ key: SectionKey; label: string }> = [
   { key: "home", label: "Ana Sayfa Blokları" },
@@ -62,6 +70,9 @@ const imageFormatOptions: Array<{ label: string; value: ManagedImageFormat }> = 
   { label: "PNG", value: "png" },
   { label: "WEBP", value: "webp" }
 ];
+
+const bannerUploadMaxSize = 5 * 1024 * 1024;
+const bannerUploadAcceptedTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
 
 const viewportLabels: Array<{ label: string; value: ManagedViewport; width: string }> = [
   { label: "Mobil", value: "mobile", width: "max-w-[360px]" },
@@ -510,6 +521,62 @@ function BannerEditor({
   showMoveDown: boolean;
   showMoveUp: boolean;
 }) {
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [uploadState, setUploadState] = useState<BannerUploadState>("idle");
+  const [uploadMessage, setUploadMessage] = useState("");
+  const visibleImageUrl = previewUrl || banner.imageUrl;
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    const validationError = validateBannerImageFile(file);
+    if (validationError) {
+      setUploadState("error");
+      setUploadMessage(validationError);
+      return;
+    }
+
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(URL.createObjectURL(file));
+    setUploadState("uploading");
+    setUploadMessage("Görsel yükleniyor...");
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/awareness/upload", {
+        method: "POST",
+        body: formData
+      });
+      const data = (await response.json()) as BannerUploadResponse;
+
+      if (!response.ok || !data.ok || !data.imageUrl) {
+        throw new Error(data.error || "Görsel yüklenemedi.");
+      }
+
+      onUpdate({
+        format: data.format ?? getManagedImageFormatFromMime(file.type),
+        imageUrl: data.imageUrl
+      });
+      setUploadState("success");
+      setUploadMessage("Görsel yüklendi. Kalıcı olması için değişiklikleri kaydedin.");
+      setPreviewUrl("");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Görsel yüklenemedi.";
+      setUploadState("error");
+      setUploadMessage(message);
+    }
+  }
+
   return (
     <EditorCard tag={banner.category} title={banner.title}>
       <div className="grid gap-3 md:grid-cols-2">
@@ -519,15 +586,26 @@ function BannerEditor({
         <TextField label="Alternatif metin" onChange={(value) => onUpdate({ altText: value })} value={banner.altText} />
         <TextField label="Kategori" onChange={(value) => onUpdate({ category: value })} value={banner.category} />
         <TextField label="Görsel URL veya base64" onChange={(value) => onUpdate({ imageUrl: value })} value={banner.imageUrl} />
+        <label className="grid gap-2 text-sm font-bold text-slate-200">
+          Dosya Seç
+          <input
+            accept="image/png,image/jpeg,image/webp"
+            className="min-h-11 rounded-md border border-dashed border-cyan-300/25 bg-slate-950/80 px-3 py-2 text-sm text-slate-200 file:mr-3 file:rounded-md file:border-0 file:bg-cyan-300 file:px-3 file:py-2 file:text-sm file:font-black file:text-slate-950 hover:border-cyan-300/50"
+            onChange={handleFileChange}
+            type="file"
+          />
+          <span className="text-xs font-medium leading-5 text-slate-400">PNG, JPG/JPEG veya WEBP. En fazla 5 MB.</span>
+        </label>
         <SelectField label="Format" onChange={(value) => onUpdate({ format: value as ManagedImageFormat })} options={imageFormatOptions} value={banner.format} />
         <SelectField label="Gösterileceği sayfa" onChange={(value) => onUpdate({ pageKey: value as ManagedPageKey })} options={pageKeyOptions} value={banner.pageKey} />
         <NumberField label="Sıralama" onChange={(value) => onUpdate({ order: value })} value={banner.order} />
       </div>
-      {banner.imageUrl ? (
+      {uploadMessage ? <UploadStatusMessage state={uploadState} text={uploadMessage} /> : null}
+      {visibleImageUrl ? (
         <div className="mt-3 overflow-hidden rounded-lg border border-cyan-300/15 bg-slate-900 p-3">
           <p className="mb-2 text-xs font-bold text-slate-400">Görsel önizleme</p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt={banner.altText} className="max-h-48 w-full rounded-md object-contain" src={banner.imageUrl} />
+          <img alt={banner.altText} className="max-h-48 w-full rounded-md object-contain" src={visibleImageUrl} />
         </div>
       ) : null}
       <EditorActions onMoveDown={onMoveDown} onMoveUp={onMoveUp} onRemove={onRemove} showMoveDown={showMoveDown} showMoveUp={showMoveUp} />
@@ -766,6 +844,39 @@ function StatusMessage({ text, tone }: { text: string; tone: "success" | "warnin
   }[tone];
 
   return <p className={`mt-4 rounded-md border px-3 py-2 text-sm font-bold ${classes}`}>{text}</p>;
+}
+
+function UploadStatusMessage({ state, text }: { state: BannerUploadState; text: string }) {
+  const classes = {
+    error: "border-red-300/25 bg-red-300/10 text-red-100",
+    idle: "border-slate-500/25 bg-slate-500/10 text-slate-200",
+    success: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100",
+    uploading: "border-cyan-300/25 bg-cyan-300/10 text-cyan-100"
+  }[state];
+
+  return <p className={`mt-3 rounded-md border px-3 py-2 text-sm font-bold ${classes}`}>{text}</p>;
+}
+
+function validateBannerImageFile(file: File) {
+  if (!bannerUploadAcceptedTypes.has(file.type)) {
+    return "Sadece PNG, JPG/JPEG ve WEBP görseller seçilebilir.";
+  }
+
+  if (file.size > bannerUploadMaxSize) {
+    return `Görsel boyutu en fazla 5 MB olabilir. Seçilen dosya: ${formatFileSize(file.size)}.`;
+  }
+
+  return "";
+}
+
+function getManagedImageFormatFromMime(type: string): ManagedImageFormat {
+  if (type === "image/png") return "png";
+  if (type === "image/webp") return "webp";
+  return "jpg";
+}
+
+function formatFileSize(size: number) {
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function nextOrder(items: Array<{ order: number }>) {
