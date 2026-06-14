@@ -37,7 +37,7 @@ export default function Home() {
         <Navbar theme={theme} setTheme={setTheme} />
         <Hero />
         <AnnouncementBanner />
-        <AwarenessSlider />
+        <AwarenessSlider backgroundImage="/awareness/afistema.png" />
         <StatsBand />
         <CyberNewsCenter />
         <TodayCyberEvent />

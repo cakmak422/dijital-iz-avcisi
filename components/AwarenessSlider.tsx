@@ -68,10 +68,12 @@ const accentStyles = {
 } satisfies Record<AwarenessPoster["accent"], { border: string; glow: string; marker: string; text: string }>;
 
 export function AwarenessSlider({
+  backgroundImage,
   description = "Güncel dolandırıcılık yöntemlerine karşı hazırlanan kısa ve anlaşılır bilgilendirme afişleri.",
   scope = "home",
   title = "Siber Farkındalık Afişleri"
 }: {
+  backgroundImage?: string;
   description?: string;
   scope?: ManagedPageKey | "all";
   title?: string;
@@ -111,8 +113,27 @@ export function AwarenessSlider({
   }, [lightboxOpen]);
 
   return (
-    <section aria-label={title} className="overflow-hidden border-b border-cyan-300/10 bg-slate-950 px-4 py-10 text-white sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <section
+      aria-label={title}
+      className="relative overflow-hidden border-b border-cyan-300/10 bg-slate-950 px-4 py-10 text-white sm:px-6 lg:px-8"
+      style={
+        backgroundImage
+          ? {
+              backgroundImage: `url(${backgroundImage})`,
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "cover"
+            }
+          : undefined
+      }
+    >
+      {backgroundImage ? (
+        <>
+          <div aria-hidden="true" className="absolute inset-0 bg-slate-950/72" />
+          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/82 to-slate-950/58" />
+        </>
+      ) : null}
+      <div className="relative z-10 mx-auto max-w-7xl">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(360px,560px)_minmax(0,0.85fr)] lg:items-center">
           <div className="max-w-xl lg:max-w-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-200">{activeCategory}</p>
