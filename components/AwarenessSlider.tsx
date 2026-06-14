@@ -140,6 +140,7 @@ export function AwarenessSlider({
               >
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">{poster.category}</p>
                 <p className="mt-1 font-bold text-white">{poster.title}</p>
+                {poster.warning ? <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-400">{poster.warning}</p> : null}
               </button>
             ))}
           </div>
