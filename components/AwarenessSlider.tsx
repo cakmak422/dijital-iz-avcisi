@@ -81,6 +81,9 @@ export function AwarenessSlider({
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const posters = getPostersFromBanners(pageManagement.banners, scope);
   const activePoster = posters[activeIndex];
+  const activeCategory = activePoster.category || "Bilinçlendirme";
+  const activeTitle = activePoster.title || title;
+  const activeDescription = activePoster.warning || description;
 
   function showPrevious() {
     setActiveIndex((current) => (current === 0 ? posters.length - 1 : current - 1));
@@ -112,9 +115,9 @@ export function AwarenessSlider({
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(360px,560px)_minmax(0,0.85fr)] lg:items-center">
           <div className="max-w-xl lg:max-w-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-200">Bilinçlendirme</p>
-            <h2 className="mt-3 text-3xl font-bold tracking-normal sm:text-4xl">{title}</h2>
-            <p className="mt-4 text-sm leading-6 text-slate-300">{description}</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-200">{activeCategory}</p>
+            <h2 className="mt-3 text-3xl font-bold tracking-normal sm:text-4xl">{activeTitle}</h2>
+            <p className="mt-4 text-sm leading-6 text-slate-300">{activeDescription}</p>
           </div>
 
           <div className="relative mx-auto w-full max-w-[520px]">
@@ -257,7 +260,7 @@ function PosterPlaceholder({ modal, poster }: { modal: boolean; poster: Awarenes
           {poster.title}
         </h3>
         <p className={`${modal ? "text-lg sm:text-xl" : "text-base sm:text-lg"} mt-5 leading-7 text-slate-200`}>
-          {poster.warning}
+          {poster.warning || "Bu afiş için açıklama admin panelinden yönetilir."}
         </p>
         <div className="mt-6 rounded-lg border border-white/10 bg-white/10 p-4 text-left text-sm leading-6 text-slate-100">
           <span className="font-bold">Öneri: </span>
@@ -306,7 +309,7 @@ function mapBannerToPoster(banner: ManagedBanner): AwarenessPoster {
     id: banner.id,
     title: banner.title,
     category: banner.category || "Farkındalık",
-    warning: banner.description || "Bu afiş için açıklama admin panelinden yönetilir.",
+    warning: banner.description,
     advice: "Afişi büyüterek detayları inceleyin ve şüpheli durumlarda resmi kaynaklardan doğrulama yapın.",
     accent: inferBannerAccent(`${banner.title} ${banner.category} ${banner.description}`),
     imageAlt: banner.altText || `${banner.title} afişi`,
