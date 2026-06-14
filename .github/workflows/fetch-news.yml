@@ -1,0 +1,26 @@
+name: Fetch Cyber News
+
+on:
+  schedule:
+    - cron: "00 06,12,18,23 * * *"
+  workflow_dispatch:
+
+jobs:
+  fetch-news:
+    name: Trigger news fetch endpoint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call protected news fetch endpoint
+        env:
+          NEWS_FETCH_SECRET: ${{ secrets.NEWS_FETCH_SECRET }}
+        run: |
+          if [ -z "$NEWS_FETCH_SECRET" ]; then
+            echo "NEWS_FETCH_SECRET GitHub Actions secret is not configured."
+            exit 1
+          fi
+
+          curl --fail --show-error --silent \
+            --request POST \
+            --header "Authorization: Bearer ${NEWS_FETCH_SECRET}" \
+            --header "Content-Type: application/json" \
+            https://dijitalizavcisi.com/api/news/fetch
