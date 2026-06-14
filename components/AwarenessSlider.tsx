@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePageManagementState } from "@/lib/pageManagementStore";
+import { getPageManagementState } from "@/lib/pageManagementStore";
 import type { ManagedBanner, ManagedPageKey } from "@/types/pageManagement";
 
 type AwarenessPoster = {
@@ -67,6 +67,8 @@ const accentStyles = {
   }
 } satisfies Record<AwarenessPoster["accent"], { border: string; glow: string; marker: string; text: string }>;
 
+const pageManagementChangedEventName = "dijital-iz-avcisi-page-management-changed";
+
 export function AwarenessSlider({
   backgroundImage,
   description = "Güncel dolandırıcılık yöntemlerine karşı hazırlanan kısa ve anlaşılır bilgilendirme afişleri.",
@@ -78,10 +80,10 @@ export function AwarenessSlider({
   scope?: ManagedPageKey | "all";
   title?: string;
 }) {
-  const pageManagement = usePageManagementState();
+  const [managedBanners, setManagedBanners] = useState<ManagedBanner[] | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const posters = getPostersFromBanners(pageManagement.banners, scope);
+  const posters = managedBanners ? getPostersFromBanners(managedBanners, scope) : fallbackPosters;
   const activePoster = posters[activeIndex];
   const activeCategory = activePoster.category || "Bilinçlendirme";
   const activeTitle = activePoster.title || title;
@@ -100,6 +102,21 @@ export function AwarenessSlider({
   }, [activeIndex, posters.length]);
 
   useEffect(() => {
+    function refreshManagedBanners() {
+      setManagedBanners(getPageManagementState().banners);
+    }
+
+    refreshManagedBanners();
+    window.addEventListener("storage", refreshManagedBanners);
+    window.addEventListener(pageManagementChangedEventName, refreshManagedBanners);
+
+    return () => {
+      window.removeEventListener("storage", refreshManagedBanners);
+      window.removeEventListener(pageManagementChangedEventName, refreshManagedBanners);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!lightboxOpen) return;
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -115,7 +132,7 @@ export function AwarenessSlider({
   return (
     <section
       aria-label={title}
-      className="relative overflow-hidden border-b border-cyan-300/10 bg-slate-950 px-4 py-10 text-white sm:px-6 lg:px-8"
+      className="relative overflow-hidden border-b border-cyan-300/10 bg-slate-950 px-4 py-8 text-white sm:px-6 sm:py-10 lg:px-8"
       style={
         backgroundImage
           ? {
@@ -129,8 +146,8 @@ export function AwarenessSlider({
     >
       {backgroundImage ? (
         <>
-          <div aria-hidden="true" className="absolute inset-0 bg-slate-950/72" />
-          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/82 to-slate-950/58" />
+          <div aria-hidden="true" className="absolute inset-0 bg-slate-950/64 sm:bg-slate-950/70 lg:bg-slate-950/72" />
+          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-slate-950/88 via-slate-950/58 to-slate-950/88 sm:bg-gradient-to-r sm:from-slate-950 sm:via-slate-950/82 sm:to-slate-950/58" />
         </>
       ) : null}
       <div className="relative z-10 mx-auto max-w-7xl">
