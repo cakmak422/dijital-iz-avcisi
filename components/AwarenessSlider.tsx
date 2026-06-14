@@ -208,7 +208,7 @@ export function AwarenessSlider({
           </button>
           <button
             aria-label="Önceki afiş"
-            className="absolute left-3 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-white/15 bg-white/10 p-3 text-2xl font-bold text-white transition hover:bg-white/20 sm:block"
+            className="absolute left-2 top-1/2 z-10 block -translate-y-1/2 rounded-full border border-white/15 bg-white/10 p-2 text-xl font-bold text-white transition hover:bg-white/20 sm:left-3 sm:p-3 sm:text-2xl"
             onClick={showPrevious}
             type="button"
           >
@@ -219,7 +219,7 @@ export function AwarenessSlider({
           </div>
           <button
             aria-label="Sonraki afiş"
-            className="absolute right-3 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-white/15 bg-white/10 p-3 text-2xl font-bold text-white transition hover:bg-white/20 sm:block"
+            className="absolute right-2 top-1/2 z-10 block -translate-y-1/2 rounded-full border border-white/15 bg-white/10 p-2 text-xl font-bold text-white transition hover:bg-white/20 sm:right-3 sm:p-3 sm:text-2xl"
             onClick={showNext}
             type="button"
           >
@@ -323,7 +323,7 @@ function SliderButton({
   return (
     <button
       aria-label={ariaLabel}
-      className={`absolute top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-white/15 bg-slate-950/80 px-3 py-2 text-2xl font-bold text-white shadow-lg transition hover:border-cyan-300/40 hover:bg-cyan-300/15 sm:block ${className}`}
+      className={`absolute top-1/2 z-10 block -translate-y-1/2 rounded-full border border-white/15 bg-slate-950/80 px-2 py-1 text-xl font-bold text-white shadow-lg transition hover:border-cyan-300/40 hover:bg-cyan-300/15 sm:px-3 sm:py-2 sm:text-2xl ${className}`}
       onClick={onClick}
       type="button"
     >
