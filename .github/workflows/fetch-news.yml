@@ -19,49 +19,5 @@ jobs:
             exit 1
           fi
 
-          echo "Secret length: ${#NEWS_FETCH_SECRET}"
-          echo "Request URL: https://dijitalizavcisi.com/api/news/fetch?secret=[redacted]"
-
-          response_file="$(mktemp)"
-          verbose_file="$(mktemp)"
-          body_file="$(mktemp)"
-          status_file="$(mktemp)"
-          request_url="https://dijitalizavcisi.com/api/news/fetch?secret=${NEWS_FETCH_SECRET}"
-
-          set +e
-          curl --fail --show-error --silent -i -v \
-            --output "$response_file" \
-            --write-out "%{http_code}" \
-            "$request_url" > "$status_file" 2> "$verbose_file"
-          curl_exit=$?
-          set -e
-
-          status="$(cat "$status_file")"
-          awk 'found { print } /^$/ { found = 1 }' "$response_file" > "$body_file"
-
-          echo "HTTP status: ${status}"
-          echo "Curl verbose output (redacted):"
-          SECRET="$NEWS_FETCH_SECRET" python3 - "$verbose_file" <<'PY'
-import os
-import sys
-
-secret = os.environ.get("SECRET", "")
-path = sys.argv[1]
-with open(path, "r", encoding="utf-8", errors="replace") as handle:
-    content = handle.read()
-if secret:
-    content = content.replace(secret, "[redacted]")
-print(content[:4000])
-PY
-
-          echo "Response body first 500 chars:"
-          python3 - "$body_file" <<'PY'
-import sys
-
-path = sys.argv[1]
-with open(path, "r", encoding="utf-8", errors="replace") as handle:
-    content = handle.read()
-print(content[:500])
-PY
-
-          exit "$curl_exit"
+          curl --fail --show-error --silent \
+            "https://dijitalizavcisi.com/api/news/fetch?secret=${NEWS_FETCH_SECRET}"
