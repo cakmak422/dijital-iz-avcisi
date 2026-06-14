@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePageManagementState } from "@/lib/pageManagementStore";
+import type { ManagedBanner, ManagedPageKey } from "@/types/pageManagement";
 
 type AwarenessPoster = {
   id: string;
@@ -13,7 +15,7 @@ type AwarenessPoster = {
   imageUrl?: string;
 };
 
-const posters: AwarenessPoster[] = [
+const fallbackPosters: AwarenessPoster[] = [
   {
     id: "phishing-warning",
     title: "Oltalama Uyarisi",
@@ -65,9 +67,19 @@ const accentStyles = {
   }
 } satisfies Record<AwarenessPoster["accent"], { border: string; glow: string; marker: string; text: string }>;
 
-export function AwarenessSlider() {
+export function AwarenessSlider({
+  description = "Güncel dolandırıcılık yöntemlerine karşı hazırlanan kısa ve anlaşılır bilgilendirme afişleri.",
+  scope = "home",
+  title = "Siber Farkındalık Afişleri"
+}: {
+  description?: string;
+  scope?: ManagedPageKey | "all";
+  title?: string;
+}) {
+  const pageManagement = usePageManagementState();
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const posters = getPostersFromBanners(pageManagement.banners, scope);
   const activePoster = posters[activeIndex];
 
   function showPrevious() {
@@ -77,6 +89,10 @@ export function AwarenessSlider() {
   function showNext() {
     setActiveIndex((current) => (current === posters.length - 1 ? 0 : current + 1));
   }
+
+  useEffect(() => {
+    if (activeIndex >= posters.length) setActiveIndex(0);
+  }, [activeIndex, posters.length]);
 
   useEffect(() => {
     if (!lightboxOpen) return;
@@ -92,15 +108,13 @@ export function AwarenessSlider() {
   }, [lightboxOpen]);
 
   return (
-    <section className="overflow-hidden border-b border-cyan-300/10 bg-slate-950 px-4 py-10 text-white sm:px-6 lg:px-8">
+    <section aria-label={title} className="overflow-hidden border-b border-cyan-300/10 bg-slate-950 px-4 py-10 text-white sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(360px,560px)_minmax(0,0.85fr)] lg:items-center">
           <div className="max-w-xl lg:max-w-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-200">Bilinclendirme</p>
-          <h2 className="mt-3 text-3xl font-bold tracking-normal sm:text-4xl">Siber Farkındalık Afişleri</h2>
-            <p className="mt-4 text-sm leading-6 text-slate-300">
-            Güncel dolandırıcılık yöntemlerine karşı hazırlanan kısa ve anlaşılır bilgilendirme afişleri.
-            </p>
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-200">Bilinçlendirme</p>
+            <h2 className="mt-3 text-3xl font-bold tracking-normal sm:text-4xl">{title}</h2>
+            <p className="mt-4 text-sm leading-6 text-slate-300">{description}</p>
           </div>
 
           <div className="relative mx-auto w-full max-w-[520px]">
@@ -275,4 +289,34 @@ function SliderButton({
       {direction === "left" ? "‹" : "›"}
     </button>
   );
+}
+
+function getPostersFromBanners(banners: ManagedBanner[], scope: ManagedPageKey | "all") {
+  const managedPosters = banners
+    .filter((banner) => banner.status === "active")
+    .filter((banner) => scope === "all" || banner.pageKey === scope)
+    .sort((first, second) => first.order - second.order)
+    .map(mapBannerToPoster);
+
+  return managedPosters.length ? managedPosters : fallbackPosters;
+}
+
+function mapBannerToPoster(banner: ManagedBanner): AwarenessPoster {
+  return {
+    id: banner.id,
+    title: banner.title,
+    category: banner.category || "Farkındalık",
+    warning: banner.description || "Bu afiş için açıklama admin panelinden yönetilir.",
+    advice: "Afişi büyüterek detayları inceleyin ve şüpheli durumlarda resmi kaynaklardan doğrulama yapın.",
+    accent: inferBannerAccent(`${banner.title} ${banner.category} ${banner.description}`),
+    imageAlt: banner.altText || `${banner.title} afişi`,
+    imageUrl: banner.imageUrl || undefined
+  };
+}
+
+function inferBannerAccent(value: string): AwarenessPoster["accent"] {
+  const normalized = value.toLocaleLowerCase("tr-TR");
+  if (normalized.includes("bahis") || normalized.includes("risk") || normalized.includes("dolandır")) return "red";
+  if (normalized.includes("sms") || normalized.includes("kargo") || normalized.includes("uyarı")) return "amber";
+  return "cyan";
 }

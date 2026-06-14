@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AboutSection } from "@/components/AboutSection";
 import { AdminSessionMenu } from "@/components/AdminSessionMenu";
+import { AwarenessSlider } from "@/components/AwarenessSlider";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberEventVisual } from "@/components/CyberEventVisual";
 import { CyberNewsCenter } from "@/components/CyberNewsCenter";
@@ -36,6 +37,7 @@ export default function Home() {
         <Navbar theme={theme} setTheme={setTheme} />
         <Hero />
         <AnnouncementBanner />
+        <AwarenessSlider />
         <StatsBand />
         <CyberNewsCenter />
         <TodayCyberEvent />
@@ -62,6 +64,7 @@ function Navbar({
     { href: "/hakkimizda", label: "Hakkımızda" },
     { href: "/siber-arsiv", label: "Siber Arşiv" },
     { href: "/haberler", label: "Haberler" },
+    { href: "/bilinclendirme", label: "Bilinçlendirme" },
     { href: "/sorgu-paneli", label: "Sorgu Paneli" },
     { href: "/dijital-arac-merkezi", label: "Dijital Araç Merkezi" }
   ];
