@@ -19,7 +19,6 @@ jobs:
             exit 1
           fi
 
-          curl --fail --show-error --silent \
-            -A "Mozilla/5.0 GitHubActions-DijitalIzAvcisi/1.0" \
-            -H "Authorization: Bearer ${NEWS_FETCH_SECRET}" \
+          curl --fail --show-error --silent --get \
+            --data-urlencode "secret=${NEWS_FETCH_SECRET}" \
             "https://dijitalizavcisi.com/api/news/fetch"
