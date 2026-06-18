@@ -5,7 +5,6 @@ export type RawCyberNews = {
   sourceName: string;
   sourceUrl: string;
   publishedAt: string;
-  language?: "tr" | "en";
   imageUrl?: string;
   imageSource?: "rss" | "og" | "twitter" | "jsonld" | "article" | "fallback";
   imageCheckedAt?: string;
