@@ -140,7 +140,7 @@ export function buildTurkishNewsDisplay({
   const displayTitle = existingTitleIsTranslated ? existingTitle : generatedTitle;
   const displaySummary = existingSummaryIsTranslated ? existingSummary : generatedSummary;
 
-  if (!isUsableTurkishDisplayText(displayTitle) || !isUsableTurkishDisplayText(displaySummary)) return null;
+  if (!isUsableTurkishDisplayTitle(displayTitle) || !isUsableTurkishDisplaySummary(displaySummary)) return null;
   if (isSameUntranslatedText(displayTitle, sourceTitle) || isSameUntranslatedText(displaySummary, sourceSummary)) return null;
 
   return {
@@ -154,8 +154,21 @@ export function isUsableTurkishDisplayText(value: string) {
   const cleaned = cleanNewsDisplayText(value);
   if (cleaned.length < 8) return false;
   if (hasBrokenMojibake(cleaned)) return false;
+  if (hasBlockedEnglishPattern(cleaned)) return false;
   if (hasTooMuchEnglishResidue(cleaned)) return false;
   return hasTurkishSignals(cleaned);
+}
+
+function isUsableTurkishDisplayTitle(value: string) {
+  const cleaned = cleanNewsDisplayText(value);
+  if (!isUsableTurkishDisplayText(cleaned)) return false;
+  return hasTurkishTitleSignal(cleaned);
+}
+
+function isUsableTurkishDisplaySummary(value: string) {
+  const cleaned = cleanNewsDisplayText(value);
+  if (!isUsableTurkishDisplayText(cleaned)) return false;
+  return looksLikeTurkishSentence(cleaned);
 }
 
 export function cleanNewsDisplayText(value: string) {
@@ -269,6 +282,68 @@ function hasTooMuchEnglishResidue(value: string) {
   ]);
   const residueCount = words.filter((word) => englishResidueWords.has(word)).length;
   return residueCount >= 2 && residueCount / words.length > 0.22;
+}
+
+function hasBlockedEnglishPattern(value: string) {
+  const normalized = ` ${cleanNewsDisplayText(value).toLocaleLowerCase("en-US")} `;
+  const blockedPatterns = [
+    /\bthe\b/,
+    /\bhas been\b/,
+    /\bhave\b/,
+    /\bwith\b/,
+    /\bfrom\b/,
+    /\bresearchers\b/,
+    /\bcampaigns\b/,
+    /\bmalware delivery\b/,
+    /\bstate-sponsored\b/
+  ];
+  return blockedPatterns.some((pattern) => pattern.test(normalized));
+}
+
+function hasTurkishTitleSignal(value: string) {
+  const normalized = cleanNewsDisplayText(value).toLocaleLowerCase("tr-TR");
+  return (
+    /[\u00e7\u011f\u0131\u00f6\u015f\u00fc]/i.test(normalized) ||
+    [
+      "siber",
+      "oltalama",
+      "fidye",
+      "doland\u0131r\u0131c\u0131l\u0131k",
+      "g\u00fcvenlik",
+      "zararl\u0131",
+      "uyar\u0131",
+      "sald\u0131r\u0131",
+      "veri",
+      "tehdit",
+      "kullan\u0131ld\u0131"
+    ].some((signal) => normalized.includes(signal))
+  );
+}
+
+function looksLikeTurkishSentence(value: string) {
+  const normalized = cleanNewsDisplayText(value).toLocaleLowerCase("tr-TR");
+  const words = normalized.match(/[a-z0-9\u00e7\u011f\u0131\u00f6\u015f\u00fc]+/gi) ?? [];
+  if (words.length < 5) return false;
+  if (!hasTurkishTitleSignal(normalized)) return false;
+
+  const sentenceSignals = [
+    " i\u00e7in ",
+    " ile ",
+    " olarak ",
+    " g\u00f6re ",
+    " kar\u015f\u0131 ",
+    " tespit ",
+    " uyar",
+    " kullan",
+    " sald\u0131r",
+    " g\u00fcvenlik",
+    " kaynak",
+    " haber",
+    " risk",
+    " tehdit"
+  ];
+
+  return sentenceSignals.some((signal) => ` ${normalized} `.includes(signal));
 }
 
 function hasBrokenMojibake(value: string) {

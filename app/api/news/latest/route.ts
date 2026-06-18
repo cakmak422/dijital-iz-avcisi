@@ -11,7 +11,10 @@ export async function GET(request: NextRequest) {
   const limitParam = request.nextUrl.searchParams.get("limit");
   const limit = Math.min(Math.max(Number(limitParam) || 30, 1), 60);
   const result = await getLatestNewsForPublic(limit);
-  const items = result.items.map(normalizeNewsItem).map(toPublicNewsItem).filter((item): item is CyberNewsItem => Boolean(item));
+  const normalizedItems = result.items.map(normalizeNewsItem);
+  const mappedItems = normalizedItems.map(toPublicNewsItem);
+  const items = mappedItems.filter((item): item is CyberNewsItem => Boolean(item));
+  const routeFilteredMissingCount = mappedItems.length - items.length;
   const dbDebug = getNewsDbDebugState();
   return NextResponse.json({
     items,
@@ -29,6 +32,7 @@ export async function GET(request: NextRequest) {
     dbWriteOk: dbDebug.dbWriteOk,
     dbWriteStatus: dbDebug.dbWriteStatus,
     dbWriteError: dbDebug.dbWriteError,
+    filteredMissingCount: result.filteredMissingCount + routeFilteredMissingCount,
     limit,
     generatedAt: new Date().toISOString(),
     sourceBreakdown: result.sourceBreakdown

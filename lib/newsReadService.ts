@@ -16,6 +16,7 @@ export type NewsReadResult = {
   items: CyberNewsItem[];
   source: NewsReadSource;
   dbEnabled: boolean;
+  filteredMissingCount: number;
   sourceBreakdown: NewsSourceBreakdown;
 };
 
@@ -40,17 +41,18 @@ async function getMergedNewsForPublic(): Promise<NewsReadResult> {
   const dbResult = await getAllNewsFromDb();
   const cachedItems = await getCachedRuntimeNewsItems();
   const seedItems = getCyberNewsItems();
-  const items = mergeUniqueNewsItems([...dbResult.items, ...cachedItems, ...seedItems]);
+  const merged = mergeUniqueNewsItems([...dbResult.items, ...cachedItems, ...seedItems]);
 
   return {
-    items,
+    items: merged.items,
     source: "merged",
     dbEnabled: dbResult.usingDatabase,
+    filteredMissingCount: merged.filteredMissingCount,
     sourceBreakdown: {
       database: dbResult.items.length,
       runtimeCache: cachedItems.length,
       seedFallback: seedItems.length,
-      total: items.length
+      total: merged.items.length
     }
   };
 }
@@ -76,14 +78,25 @@ export async function getNewsBySlugForPublic(slug: string): Promise<NewsDetailRe
 
 function mergeUniqueNewsItems(items: CyberNewsItem[]) {
   const seen = new Set<string>();
-  return items
-    .map(normalizeNewsItem)
-    .filter(hasPublicNewsDisplay)
-    .filter((item) => {
-      const key = item.sourceUrl || item.slug;
-      if (!key || seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+  const publicItems: CyberNewsItem[] = [];
+  let filteredMissingCount = 0;
+
+  for (const rawItem of items) {
+    const item = normalizeNewsItem(rawItem);
+    const key = item.sourceUrl || item.slug;
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+
+    if (!hasPublicNewsDisplay(item)) {
+      filteredMissingCount += 1;
+      continue;
+    }
+
+    publicItems.push(item);
+  }
+
+  return {
+    filteredMissingCount,
+    items: publicItems.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+  };
 }
