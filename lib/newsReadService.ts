@@ -1,7 +1,7 @@
 import { getAllNewsFromDb, getNewsBySlugFromDb } from "@/lib/newsDb";
 import { normalizeNewsItem } from "@/lib/newsNormalizer";
 import { getCachedRuntimeNewsBySlug, getCachedRuntimeNewsItems } from "@/lib/newsRuntimeStore";
-import { getCyberNewsBySlug, getCyberNewsItems, type CyberNewsItem } from "@/lib/newsStore";
+import { getCyberNewsBySlug, getCyberNewsItems, hasPublicNewsDisplay, type CyberNewsItem } from "@/lib/newsStore";
 
 export type NewsReadSource = "merged";
 
@@ -58,22 +58,27 @@ async function getMergedNewsForPublic(): Promise<NewsReadResult> {
 export async function getNewsBySlugForPublic(slug: string): Promise<NewsDetailReadResult> {
   const dbResult = await getNewsBySlugFromDb(slug);
   if (dbResult.items[0]) {
-    return { item: normalizeNewsItem(dbResult.items[0]), source: "database" };
+    const item = normalizeNewsItem(dbResult.items[0]);
+    return { item: hasPublicNewsDisplay(item) ? item : undefined, source: "database" };
   }
 
   const cachedItem = await getCachedRuntimeNewsBySlug(slug);
   if (cachedItem) {
-    return { item: normalizeNewsItem(cachedItem), source: "runtime-cache" };
+    const item = normalizeNewsItem(cachedItem);
+    return { item: hasPublicNewsDisplay(item) ? item : undefined, source: "runtime-cache" };
   }
 
   const seedItem = getCyberNewsBySlug(slug);
-  return { item: seedItem ? normalizeNewsItem(seedItem) : undefined, source: "seed-fallback" };
+  if (!seedItem) return { item: undefined, source: "seed-fallback" };
+  const item = normalizeNewsItem(seedItem);
+  return { item: hasPublicNewsDisplay(item) ? item : undefined, source: "seed-fallback" };
 }
 
 function mergeUniqueNewsItems(items: CyberNewsItem[]) {
   const seen = new Set<string>();
   return items
     .map(normalizeNewsItem)
+    .filter(hasPublicNewsDisplay)
     .filter((item) => {
       const key = item.sourceUrl || item.slug;
       if (!key || seen.has(key)) return false;

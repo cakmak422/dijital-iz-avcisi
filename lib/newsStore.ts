@@ -1,3 +1,5 @@
+import { buildTurkishNewsDisplay, isUsableTurkishDisplayText } from "@/lib/newsTranslation";
+
 export type CyberNewsRiskLevel = "Düşük" | "Orta" | "Yüksek";
 
 export type CyberNewsVisualType =
@@ -33,6 +35,9 @@ export type CyberNewsItem = {
   publishedAt: string;
   fetchedAt: string;
   riskLevel: CyberNewsRiskLevel;
+  displayTitle?: string;
+  displaySummary?: string;
+  translationStatus?: "translated" | "generated" | "missing";
   titleTr?: string;
   originalTitle?: string;
   originalUrl?: string;
@@ -212,6 +217,7 @@ const cyberNewsItems: CyberNewsItem[] = [
 export function getCyberNewsItems() {
   return [...cyberNewsItems]
     .filter((item) => hasValidNewsSource(item))
+    .filter(hasPublicNewsDisplay)
     .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
 }
 
@@ -224,15 +230,15 @@ export function getCyberNewsBySlug(slug: string) {
 }
 
 export function getNewsTitle(item: CyberNewsItem) {
-  return item.titleTr || item.title;
+  return getNewsDisplayFields(item)?.displayTitle ?? "";
 }
 
 export function getNewsShortSummary(item: CyberNewsItem) {
-  return item.summaryShortTr || item.summary;
+  return getNewsDisplayFields(item)?.displaySummary ?? "";
 }
 
 export function getNewsLongSummary(item: CyberNewsItem) {
-  return item.summaryLongTr || item.summary;
+  return item.summaryLongTr && isUsableTurkishDisplayText(item.summaryLongTr) ? item.summaryLongTr : getNewsShortSummary(item);
 }
 
 export function getNewsWhyItMatters(item: CyberNewsItem) {
@@ -249,6 +255,32 @@ export function getNewsAffectedGroups(item: CyberNewsItem) {
 
 export function getNewsTechnicalSignals(item: CyberNewsItem) {
   return item.technicalSignalsTr?.length ? item.technicalSignalsTr : ["Kaynak haber siber güvenlik anahtar kelimeleriyle eşleşti.", "Detaylar için resmi kaynak bağlantısı korunuyor."];
+}
+
+export function getNewsDisplayFields(item: CyberNewsItem) {
+  if (item.displayTitle && item.displaySummary) {
+    return buildTurkishNewsDisplay({
+      originalSummary: item.summary,
+      originalTitle: item.originalTitle || item.title,
+      summary: item.displaySummary,
+      summaryShortTr: item.displaySummary,
+      title: item.displayTitle,
+      titleTr: item.displayTitle
+    });
+  }
+
+  return buildTurkishNewsDisplay({
+    originalSummary: item.summary,
+    originalTitle: item.originalTitle || item.title,
+    summary: item.summary,
+    summaryShortTr: item.summaryShortTr,
+    title: item.title,
+    titleTr: item.titleTr
+  });
+}
+
+export function hasPublicNewsDisplay(item: CyberNewsItem) {
+  return Boolean(getNewsDisplayFields(item));
 }
 
 export function getNewsSeverity(item: CyberNewsItem) {

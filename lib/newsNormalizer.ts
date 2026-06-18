@@ -1,5 +1,6 @@
 import type { CyberNewsImageSource, CyberNewsItem, CyberNewsRiskLevel, CyberNewsVisualType } from "@/lib/newsStore";
 import { inferNewsVisualType } from "@/lib/newsStore";
+import { buildTurkishNewsDisplay, cleanNewsDisplayText } from "@/lib/newsTranslation";
 
 type RawNewsItem = Partial<CyberNewsItem> & Record<string, unknown>;
 
@@ -13,10 +14,21 @@ export function normalizeNewsItem(value: unknown): CyberNewsItem {
   const category = normalizeCategory(readString(item.category), `${title} ${summary}`);
   const imageUrl = readString(item.imageUrl) || readString(item.image_url) || undefined;
   const fallbackVisualType = normalizeVisualType(readString(item.fallbackVisualType) || readString(item.fallback_visual_type), `${category} ${title} ${summary}`);
+  const display = buildTurkishNewsDisplay({
+    originalSummary: readString(item.originalSummary) || readString(item.original_summary) || summary,
+    originalTitle: readString(item.originalTitle) || readString(item.original_title) || title,
+    summary,
+    summaryShortTr: readString(item.summaryShortTr) || readString(item.summary_short_tr),
+    title,
+    titleTr
+  });
 
   return {
     id: readString(item.id) || sourceUrl || slugifyNewsText(title),
     title,
+    displayTitle: display?.displayTitle,
+    displaySummary: display?.displaySummary,
+    translationStatus: display?.translationStatus ?? "missing",
     titleTr,
     originalTitle: readString(item.originalTitle) || readString(item.original_title) || title,
     originalUrl: readString(item.originalUrl) || readString(item.original_url) || sourceUrl,
@@ -54,7 +66,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function readString(value: unknown) {
-  return typeof value === "string" ? cleanVisibleText(value) : "";
+  return typeof value === "string" ? cleanNewsDisplayText(value) : "";
 }
 
 function readBoolean(value: unknown) {
@@ -72,8 +84,9 @@ function normalizeImageSource(value: string): CyberNewsImageSource {
 }
 
 function normalizeRiskLevel(value: string): CyberNewsRiskLevel {
-  if (value === "Düşük" || value === "DÃ¼ÅŸÃ¼k" || value === "DÃƒÂ¼Ã…Å¸ÃƒÂ¼k") return "DÃ¼ÅŸÃ¼k" as CyberNewsRiskLevel;
-  if (value === "Yüksek" || value === "YÃ¼ksek" || value === "YÃƒÂ¼ksek") return "YÃ¼ksek" as CyberNewsRiskLevel;
+  const normalized = cleanNewsDisplayText(value).toLocaleLowerCase("tr-TR");
+  if (normalized === "d\u00fc\u015f\u00fck") return "D\u00fc\u015f\u00fck" as CyberNewsRiskLevel;
+  if (normalized === "y\u00fcksek") return "Y\u00fcksek" as CyberNewsRiskLevel;
   return "Orta";
 }
 
@@ -108,14 +121,7 @@ function normalizeCategory(value: string, fallbackText: string) {
   if (haystack.includes("veri sızıntısı") || haystack.includes("data breach") || haystack.includes("breach")) return "Veri Sızıntısı";
   if (haystack.includes("malware") || haystack.includes("zararlı yazılım")) return "Zararlı Yazılım";
 
-  return isGeneric ? "Siber Gündem" : value;
-}
-
-function cleanVisibleText(value: string) {
-  return decodeHtmlEntities(value)
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  return isGeneric ? "Siber G\u00fcndem" : cleanNewsDisplayText(value);
 }
 
 function decodeHtmlEntities(value: string) {

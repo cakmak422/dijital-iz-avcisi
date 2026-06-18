@@ -106,8 +106,8 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
                 {item.sourceName}
               </p>
               <p>
-                <span className="font-bold text-cyan-100">Orijinal başlık: </span>
-                {item.originalTitle || item.title}
+                <span className="font-bold text-cyan-100">Haber başlığı: </span>
+                {title}
               </p>
               <p>
                 <span className="font-bold text-cyan-100">Yayın tarihi: </span>
