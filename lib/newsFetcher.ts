@@ -10,6 +10,7 @@ import {
 import { persistRuntimeNewsItems } from "@/lib/newsRuntimeStore";
 import { summarizeCyberNews, type RawCyberNews } from "@/lib/newsSummarizer";
 import { localizeCyberNewsText } from "@/lib/newsTranslation";
+import { isNewsAiTranslatorConfigured, translateNewsWithAi } from "@/lib/newsAiTranslator";
 
 const MAX_ITEMS_PER_SOURCE = 10;
 const MAX_TOTAL_ITEMS = 30;
@@ -77,7 +78,7 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
       const mapped = await mapWithConcurrency(mappableItems, 4, async (item) => {
         const image = await resolveNewsImageWithArticleSource(item.imageUrl, item.sourceUrl);
         imageStats[image.source] += 1;
-        return mapRawNewsToCyberNews({
+        return mapRawNewsToCyberNewsForFetch({
           title: item.title,
           language: source.language,
           sourceName: item.sourceName,
@@ -91,7 +92,7 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
         });
       });
 
-      fetchedItems.push(...mapped);
+      fetchedItems.push(...mapped.filter((item): item is CyberNewsItem => Boolean(item)));
       remainingCapacity = Math.max(0, MAX_TOTAL_ITEMS - fetchedItems.length);
       sourceReports.push({
         sourceId: source.id,
@@ -208,6 +209,45 @@ export function mapRawNewsToCyberNews(raw: RawCyberNews): CyberNewsItem {
     isArchived: false,
     tags: ["rss", "güncel haber"],
     ...summary
+  };
+}
+
+async function mapRawNewsToCyberNewsForFetch(raw: RawCyberNews): Promise<CyberNewsItem | null> {
+  const deterministicItem = mapRawNewsToCyberNews(raw);
+  if (!isNewsAiTranslatorConfigured() || raw.language !== "en") return deterministicItem;
+
+  const translation = await translateNewsWithAi({
+    category: deterministicItem.category,
+    originalTitle: deterministicItem.originalTitle || raw.title,
+    sourceName: raw.sourceName,
+    summary: raw.textSnippet
+  });
+
+  if (!translation.ok) {
+    console.warn("news_ai_translation_failed", {
+      reason: translation.reason,
+      sourceName: raw.sourceName,
+      sourceUrl: raw.sourceUrl
+    });
+    return null;
+  }
+
+  const translated = translation.data;
+  return {
+    ...deterministicItem,
+    title: translated.title_tr,
+    titleTr: translated.title_tr,
+    slug: slugify(translated.title_tr),
+    summary: translated.summary_short_tr,
+    summaryShortTr: translated.summary_short_tr,
+    summaryLongTr: translated.summary_long_tr,
+    riskNote: translated.summary_short_tr,
+    whyItMattersTr: translated.summary_long_tr,
+    publicAdvice: translated.public_advice,
+    affectedGroupsTr: translated.affected_groups_tr,
+    recommendationsTr: translated.recommendations_tr,
+    imageAltTr: `${translated.title_tr} haber g\u00f6rseli`,
+    tags: Array.from(new Set([...(deterministicItem.tags ?? []), "ai-ceviri"]))
   };
 }
 
