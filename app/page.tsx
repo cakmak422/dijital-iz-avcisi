@@ -13,7 +13,7 @@ import { CyberPageShell } from "@/components/CyberPageShell";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { EditableContent } from "@/components/admin/content/EditableContent";
 import { useEditableContent } from "@/lib/contentStore";
-import { getTodayCyberEvent } from "@/lib/cyberArchive";
+import { getTodayCyberEvent, type CyberArchiveEvent } from "@/lib/cyberArchive";
 import { getCurrentDemoUser } from "@/lib/auth";
 import type { User } from "@/lib/users";
 
@@ -224,7 +224,29 @@ function StatsBand() {
 }
 
 function TodayCyberEvent() {
-  const event = getTodayCyberEvent();
+  const [event, setEvent] = useState<CyberArchiveEvent>(() => getTodayCyberEvent());
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTimelineEvent() {
+      try {
+        const response = await fetch("/api/cyber-timeline/events?today=1", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = (await response.json()) as { event?: CyberArchiveEvent };
+        if (!cancelled && data.event) {
+          setEvent(data.event);
+        }
+      } catch {
+        // Timeline DB erişilemezse yerel arşiv fallback'i ekranda kalır.
+      }
+    }
+
+    loadTimelineEvent();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <section className="cyber-section border-b border-slate-200 bg-white py-8 dark:border-white/10 dark:bg-slate-950">

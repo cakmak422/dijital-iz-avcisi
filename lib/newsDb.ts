@@ -10,10 +10,19 @@ import {
 type CyberNewsDbRow = {
   id: string;
   title: string;
+  title_tr?: string | null;
+  original_title?: string | null;
+  original_url?: string | null;
   slug: string;
   summary: string;
+  summary_short_tr?: string | null;
+  summary_long_tr?: string | null;
   risk_note: string | null;
+  why_it_matters_tr?: string | null;
   public_advice: string[] | null;
+  affected_groups_tr?: string[] | null;
+  recommendations_tr?: string[] | null;
+  technical_signals_tr?: string[] | null;
   category: string | null;
   source_name: string;
   source_url: string;
@@ -21,9 +30,15 @@ type CyberNewsDbRow = {
   image_source: CyberNewsImageSource | null;
   image_checked_at: string | null;
   image_alt_tr: string | null;
+  fetch_image_failure_reason?: string | null;
   published_at: string | null;
   fetched_at: string | null;
   risk_level: CyberNewsRiskLevel | null;
+  severity?: CyberNewsRiskLevel | null;
+  fallback_visual_type?: CyberNewsItem["fallbackVisualType"] | null;
+  is_featured?: boolean | null;
+  is_archived?: boolean | null;
+  tags?: string[] | null;
   created_at?: string | null;
 };
 
@@ -167,8 +182,8 @@ export async function upsertNewsItems(items: CyberNewsItem[]): Promise<NewsDbWri
 
 async function upsertNewsBatch(items: CyberNewsItem[]): Promise<NewsDbWriteResult> {
   try {
-    const payload = items.map(toDbRow);
-      const response = await fetch(`${getSupabaseBaseUrl()}/rest/v1/cyber_news?on_conflict=source_url`, {
+    const payload = items.map((item) => toDbRow(item, true));
+    const response = await fetch(`${getSupabaseBaseUrl()}/rest/v1/cyber_news?on_conflict=source_url`, {
       method: "POST",
       headers: getSupabaseHeaders("resolution=merge-duplicates,return=representation"),
       body: JSON.stringify(payload),
@@ -178,6 +193,14 @@ async function upsertNewsBatch(items: CyberNewsItem[]): Promise<NewsDbWriteResul
 
     if (!response.ok) {
       const errorMessage = await readSupabaseError(response);
+      if (isExtendedNewsSchemaMissing(errorMessage)) {
+        console.warn("supabase_cyber_news_extended_schema_missing", {
+          error: errorMessage,
+          itemCount: items.length
+        });
+        return upsertNewsBatchWithLegacyPayload(items, errorMessage);
+      }
+
       setDbWriteDebug(false, response.status, errorMessage);
       console.error("supabase_cyber_news_upsert_failed", {
         status: response.status,
@@ -208,6 +231,41 @@ async function upsertNewsBatch(items: CyberNewsItem[]): Promise<NewsDbWriteResul
       itemCount: items.length
     });
     return { ...fallbackResult, failed: items.length, errors: [errorMessage] };
+  }
+}
+
+async function upsertNewsBatchWithLegacyPayload(items: CyberNewsItem[], originalError: string): Promise<NewsDbWriteResult> {
+  try {
+    const payload = items.map((item) => toDbRow(item, false));
+    const response = await fetch(`${getSupabaseBaseUrl()}/rest/v1/cyber_news?on_conflict=source_url`, {
+      method: "POST",
+      headers: getSupabaseHeaders("resolution=merge-duplicates,return=representation"),
+      body: JSON.stringify(payload),
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000)
+    });
+
+    if (!response.ok) {
+      const errorMessage = await readSupabaseError(response);
+      setDbWriteDebug(false, response.status, errorMessage);
+      return { ...fallbackResult, failed: items.length, errors: [originalError, errorMessage].filter(Boolean).slice(0, 5) };
+    }
+
+    const insertedRows = (await response.json()) as CyberNewsDbRow[];
+    const insertedItems = insertedRows.map(fromDbRow);
+    setDbWriteDebug(true, response.status, null);
+    return {
+      inserted: insertedItems.length,
+      skipped: Math.max(0, items.length - insertedItems.length),
+      failed: 0,
+      items: insertedItems,
+      usingDatabase: true,
+      errors: [`Turkce haber kolonlari migration bekliyor: ${originalError}`].slice(0, 5)
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Bilinmeyen Supabase legacy insert hatasi";
+    setDbWriteDebug(false, null, errorMessage);
+    return { ...fallbackResult, failed: items.length, errors: [originalError, errorMessage].filter(Boolean).slice(0, 5) };
   }
 }
 
@@ -306,8 +364,8 @@ function getSupabaseHeaders(prefer?: string) {
   };
 }
 
-function toDbRow(item: CyberNewsItem) {
-  return {
+function toDbRow(item: CyberNewsItem, includeExtendedFields: boolean) {
+  const baseRow = {
     // id bilerek gönderilmez; Supabase/PostgreSQL gen_random_uuid() üretir.
     title: item.title,
     slug: item.slug,
@@ -324,6 +382,27 @@ function toDbRow(item: CyberNewsItem) {
     published_at: toTimestamp(item.publishedAt),
     fetched_at: toTimestamp(item.fetchedAt) ?? new Date().toISOString(),
     risk_level: item.riskLevel
+  };
+
+  if (!includeExtendedFields) return baseRow;
+
+  return {
+    ...baseRow,
+    title_tr: item.titleTr ?? item.title,
+    original_title: item.originalTitle ?? item.title,
+    original_url: item.originalUrl ?? item.sourceUrl,
+    summary_short_tr: item.summaryShortTr ?? item.summary,
+    summary_long_tr: item.summaryLongTr ?? item.summary,
+    why_it_matters_tr: item.whyItMattersTr ?? item.riskNote,
+    affected_groups_tr: item.affectedGroupsTr ?? [],
+    recommendations_tr: item.recommendationsTr ?? item.publicAdvice ?? [],
+    technical_signals_tr: item.technicalSignalsTr ?? [],
+    severity: item.severity ?? item.riskLevel,
+    fallback_visual_type: item.fallbackVisualType ?? null,
+    is_featured: Boolean(item.isFeatured),
+    is_archived: Boolean(item.isArchived),
+    tags: item.tags ?? [],
+    fetch_image_failure_reason: item.fetchImageFailureReason ?? null
   };
 }
 
@@ -343,9 +422,18 @@ function fromDbRow(row: CyberNewsDbRow): CyberNewsItem {
   return {
     id: row.id,
     title: row.title,
+    titleTr: row.title_tr ?? row.title,
+    originalTitle: row.original_title ?? row.title,
+    originalUrl: row.original_url ?? row.source_url,
     slug: row.slug,
     summary: row.summary,
+    summaryShortTr: row.summary_short_tr ?? row.summary,
+    summaryLongTr: row.summary_long_tr ?? row.summary,
     riskNote: row.risk_note ?? "",
+    whyItMattersTr: row.why_it_matters_tr ?? undefined,
+    affectedGroupsTr: Array.isArray(row.affected_groups_tr) ? row.affected_groups_tr : [],
+    recommendationsTr: Array.isArray(row.recommendations_tr) ? row.recommendations_tr : [],
+    technicalSignalsTr: Array.isArray(row.technical_signals_tr) ? row.technical_signals_tr : [],
     publicAdvice: Array.isArray(row.public_advice) ? row.public_advice : [],
     category: row.category ?? "Siber Gündem",
     sourceName: row.source_name,
@@ -354,10 +442,35 @@ function fromDbRow(row: CyberNewsDbRow): CyberNewsItem {
     imageSource: row.image_source ?? (row.image_url ? "og" : "fallback"),
     imageCheckedAt: row.image_checked_at ?? undefined,
     imageAltTr: row.image_alt_tr ?? undefined,
+    fetchImageFailureReason: row.fetch_image_failure_reason ?? undefined,
     publishedAt: toDateLabel(row.published_at ?? row.fetched_at),
     fetchedAt: row.fetched_at ?? new Date().toISOString(),
-    riskLevel: row.risk_level ?? "Orta"
+    riskLevel: row.risk_level ?? "Orta",
+    severity: row.severity ?? row.risk_level ?? "Orta",
+    fallbackVisualType: row.fallback_visual_type ?? undefined,
+    isFeatured: Boolean(row.is_featured),
+    isArchived: Boolean(row.is_archived),
+    tags: Array.isArray(row.tags) ? row.tags : []
   };
+}
+
+function isExtendedNewsSchemaMissing(errorMessage: string) {
+  const normalized = errorMessage.toLocaleLowerCase("en-US");
+  return (
+    normalized.includes("pgrst204") &&
+    [
+      "title_tr",
+      "original_title",
+      "summary_short_tr",
+      "summary_long_tr",
+      "why_it_matters_tr",
+      "affected_groups_tr",
+      "recommendations_tr",
+      "technical_signals_tr",
+      "fallback_visual_type",
+      "fetch_image_failure_reason"
+    ].some((columnName) => normalized.includes(columnName))
+  );
 }
 
 function toTimestamp(value: string | undefined) {
