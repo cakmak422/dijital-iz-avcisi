@@ -15,16 +15,16 @@ import {
 } from "@/lib/newsStore";
 
 const severityStyles: Record<CyberNewsRiskLevel, string> = {
-  Düşük: "border-emerald-300/35 bg-emerald-300/10 text-emerald-100",
+  "D\u00fc\u015f\u00fck": "border-emerald-300/35 bg-emerald-300/10 text-emerald-100",
   Orta: "border-amber-300/35 bg-amber-300/10 text-amber-100",
-  Yüksek: "border-red-300/35 bg-red-300/10 text-red-100"
+  "Y\u00fcksek": "border-red-300/35 bg-red-300/10 text-red-100"
 };
 
 const visualStyles: Record<CyberNewsVisualType, { gradient: string; code: string; label: string }> = {
   "illegal-betting": {
     gradient: "from-amber-950 via-slate-950 to-cyan-950",
     code: "IB",
-    label: "Yasa dışı bahis"
+    label: "Yasa d\u0131\u015f\u0131 bahis"
   },
   phishing: {
     gradient: "from-cyan-950 via-slate-950 to-emerald-950",
@@ -44,27 +44,27 @@ const visualStyles: Record<CyberNewsVisualType, { gradient: string; code: string
   ransomware: {
     gradient: "from-red-950 via-slate-950 to-zinc-950",
     code: "RW",
-    label: "Fidye yazılımı"
+    label: "Fidye yaz\u0131l\u0131m\u0131"
   },
   breach: {
     gradient: "from-cyan-950 via-slate-950 to-blue-950",
     code: "DB",
-    label: "Veri sızıntısı"
+    label: "Veri s\u0131z\u0131nt\u0131s\u0131"
   },
   infrastructure: {
     gradient: "from-slate-950 via-blue-950 to-emerald-950",
     code: "CI",
-    label: "Kritik altyapı"
+    label: "Kritik altyap\u0131"
   },
   malware: {
     gradient: "from-emerald-950 via-slate-950 to-cyan-950",
     code: "MW",
-    label: "Zararlı yazılım"
+    label: "Zararl\u0131 yaz\u0131l\u0131m"
   },
   "threat-intel": {
     gradient: "from-slate-950 via-cyan-950 to-blue-950",
     code: "TI",
-    label: "Tehdit istihbaratı"
+    label: "Tehdit istihbarat\u0131"
   },
   privacy: {
     gradient: "from-indigo-950 via-slate-950 to-cyan-950",
@@ -74,15 +74,15 @@ const visualStyles: Record<CyberNewsVisualType, { gradient: string; code: string
   general: {
     gradient: "from-slate-950 via-cyan-950 to-emerald-950",
     code: "CY",
-    label: "Siber gündem"
+    label: "Siber g\u00fcndem"
   }
 };
 
 export function CyberNewsCard({ item, compact = false }: { item: CyberNewsItem; compact?: boolean }) {
   const normalizedItem = normalizeNewsItem(item);
   const severity = getNewsSeverity(normalizedItem);
-  const title = getNewsTitle(normalizedItem);
-  const summary = getNewsShortSummary(normalizedItem);
+  const title = normalizedItem.displayTitle ?? getNewsTitle(normalizedItem);
+  const summary = normalizedItem.displaySummary ?? getNewsShortSummary(normalizedItem);
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-cyan-300/20 bg-slate-950/72 shadow-[0_20px_70px_rgba(2,6,23,0.35)] transition hover:-translate-y-1 hover:border-cyan-300/45 hover:shadow-cyan-950/30">
@@ -100,7 +100,7 @@ export function CyberNewsCard({ item, compact = false }: { item: CyberNewsItem; 
         <div className="mt-auto flex flex-col gap-3 pt-5 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-xs font-semibold text-slate-400">Kaynak: {normalizedItem.sourceName}</span>
           <Link className="btn-primary min-h-10 px-4 text-sm" href={`/haberler/${normalizedItem.slug}`}>
-            Devamını Oku
+            {"Devam\u0131n\u0131 Oku"}
           </Link>
         </div>
       </div>

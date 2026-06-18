@@ -135,8 +135,10 @@ export function buildTurkishNewsDisplay({
     title,
     textSnippet: summary
   });
-  const displayTitle = isUsableTurkishDisplayText(existingTitle) ? existingTitle : cleanNewsDisplayText(localized.titleTr);
-  const displaySummary = isUsableTurkishDisplayText(existingSummary) ? existingSummary : cleanNewsDisplayText(localized.summaryTr);
+  const generatedTitle = cleanNewsDisplayText(localized.titleTr);
+  const generatedSummary = cleanNewsDisplayText(localized.summaryTr);
+  const displayTitle = existingTitleIsTranslated ? existingTitle : generatedTitle;
+  const displaySummary = existingSummaryIsTranslated ? existingSummary : generatedSummary;
 
   if (!isUsableTurkishDisplayText(displayTitle) || !isUsableTurkishDisplayText(displaySummary)) return null;
   if (isSameUntranslatedText(displayTitle, sourceTitle) || isSameUntranslatedText(displaySummary, sourceSummary)) return null;
@@ -157,10 +159,19 @@ export function isUsableTurkishDisplayText(value: string) {
 }
 
 export function cleanNewsDisplayText(value: string) {
-  return repairMojibake(decodeHtmlEntities(value))
+  return normalizeMojibakeText(decodeHtmlEntities(value))
     .replace(/<[^>]*>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+export function normalizeMojibakeText(value: string) {
+  if (!value) return "";
+
+  const decoded = decodeLikelyUtf8Mojibake(value);
+  const bestEffort = countMojibakeMarkers(decoded) < countMojibakeMarkers(value) ? decoded : value;
+
+  return repairKnownMojibake(bestEffort);
 }
 
 function translateCyberPhrase(value: string) {
@@ -216,14 +227,14 @@ function isSameUntranslatedText(candidate: string, source: string) {
 function normalizeComparableText(value: string) {
   return cleanNewsDisplayText(value)
     .toLocaleLowerCase("tr-TR")
-    .replace(/[^a-z0-9çğıöşü]+/gi, " ")
+    .replace(/[^a-z0-9\u00e7\u011f\u0131\u00f6\u015f\u00fc]+/gi, " ")
     .trim();
 }
 
 function hasTurkishSignals(value: string) {
   const normalized = value.toLocaleLowerCase("tr-TR");
   return (
-    /[çğıöşü]/i.test(value) ||
+    /[\u00e7\u011f\u0131\u00f6\u015f\u00fc]/i.test(value) ||
     ["siber", "oltalama", "fidye", "doland\u0131r\u0131c\u0131l\u0131k", "g\u00fcvenlik", "zararl\u0131"].some((signal) =>
       normalized.includes(signal)
     )
@@ -264,60 +275,60 @@ function hasBrokenMojibake(value: string) {
   return countMojibakeMarkers(value) > 0;
 }
 
-function repairMojibake(value: string) {
-  const decoded = decodeLikelyUtf8Mojibake(value);
-  const bestEffort = countMojibakeMarkers(decoded) < countMojibakeMarkers(value) ? decoded : value;
-
-  return bestEffort
-    .replace(/Ã‡/g, "\u00c7")
-    .replace(/Ã§/g, "\u00e7")
-    .replace(/Äž/g, "\u011e")
-    .replace(/ÄŸ/g, "\u011f")
-    .replace(/ÄĞ/g, "\u011e")
-    .replace(/Äğ/g, "\u011f")
-    .replace(/Ä°/g, "\u0130")
-    .replace(/Ä±/g, "\u0131")
-    .replace(/Ã–/g, "\u00d6")
-    .replace(/Ã¶/g, "\u00f6")
-    .replace(/Ãœ/g, "\u00dc")
-    .replace(/Ã¼/g, "\u00fc")
-    .replace(/Å/g, "\u015e")
-    .replace(/ÅŞ/g, "\u015e")
-    .replace(/ÅŸ/g, "\u015f")
-    .replace(/ÅÃ¼/g, "\u015e\u00fc")
-    .replace(/Åü/g, "\u015e\u00fc")
-    .replace(/ÄÄ±/g, "\u011f\u0131")
-    .replace(/Äı/g, "\u011f\u0131")
-    .replace(/KaynaÄÄ±/g, "Kayna\u011f\u0131")
-    .replace(/KaynaÄı/g, "Kayna\u011f\u0131")
-    .replace(/iÃ§erik/g, "i\u00e7erik")
-    .replace(/ÅÃ¼pheli/g, "\u015e\u00fcpheli")
-    .replace(/Åüpheli/g, "\u015e\u00fcpheli")
-    .replace(/Â/g, "");
-}
-
 function decodeLikelyUtf8Mojibake(value: string) {
-  if (!value || !hasMojibakeMarker(value)) return value;
+  if (!hasMojibakeMarker(value)) return value;
 
   try {
-    const bytes: number[] = [];
-    for (const char of value) {
-      const code = char.charCodeAt(0);
-      if (code > 255) return value;
-      bytes.push(code);
+    let decoded = value;
+    for (let index = 0; index < 3; index += 1) {
+      const bytes = Array.from(decoded, (char) => char.charCodeAt(0));
+      if (bytes.some((code) => code > 255)) break;
+      const candidate = new TextDecoder("utf-8", { fatal: false }).decode(new Uint8Array(bytes));
+      if (countMojibakeMarkers(candidate) >= countMojibakeMarkers(decoded)) break;
+      decoded = candidate;
     }
-    return new TextDecoder("utf-8", { fatal: false }).decode(new Uint8Array(bytes));
+    return decoded;
   } catch {
     return value;
   }
 }
 
+function repairKnownMojibake(value: string) {
+  return value
+    .replace(/\u00c3\u0087/g, "\u00c7")
+    .replace(/\u00c3\u00a7/g, "\u00e7")
+    .replace(/\u00c4\u009e/g, "\u011e")
+    .replace(/\u00c4\u0178/g, "\u011f")
+    .replace(/\u00c4\u00b0/g, "\u0130")
+    .replace(/\u00c4\u00b1/g, "\u0131")
+    .replace(/\u00c3\u0096/g, "\u00d6")
+    .replace(/\u00c3\u00b6/g, "\u00f6")
+    .replace(/\u00c3\u009c/g, "\u00dc")
+    .replace(/\u00c3\u00bc/g, "\u00fc")
+    .replace(/\u00c5\u009e/g, "\u015e")
+    .replace(/\u00c5\u0178/g, "\u015f")
+    .replace(/\u00c5\u00c3\u00bc/g, "\u015e\u00fc")
+    .replace(/\u00c5\u00fc/g, "\u015e\u00fc")
+    .replace(/Kayna\u00c4\u00c4\u00b1/g, "Kayna\u011f\u0131")
+    .replace(/Kayna\u00c4\u0131/g, "Kayna\u011f\u0131")
+    .replace(/da\u00c4\u00c4\u00b1tmak/g, "da\u011f\u0131tmak")
+    .replace(/da\u00c4\u0131tmak/g, "da\u011f\u0131tmak")
+    .replace(/ba\u00c4lant\u00c4\u00b1l\u00c4\u00b1/g, "ba\u011flant\u0131l\u0131")
+    .replace(/ba\u00c4lant\u0131l\u0131/g, "ba\u011flant\u0131l\u0131")
+    .replace(/ara\u00c5t\u00c4\u00b1rmac\u00c4\u00b1lar\u00c4\u00b1/g, "ara\u015ft\u0131rmac\u0131lar\u0131")
+    .replace(/ara\u00c5t\u0131rmac\u0131lar\u0131/g, "ara\u015ft\u0131rmac\u0131lar\u0131")
+    .replace(/i\u00c3\u00a7erik/g, "i\u00e7erik")
+    .replace(/\u00c5\u00c3\u00bcpheli/g, "\u015f\u00fcpheli")
+    .replace(/\u00c5\u00fcpheli/g, "\u015f\u00fcpheli")
+    .replace(/\u00c2/g, "");
+}
+
 function hasMojibakeMarker(value: string) {
-  return /[ÃÄÅÂ]/.test(value);
+  return /[\u00c3\u00c4\u00c5\u00c2]/.test(value);
 }
 
 function countMojibakeMarkers(value: string) {
-  return (value.match(/[ÃÄÅÂ]/g) ?? []).length;
+  return (value.match(/[\u00c3\u00c4\u00c5\u00c2]/g) ?? []).length;
 }
 
 function decodeHtmlEntities(value: string) {

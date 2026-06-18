@@ -6,17 +6,17 @@ type RawNewsItem = Partial<CyberNewsItem> & Record<string, unknown>;
 
 export function normalizeNewsItem(value: unknown): CyberNewsItem {
   const item = isRecord(value) ? (value as RawNewsItem) : {};
-  const title = readString(item.title) || readString(item.originalTitle) || readString(item.original_title) || "Siber haber";
-  const titleTr = readString(item.titleTr) || readString(item.title_tr) || title;
-  const summary = readString(item.summary) || readString(item.summaryShortTr) || readString(item.summary_short_tr) || title;
-  const sourceUrl = readString(item.sourceUrl) || readString(item.source_url) || readString(item.originalUrl) || readString(item.original_url) || "https://www.usom.gov.tr/";
+  const title = readRawString(item.title) || readRawString(item.originalTitle) || readRawString(item.original_title) || "Siber haber";
+  const titleTr = readString(item.titleTr) || readString(item.title_tr);
+  const summary = readRawString(item.summary) || readRawString(item.summaryShortTr) || readRawString(item.summary_short_tr) || title;
+  const sourceUrl = readRawString(item.sourceUrl) || readRawString(item.source_url) || readRawString(item.originalUrl) || readRawString(item.original_url) || "https://www.usom.gov.tr/";
   const sourceName = readString(item.sourceName) || readString(item.source_name) || "Kaynak";
   const category = normalizeCategory(readString(item.category), `${title} ${summary}`);
   const imageUrl = readString(item.imageUrl) || readString(item.image_url) || undefined;
   const fallbackVisualType = normalizeVisualType(readString(item.fallbackVisualType) || readString(item.fallback_visual_type), `${category} ${title} ${summary}`);
   const display = buildTurkishNewsDisplay({
-    originalSummary: readString(item.originalSummary) || readString(item.original_summary) || summary,
-    originalTitle: readString(item.originalTitle) || readString(item.original_title) || title,
+    originalSummary: readRawString(item.originalSummary) || readRawString(item.original_summary) || summary,
+    originalTitle: readRawString(item.originalTitle) || readRawString(item.original_title) || title,
     summary,
     summaryShortTr: readString(item.summaryShortTr) || readString(item.summary_short_tr),
     title,
@@ -24,15 +24,15 @@ export function normalizeNewsItem(value: unknown): CyberNewsItem {
   });
 
   return {
-    id: readString(item.id) || sourceUrl || slugifyNewsText(title),
+    id: readRawString(item.id) || sourceUrl || slugifyNewsText(title),
     title,
     displayTitle: display?.displayTitle,
     displaySummary: display?.displaySummary,
     translationStatus: display?.translationStatus ?? "missing",
     titleTr,
-    originalTitle: readString(item.originalTitle) || readString(item.original_title) || title,
-    originalUrl: readString(item.originalUrl) || readString(item.original_url) || sourceUrl,
-    slug: readString(item.slug) || slugifyNewsText(title),
+    originalTitle: readRawString(item.originalTitle) || readRawString(item.original_title) || title,
+    originalUrl: readRawString(item.originalUrl) || readRawString(item.original_url) || sourceUrl,
+    slug: readRawString(item.slug) || slugifyNewsText(title),
     summary,
     summaryShortTr: readString(item.summaryShortTr) || readString(item.summary_short_tr) || summary,
     summaryLongTr: readString(item.summaryLongTr) || readString(item.summary_long_tr) || summary,
@@ -48,7 +48,7 @@ export function normalizeNewsItem(value: unknown): CyberNewsItem {
     imageUrl,
     imageSource: normalizeImageSource(readString(item.imageSource) || readString(item.image_source) || (imageUrl ? "og" : "fallback")),
     imageCheckedAt: readString(item.imageCheckedAt) || readString(item.image_checked_at) || undefined,
-    imageAltTr: readString(item.imageAltTr) || readString(item.image_alt_tr) || `${titleTr} haber görseli`,
+    imageAltTr: readString(item.imageAltTr) || readString(item.image_alt_tr) || `${display?.displayTitle || titleTr || "Haber"} haber g\u00f6rseli`,
     fetchImageFailureReason: readString(item.fetchImageFailureReason) || readString(item.fetch_image_failure_reason) || undefined,
     publishedAt: readString(item.publishedAt) || readString(item.published_at) || new Date().toISOString().slice(0, 10),
     fetchedAt: readString(item.fetchedAt) || readString(item.fetched_at) || new Date().toISOString(),
@@ -67,6 +67,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function readString(value: unknown) {
   return typeof value === "string" ? cleanNewsDisplayText(value) : "";
+}
+
+function readRawString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
 }
 
 function readBoolean(value: unknown) {
@@ -110,35 +114,23 @@ function normalizeVisualType(value: string, fallbackText: string): CyberNewsVisu
 }
 
 function normalizeCategory(value: string, fallbackText: string) {
-  const haystack = `${value} ${fallbackText}`.toLocaleLowerCase("tr-TR");
-  const isGeneric = !value || haystack.includes("siber gündem") || haystack.includes("siber gã¼ndem") || value.toLocaleLowerCase("tr-TR") === "general";
+  const cleanedValue = cleanNewsDisplayText(value);
+  const haystack = cleanNewsDisplayText(`${cleanedValue} ${fallbackText}`).toLocaleLowerCase("tr-TR");
+  const isGeneric = !cleanedValue || haystack.includes("siber g\u00fcndem") || cleanedValue.toLocaleLowerCase("tr-TR") === "general";
 
   if (haystack.includes("bahis") || haystack.includes("sanal bahis") || haystack.includes("kumar")) {
-    return "Yasa Dışı Bahis / Dolandırıcılık";
+    return "Yasa D\u0131\u015f\u0131 Bahis / Doland\u0131r\u0131c\u0131l\u0131k";
   }
   if (haystack.includes("oltalama") || haystack.includes("phishing")) return "Oltalama";
-  if (haystack.includes("fidye") || haystack.includes("ransomware")) return "Fidye Yazılımı";
-  if (haystack.includes("veri sızıntısı") || haystack.includes("data breach") || haystack.includes("breach")) return "Veri Sızıntısı";
-  if (haystack.includes("malware") || haystack.includes("zararlı yazılım")) return "Zararlı Yazılım";
+  if (haystack.includes("fidye") || haystack.includes("ransomware")) return "Fidye Yaz\u0131l\u0131m\u0131";
+  if (haystack.includes("veri s\u0131z\u0131nt\u0131s\u0131") || haystack.includes("data breach") || haystack.includes("breach")) return "Veri S\u0131z\u0131nt\u0131s\u0131";
+  if (haystack.includes("malware") || haystack.includes("zararl\u0131 yaz\u0131l\u0131m")) return "Zararl\u0131 Yaz\u0131l\u0131m";
 
-  return isGeneric ? "Siber G\u00fcndem" : cleanNewsDisplayText(value);
-}
-
-function decodeHtmlEntities(value: string) {
-  return value
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-    .replace(/&nbsp;|&#160;|&#xA0;/gi, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, "\"")
-    .replace(/&#39;|&apos;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, code: string) => String.fromCodePoint(Number.parseInt(code, 16)));
+  return isGeneric ? "Siber G\u00fcndem" : cleanedValue;
 }
 
 function slugifyNewsText(value: string) {
-  return value
+  return cleanNewsDisplayText(value)
     .toLocaleLowerCase("tr-TR")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -148,12 +140,6 @@ function slugifyNewsText(value: string) {
     .replace(/ı/g, "i")
     .replace(/ö/g, "o")
     .replace(/ç/g, "c")
-    .replace(/ÄŸ/g, "g")
-    .replace(/Ã¼/g, "u")
-    .replace(/ÅŸ/g, "s")
-    .replace(/Ä±/g, "i")
-    .replace(/Ã¶/g, "o")
-    .replace(/Ã§/g, "c")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 96) || "siber-haber";

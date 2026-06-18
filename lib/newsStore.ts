@@ -1,6 +1,6 @@
 import { buildTurkishNewsDisplay, isUsableTurkishDisplayText } from "@/lib/newsTranslation";
 
-export type CyberNewsRiskLevel = "Düşük" | "Orta" | "Yüksek";
+export type CyberNewsRiskLevel = "D\u00fc\u015f\u00fck" | "Orta" | "Y\u00fcksek";
 
 export type CyberNewsVisualType =
   | "illegal-betting"
