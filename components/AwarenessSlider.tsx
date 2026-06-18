@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getPageManagementState } from "@/lib/pageManagementStore";
+import { awarenessBannersChangedEventName } from "@/lib/awarenessBanners";
 import type { ManagedBanner, ManagedPageKey } from "@/types/pageManagement";
 
 type AwarenessPoster = {
@@ -15,11 +15,19 @@ type AwarenessPoster = {
   imageUrl?: string;
 };
 
+type AwarenessBannersResponse = {
+  count?: number;
+  error?: string;
+  items?: ManagedBanner[];
+  ok: boolean;
+  source?: string;
+};
+
 const fallbackPosters: AwarenessPoster[] = [
   {
     id: "phishing-warning",
-    title: "Oltalama Uyarisi",
-    category: "Phishing",
+    title: "Oltalama Uyarısı",
+    category: "Oltalama",
     warning: "Banka, kargo veya resmi kurum taklidi yapan bağlantılarda acele karar vermeyin.",
     advice: "Linke tıklamadan önce alan adını ve yönlendirme adresini kontrol edin.",
     accent: "cyan",
@@ -27,22 +35,24 @@ const fallbackPosters: AwarenessPoster[] = [
     imageUrl: "/awareness/phishing-awareness.png"
   },
   {
-    id: "fake-cargo-sms",
-    title: "Sahte Kargo SMS",
-    category: "Mesaj Güvenligi",
-    warning: "Teslimat ücreti, adres güncelleme veya iade bahanesiyle gelen kısa linklere dikkat edin.",
-    advice: "Kargo durumunu yalnızca resmi uygulama veya bilinen web adresinden kontrol edin.",
-    accent: "amber",
-    imageAlt: "Sahte kargo SMS farkındalık afişi"
-  },
-  {
-    id: "betting-trap",
-    title: "Sanal Bahis Tuzagi",
-    category: "Dijital Risk",
+    id: "illegal-betting-awareness",
+    title: "Yasa Dışı Sanal Bahislere Karşı Farkındalık",
+    category: "Yasa Dışı Bahis",
     warning: "Yüksek kazanç vaadi ve hızlı para baskısı şüpheli davranış sinyali olabilir.",
     advice: "Kimlik, kart ve banka bilgilerinizi bilinmeyen platformlarda paylaşmayın.",
     accent: "red",
-    imageAlt: "Sanal bahis tuzağı farkındalık afişi"
+    imageAlt: "Yasa dışı sanal bahis farkındalık afişi",
+    imageUrl: "/awareness/afistema.png"
+  },
+  {
+    id: "agri-tools-fraud-awareness",
+    title: "Tarım Aletleri Dolandırıcılığı",
+    category: "Alışveriş Güvenliği",
+    warning: "Piyasanın çok altında fiyat, kapora baskısı ve doğrulanamayan satıcı bilgileri dolandırıcılık sinyali olabilir.",
+    advice: "Ödeme yapmadan önce satıcı bilgilerini, ilan geçmişini ve resmi ödeme kanallarını doğrulayın.",
+    accent: "amber",
+    imageAlt: "Tarım aletleri dolandırıcılığı farkındalık afişi",
+    imageUrl: "/awareness/genelarkaplantema.png"
   }
 ];
 
@@ -67,8 +77,6 @@ const accentStyles = {
   }
 } satisfies Record<AwarenessPoster["accent"], { border: string; glow: string; marker: string; text: string }>;
 
-const pageManagementChangedEventName = "dijital-iz-avcisi-page-management-changed";
-
 export function AwarenessSlider({
   backgroundImage,
   description = "Güncel dolandırıcılık yöntemlerine karşı hazırlanan kısa ve anlaşılır bilgilendirme afişleri.",
@@ -84,7 +92,7 @@ export function AwarenessSlider({
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const posters = managedBanners ? getPostersFromBanners(managedBanners, scope) : fallbackPosters;
-  const activePoster = posters[activeIndex];
+  const activePoster = posters[activeIndex] ?? fallbackPosters[0];
   const activeCategory = activePoster.category || "Bilinçlendirme";
   const activeTitle = activePoster.title || title;
   const activeDescription = activePoster.warning || description;
@@ -102,19 +110,31 @@ export function AwarenessSlider({
   }, [activeIndex, posters.length]);
 
   useEffect(() => {
-    function refreshManagedBanners() {
-      setManagedBanners(getPageManagementState().banners);
+    let cancelled = false;
+
+    async function refreshManagedBanners() {
+      try {
+        const response = await fetch(`/api/awareness/banners?page_key=${encodeURIComponent(scope)}`, {
+          cache: "no-store"
+        });
+        const data = (await response.json()) as AwarenessBannersResponse;
+
+        if (!cancelled && response.ok && data.ok && Array.isArray(data.items) && data.items.length > 0) {
+          setManagedBanners(data.items);
+        }
+      } catch {
+        if (!cancelled) setManagedBanners(null);
+      }
     }
 
     refreshManagedBanners();
-    window.addEventListener("storage", refreshManagedBanners);
-    window.addEventListener(pageManagementChangedEventName, refreshManagedBanners);
+    window.addEventListener(awarenessBannersChangedEventName, refreshManagedBanners);
 
     return () => {
-      window.removeEventListener("storage", refreshManagedBanners);
-      window.removeEventListener(pageManagementChangedEventName, refreshManagedBanners);
+      cancelled = true;
+      window.removeEventListener(awarenessBannersChangedEventName, refreshManagedBanners);
     };
-  }, []);
+  }, [scope]);
 
   useEffect(() => {
     if (!lightboxOpen) return;
@@ -127,7 +147,7 @@ export function AwarenessSlider({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [lightboxOpen]);
+  }, [lightboxOpen, posters.length]);
 
   return (
     <section
@@ -178,6 +198,7 @@ export function AwarenessSlider({
               >
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">{poster.category}</p>
                 <p className="mt-1 font-bold text-white">{poster.title}</p>
+                {poster.warning ? <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-400">{poster.warning}</p> : null}
               </button>
             ))}
           </div>
@@ -186,7 +207,7 @@ export function AwarenessSlider({
         <div className="mt-5 flex items-center justify-center gap-2">
           {posters.map((poster, index) => (
             <button
-                aria-label={`${poster.title} afişini göster`}
+              aria-label={`${poster.title} afişini göster`}
               className={`h-2.5 rounded-full transition-all ${activeIndex === index ? "w-8 bg-cyan-300" : "w-2.5 bg-slate-700 hover:bg-slate-500"}`}
               key={poster.id}
               onClick={() => setActiveIndex(index)}
@@ -208,7 +229,7 @@ export function AwarenessSlider({
           </button>
           <button
             aria-label="Önceki afiş"
-            className="absolute left-2 top-1/2 z-10 block -translate-y-1/2 rounded-full border border-white/15 bg-white/10 p-2 text-xl font-bold text-white transition hover:bg-white/20 sm:left-3 sm:p-3 sm:text-2xl"
+            className="absolute left-3 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-white/15 bg-white/10 p-3 text-2xl font-bold text-white transition hover:bg-white/20 sm:block"
             onClick={showPrevious}
             type="button"
           >
@@ -219,7 +240,7 @@ export function AwarenessSlider({
           </div>
           <button
             aria-label="Sonraki afiş"
-            className="absolute right-2 top-1/2 z-10 block -translate-y-1/2 rounded-full border border-white/15 bg-white/10 p-2 text-xl font-bold text-white transition hover:bg-white/20 sm:right-3 sm:p-3 sm:text-2xl"
+            className="absolute right-3 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-white/15 bg-white/10 p-3 text-2xl font-bold text-white transition hover:bg-white/20 sm:block"
             onClick={showNext}
             type="button"
           >
@@ -323,7 +344,7 @@ function SliderButton({
   return (
     <button
       aria-label={ariaLabel}
-      className={`absolute top-1/2 z-10 block -translate-y-1/2 rounded-full border border-white/15 bg-slate-950/80 px-2 py-1 text-xl font-bold text-white shadow-lg transition hover:border-cyan-300/40 hover:bg-cyan-300/15 sm:px-3 sm:py-2 sm:text-2xl ${className}`}
+      className={`absolute top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-white/15 bg-slate-950/80 px-3 py-2 text-2xl font-bold text-white shadow-lg transition hover:border-cyan-300/40 hover:bg-cyan-300/15 sm:block ${className}`}
       onClick={onClick}
       type="button"
     >

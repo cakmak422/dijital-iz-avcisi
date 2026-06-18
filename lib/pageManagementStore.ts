@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { defaultAwarenessBanners } from "@/lib/awarenessBanners";
 import type {
   ManagedBanner,
   ManagedCard,
@@ -167,20 +168,7 @@ const defaultCards: ManagedCard[] = [
   }
 ];
 
-const defaultBanners: ManagedBanner[] = [
-  {
-    id: "banner-phishing-awareness",
-    title: "Oltalama Uyarısı",
-    description: "Marka taklidi yapan linklere karşı adres çubuğunu kontrol edin.",
-    altText: "Oltalama uyarısı farkındalık afişi",
-    category: "Oltalama",
-    imageUrl: "/awareness/phishing-awareness.png",
-    format: "png",
-    status: "active",
-    order: 10,
-    pageKey: "home"
-  }
-];
+const defaultBanners: ManagedBanner[] = defaultAwarenessBanners;
 
 const defaultGuides: ManagedGuide[] = [
   {

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
+import { awarenessBannersChangedEventName } from "@/lib/awarenessBanners";
 import {
   createHomeBlock,
   createManagedBanner,
@@ -35,6 +36,15 @@ type BannerUploadResponse = {
   format?: ManagedImageFormat;
   imageUrl?: string;
   ok: boolean;
+};
+type BannerSyncState = "idle" | "loading" | "success" | "warning" | "error";
+type AwarenessBannersApiResponse = {
+  count?: number;
+  error?: string;
+  item?: ManagedBanner;
+  items?: ManagedBanner[];
+  ok: boolean;
+  source?: string;
 };
 
 const sections: Array<{ key: SectionKey; label: string }> = [
@@ -86,10 +96,48 @@ export function PageManagementDashboard() {
   const [activeSection, setActiveSection] = useState<SectionKey>("home");
   const [viewport, setViewport] = useState<ManagedViewport>("desktop");
   const [status, setStatus] = useState<SaveState>("idle");
+  const [bannerSyncState, setBannerSyncState] = useState<BannerSyncState>("idle");
+  const [bannerSyncMessage, setBannerSyncMessage] = useState("");
+  const [removedBannerIds, setRemovedBannerIds] = useState<string[]>([]);
 
   useEffect(() => {
     setDraft(storedState);
   }, [storedState.updatedAt]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadBannersFromApi() {
+      setBannerSyncState("loading");
+      setBannerSyncMessage("Afişler ortak veritabanından okunuyor...");
+
+      try {
+        const response = await fetch("/api/awareness/banners?page_key=all", { cache: "no-store" });
+        const data = (await response.json()) as AwarenessBannersApiResponse;
+
+        if (cancelled) return;
+
+        if (response.ok && data.ok && data.source === "database" && Array.isArray(data.items) && data.items.length > 0) {
+          setDraft((current) => ({ ...current, banners: data.items ?? current.banners }));
+          setBannerSyncState("success");
+          setBannerSyncMessage("Afişler Supabase ortak veritabanından yüklendi.");
+          return;
+        }
+
+        setBannerSyncState("warning");
+        setBannerSyncMessage(data.error || "Supabase afiş verisi bulunamadı; mevcut local taslak korunuyor. Kaydet komutu bu taslağı ortak veritabanına aktarır.");
+      } catch (error) {
+        if (cancelled) return;
+        setBannerSyncState("warning");
+        setBannerSyncMessage(error instanceof Error ? error.message : "Afiş API okunamadı; mevcut local taslak korunuyor.");
+      }
+    }
+
+    loadBannersFromApi();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const activeHomeBlocks = useMemo(() => {
     return draft.homeBlocks.filter((block) => block.status === "active").sort((a, b) => a.order - b.order);
@@ -100,13 +148,22 @@ export function PageManagementDashboard() {
     setStatus("idle");
   }
 
-  function handleSave() {
+  async function handleSave() {
     try {
-      const saved = savePageManagementState(draft);
+      setBannerSyncState("loading");
+      setBannerSyncMessage("Afiş değişiklikleri Supabase ortak veritabanına yazılıyor...");
+      const syncedBanners = await syncBannersToApi(draft.banners, removedBannerIds);
+      const saved = savePageManagementState({ ...draft, banners: syncedBanners });
       setDraft(saved);
+      setRemovedBannerIds([]);
       setStatus("saved");
-    } catch {
+      setBannerSyncState("success");
+      setBannerSyncMessage("Afişler Supabase ortak veritabanına kaydedildi.");
+      window.dispatchEvent(new Event(awarenessBannersChangedEventName));
+    } catch (error) {
       setStatus("error");
+      setBannerSyncState("error");
+      setBannerSyncMessage(error instanceof Error ? error.message : "Afişler Supabase'e kaydedilemedi.");
     }
   }
 
@@ -158,6 +215,7 @@ export function PageManagementDashboard() {
 
   function removeBanner(id: string) {
     if (!window.confirm("Bu afiş kaydı silinsin mi?")) return;
+    if (isUuid(id)) setRemovedBannerIds((current) => (current.includes(id) ? current : [...current, id]));
     setDirty({ ...draft, banners: draft.banners.filter((banner) => banner.id !== id) });
   }
 
@@ -247,6 +305,10 @@ export function PageManagementDashboard() {
           {status === "reset" ? <StatusMessage tone="warning" text="Sayfa yönetimi varsayılan değerlere döndürüldü." /> : null}
           {status === "error" ? <StatusMessage tone="danger" text="Kayıt sırasında hata oluştu. LocalStorage erişimini kontrol edin." /> : null}
         </div>
+
+        {bannerSyncMessage ? (
+          <StatusMessage tone={bannerSyncState === "error" ? "danger" : bannerSyncState === "warning" ? "warning" : "success"} text={bannerSyncMessage} />
+        ) : null}
 
         <div className="flex gap-2 overflow-x-auto rounded-xl border border-cyan-300/15 bg-slate-950/70 p-2">
           {sections.map((section) => (
@@ -899,4 +961,46 @@ function moveItem<T extends { id: string; order: number }>(items: T[], id: strin
   sorted[targetIndex] = { ...current, order: target.order };
 
   return sorted.sort((a, b) => a.order - b.order);
+}
+
+async function syncBannersToApi(banners: ManagedBanner[], removedIds: string[]) {
+  const synced: ManagedBanner[] = [];
+
+  for (const banner of banners.sort((first, second) => first.order - second.order)) {
+    if (!banner.title.trim()) throw new Error("Afiş başlığı boş bırakılamaz.");
+    if (!banner.imageUrl.trim()) throw new Error(`${banner.title} için görsel URL zorunludur.`);
+
+    const endpoint = isUuid(banner.id) ? `/api/awareness/banners/${encodeURIComponent(banner.id)}` : "/api/awareness/banners";
+    const response = await fetch(endpoint, {
+      body: JSON.stringify(banner),
+      headers: { "Content-Type": "application/json" },
+      method: isUuid(banner.id) ? "PATCH" : "POST"
+    });
+    const data = (await response.json().catch(() => null)) as AwarenessBannersApiResponse | null;
+
+    if (!response.ok || !data?.ok || !data.item) {
+      throw new Error(data?.error || `${banner.title} afişi kaydedilemedi.`);
+    }
+
+    synced.push(data.item);
+  }
+
+  for (const id of removedIds) {
+    if (!isUuid(id)) continue;
+
+    const response = await fetch(`/api/awareness/banners/${encodeURIComponent(id)}`, {
+      method: "DELETE"
+    });
+    const data = (await response.json().catch(() => null)) as AwarenessBannersApiResponse | null;
+
+    if (!response.ok || !data?.ok) {
+      throw new Error(data?.error || "Afiş pasifleştirilemedi.");
+    }
+  }
+
+  return synced.sort((first, second) => first.order - second.order);
+}
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
