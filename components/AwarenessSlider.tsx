@@ -152,22 +152,19 @@ export function AwarenessSlider({
   return (
     <section
       aria-label={title}
-      className="relative overflow-hidden border-b border-cyan-300/10 bg-slate-950 px-4 py-8 text-white sm:px-6 sm:py-10 lg:px-8"
+      className={`relative overflow-hidden border-b border-cyan-300/10 bg-slate-950 px-4 py-8 text-white sm:px-6 sm:py-10 lg:px-8 ${backgroundImage ? "bg-no-repeat bg-[length:auto_100%] bg-[position:58%_center] sm:bg-cover sm:bg-center" : ""}`}
       style={
         backgroundImage
           ? {
-              backgroundImage: `url(${backgroundImage})`,
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
-              backgroundSize: "cover"
+              backgroundImage: `url(${backgroundImage})`
             }
           : undefined
       }
     >
       {backgroundImage ? (
         <>
-          <div aria-hidden="true" className="absolute inset-0 bg-slate-950/64 sm:bg-slate-950/70 lg:bg-slate-950/72" />
-          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-slate-950/88 via-slate-950/58 to-slate-950/88 sm:bg-gradient-to-r sm:from-slate-950 sm:via-slate-950/82 sm:to-slate-950/58" />
+          <div aria-hidden="true" className="absolute inset-0 bg-slate-950/38 sm:bg-slate-950/70 lg:bg-slate-950/72" />
+          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-slate-950/78 via-slate-950/42 to-slate-950/80 sm:bg-gradient-to-r sm:from-slate-950 sm:via-slate-950/82 sm:to-slate-950/58" />
         </>
       ) : null}
       <div className="relative z-10 mx-auto max-w-7xl">
