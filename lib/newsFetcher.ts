@@ -9,6 +9,7 @@ import {
 } from "@/lib/newsStore";
 import { persistRuntimeNewsItems } from "@/lib/newsRuntimeStore";
 import { summarizeCyberNews, type RawCyberNews } from "@/lib/newsSummarizer";
+import { localizeCyberNewsText } from "@/lib/newsTranslation";
 
 const MAX_ITEMS_PER_SOURCE = 10;
 const MAX_TOTAL_ITEMS = 30;
@@ -78,6 +79,7 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
         imageStats[image.source] += 1;
         return mapRawNewsToCyberNews({
           title: item.title,
+          language: source.language,
           sourceName: item.sourceName,
           sourceUrl: image.resolvedSourceUrl || item.sourceUrl,
           imageUrl: image.url,
@@ -154,6 +156,7 @@ export function parseCyberNewsRss(xml: string, sourceId: string): CyberNewsItem[
     .map((item) =>
       mapRawNewsToCyberNews({
         title: item.title,
+        language: source.language,
         sourceName: item.sourceName,
         sourceUrl: item.sourceUrl,
         imageUrl: item.imageUrl,
@@ -166,17 +169,27 @@ export function parseCyberNewsRss(xml: string, sourceId: string): CyberNewsItem[
 }
 
 export function mapRawNewsToCyberNews(raw: RawCyberNews): CyberNewsItem {
-  const summary = summarizeCyberNews(raw);
-  const title = cleanNewsText(raw.title);
-  const snippet = cleanNewsText(raw.textSnippet);
-  const category = inferCyberNewsCategory(`${title} ${snippet}`);
-  const fallbackVisualType = inferNewsVisualType(`${category} ${title} ${snippet}`);
+  const originalTitle = cleanNewsText(raw.title);
+  const localized = localizeCyberNewsText({
+    language: raw.language,
+    title: originalTitle,
+    textSnippet: raw.textSnippet
+  });
+  const title = localized.titleTr;
+  const snippet = cleanNewsText(localized.summaryTr);
+  const summary = summarizeCyberNews({
+    ...raw,
+    title,
+    textSnippet: snippet
+  });
+  const category = inferCyberNewsCategory(`${title} ${snippet} ${originalTitle} ${raw.textSnippet}`);
+  const fallbackVisualType = inferNewsVisualType(`${category} ${title} ${snippet} ${originalTitle}`);
 
   return {
     id: raw.sourceUrl,
     title,
     titleTr: title,
-    originalTitle: title,
+    originalTitle,
     originalUrl: raw.sourceUrl,
     slug: slugify(title),
     category,

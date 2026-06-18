@@ -1,0 +1,16 @@
+alter table public.cyber_news
+  add column if not exists title_tr text,
+  add column if not exists original_title text,
+  add column if not exists original_url text,
+  add column if not exists summary_short_tr text,
+  add column if not exists summary_long_tr text,
+  add column if not exists why_it_matters_tr text,
+  add column if not exists affected_groups_tr jsonb default '[]'::jsonb,
+  add column if not exists recommendations_tr jsonb default '[]'::jsonb,
+  add column if not exists technical_signals_tr jsonb default '[]'::jsonb,
+  add column if not exists severity text,
+  add column if not exists fallback_visual_type text,
+  add column if not exists is_featured boolean default false,
+  add column if not exists is_archived boolean default false,
+  add column if not exists tags jsonb default '[]'::jsonb,
+  add column if not exists fetch_image_failure_reason text;

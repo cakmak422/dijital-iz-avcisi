@@ -3,11 +3,13 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { CyberArchiveExplorer } from "@/components/CyberArchiveExplorer";
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { ManagedPageHero } from "@/components/ManagedPageHero";
-import { getCyberArchiveEvents, getTodayCyberEvent } from "@/lib/cyberArchive";
+import { getCyberTimelineEventsForPublic, pickTodayTimelineEvent } from "@/lib/cyberTimelineDb";
 
-export default function CyberArchivePage() {
-  const events = getCyberArchiveEvents();
-  const todayEvent = getTodayCyberEvent();
+export const dynamic = "force-dynamic";
+
+export default async function CyberArchivePage() {
+  const { events } = await getCyberTimelineEventsForPublic();
+  const todayEvent = pickTodayTimelineEvent(events);
 
   return (
     <CyberPageShell className="archive-reference-page" variant="archive">
