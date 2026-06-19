@@ -20,7 +20,7 @@ export type NewsAiTranslationResult =
   | { ok: true; data: NewsAiTranslationOutput }
   | { ok: false; reason: string };
 
-const GEMINI_MODEL = "gemini-1.5-flash";
+const GEMINI_MODEL = "gemini-2.0-flash";
 const GEMINI_TIMEOUT_MS = 9000;
 const GEMINI_MIN_INTERVAL_MS = 1200;
 const GEMINI_MAX_INPUT_LENGTH = 1800;
