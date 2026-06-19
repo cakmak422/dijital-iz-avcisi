@@ -22,7 +22,8 @@ export type NewsAiTranslationResult =
 
 const GEMINI_MODEL = "gemini-2.0-flash";
 const GEMINI_TIMEOUT_MS = 9000;
-const GEMINI_MIN_INTERVAL_MS = 1200;
+const GEMINI_MIN_INTERVAL_MS = 3000;
+const GEMINI_RATE_LIMIT_RETRY_MS = 5000;
 const GEMINI_MAX_INPUT_LENGTH = 1800;
 
 let translationQueue = Promise.resolve();
@@ -52,6 +53,18 @@ async function enqueueGeminiCall<T>(task: () => Promise<T>) {
 }
 
 async function callGeminiTranslator(apiKey: string, input: NewsAiTranslationInput): Promise<NewsAiTranslationResult> {
+  const firstAttempt = await requestGeminiTranslation(apiKey, input);
+  if (firstAttempt.ok || firstAttempt.status !== 429) return firstAttempt.result;
+
+  await sleep(GEMINI_RATE_LIMIT_RETRY_MS);
+  const retryAttempt = await requestGeminiTranslation(apiKey, input);
+  return retryAttempt.result;
+}
+
+async function requestGeminiTranslation(
+  apiKey: string,
+  input: NewsAiTranslationInput
+): Promise<{ ok: boolean; status?: number; result: NewsAiTranslationResult }> {
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`, {
       method: "POST",
@@ -76,15 +89,31 @@ async function callGeminiTranslator(apiKey: string, input: NewsAiTranslationInpu
     });
 
     const rawBody = await response.text();
-    if (!response.ok) return { ok: false, reason: `Gemini API ${response.status} dondurdu.` };
+    if (!response.ok) {
+      return {
+        ok: false,
+        status: response.status,
+        result: { ok: false, reason: `Gemini API ${response.status} dondurdu.` }
+      };
+    }
 
     const parsed = JSON.parse(rawBody) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
     const text = parsed.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("").trim() ?? "";
-    if (!text) return { ok: false, reason: "Gemini bos cevap dondurdu." };
+    if (!text) {
+      return {
+        ok: false,
+        status: response.status,
+        result: { ok: false, reason: "Gemini bos cevap dondurdu." }
+      };
+    }
 
-    return parseTranslationPayload(text);
+    const result = parseTranslationPayload(text);
+    return { ok: result.ok, status: response.status, result };
   } catch (error) {
-    return { ok: false, reason: error instanceof Error ? error.message : "Gemini bilinmeyen hata dondurdu." };
+    return {
+      ok: false,
+      result: { ok: false, reason: error instanceof Error ? error.message : "Gemini bilinmeyen hata dondurdu." }
+    };
   }
 }
 
@@ -160,4 +189,8 @@ function cleanArray(value: unknown) {
 
 function clampText(value: string, limit = GEMINI_MAX_INPUT_LENGTH) {
   return cleanNewsDisplayText(value).slice(0, limit);
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
