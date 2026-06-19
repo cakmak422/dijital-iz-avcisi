@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -9,6 +9,7 @@ import {
   getCyberNewsItems,
   getNewsAffectedGroups,
   getNewsLongSummary,
+  getNewsPublicAdvice,
   getNewsRecommendations,
   getNewsSeverity,
   getNewsShortSummary,
@@ -19,9 +20,9 @@ import {
 } from "@/lib/newsStore";
 
 const riskStyles: Record<CyberNewsRiskLevel, string> = {
-  Düşük: "border-emerald-300/35 bg-emerald-300/10 text-emerald-100",
+  "D\u00fc\u015f\u00fck": "border-emerald-300/35 bg-emerald-300/10 text-emerald-100",
   Orta: "border-amber-300/35 bg-amber-300/10 text-amber-100",
-  Yüksek: "border-red-300/35 bg-red-300/10 text-red-100"
+  "Y\u00fcksek": "border-red-300/35 bg-red-300/10 text-red-100"
 };
 
 export const dynamic = "force-dynamic";
@@ -42,7 +43,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
     <CyberPageShell variant="news">
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
         <nav className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
-          <BrandLogo subtitle="Haber Detayı" />
+          <BrandLogo subtitle="Haber DetayÄ±" />
           <Link className="btn-secondary px-4 py-2" href="/haberler">
             Haberler
           </Link>
@@ -63,10 +64,10 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
             <p className="mt-4 max-w-3xl text-base leading-8 text-slate-200">{getNewsShortSummary(item)}</p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <a className="btn-primary min-h-11 px-5" href={item.sourceUrl} rel="noreferrer" target="_blank">
-                Orijinal kaynağı aç
+                Orijinal kaynaÄŸÄ± aÃ§
               </a>
               <Link className="btn-secondary min-h-11 px-5" href="/haberler">
-                Tüm Haberler
+                TÃ¼m Haberler
               </Link>
             </div>
           </div>
@@ -77,12 +78,12 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
       <article className="px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[1fr_360px]">
           <div className="grid gap-4">
-            <NewsDetailSection title="Olayın Özeti">
-              <p>{getNewsLongSummary(item)}</p>
+            <NewsDetailSection title="OlayÄ±n Ã–zeti">
+              <p className="whitespace-pre-line">{getNewsLongSummary(item)}</p>
             </NewsDetailSection>
 
-            <NewsDetailSection title="Neden Önemli?">
-              <p>{getNewsWhyItMatters(item)}</p>
+            <NewsDetailSection title="Neden Ã–nemli?">
+              <p className="whitespace-pre-line">{getNewsWhyItMatters(item)}</p>
             </NewsDetailSection>
 
             <NewsDetailSection title="Kimleri Etkileyebilir?">
@@ -93,7 +94,11 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
               <BulletList items={getNewsTechnicalSignals(item)} />
             </NewsDetailSection>
 
-            <NewsDetailSection title="Kullanıcı/Kurum İçin Öneriler">
+            <NewsDetailSection title="Vatandaş Ne Yapmalı?">
+              <BulletList items={getNewsPublicAdvice(item)} />
+            </NewsDetailSection>
+
+            <NewsDetailSection title="KullanÄ±cÄ±/Kurum Ä°Ã§in Ã–neriler">
               <BulletList items={getNewsRecommendations(item)} />
             </NewsDetailSection>
           </div>
@@ -102,19 +107,19 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
             <h2 className="text-xl font-extrabold text-white">Kaynaklar</h2>
             <div className="mt-4 grid gap-3 text-sm leading-6 text-slate-300">
               <p>
-                <span className="font-bold text-cyan-100">Kaynak adı: </span>
+                <span className="font-bold text-cyan-100">Kaynak adÄ±: </span>
                 {item.sourceName}
               </p>
               <p>
-                <span className="font-bold text-cyan-100">Haber başlığı: </span>
+                <span className="font-bold text-cyan-100">Haber baÅŸlÄ±ÄŸÄ±: </span>
                 {title}
               </p>
               <p>
-                <span className="font-bold text-cyan-100">Yayın tarihi: </span>
+                <span className="font-bold text-cyan-100">YayÄ±n tarihi: </span>
                 {item.publishedAt}
               </p>
               <p>
-                <span className="font-bold text-cyan-100">Çekilme zamanı: </span>
+                <span className="font-bold text-cyan-100">Ã‡ekilme zamanÄ±: </span>
                 {item.fetchedAt}
               </p>
             </div>
@@ -122,7 +127,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
               Orijinal haberi oku
             </a>
             <p className="mt-4 rounded-lg border border-amber-300/25 bg-amber-300/10 p-3 text-xs leading-5 text-amber-100">
-              Bu sayfa kaynak metni birebir kopyalamaz; başlığı ve bağlantıyı koruyarak kısa, bilgilendirici bir özet sunar.
+              Bu sayfa kaynak metni birebir kopyalamaz; baÅŸlÄ±ÄŸÄ± ve baÄŸlantÄ±yÄ± koruyarak kÄ±sa, bilgilendirici bir Ã¶zet sunar.
             </p>
           </aside>
         </div>

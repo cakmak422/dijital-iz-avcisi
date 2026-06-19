@@ -249,6 +249,10 @@ export function getNewsRecommendations(item: CyberNewsItem) {
   return item.recommendationsTr?.length ? item.recommendationsTr : item.publicAdvice;
 }
 
+export function getNewsPublicAdvice(item: CyberNewsItem) {
+  return item.publicAdvice?.length ? item.publicAdvice : getNewsRecommendations(item);
+}
+
 export function getNewsAffectedGroups(item: CyberNewsItem) {
   return item.affectedGroupsTr?.length ? item.affectedGroupsTr : ["Bireysel kullanıcılar", "Kurum çalışanları", "Online işlem yapan kullanıcılar"];
 }

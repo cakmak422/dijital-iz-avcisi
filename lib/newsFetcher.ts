@@ -219,8 +219,9 @@ async function mapRawNewsToCyberNewsForFetch(raw: RawCyberNews): Promise<CyberNe
   const translation = await translateNewsWithAi({
     category: deterministicItem.category,
     originalTitle: deterministicItem.originalTitle || raw.title,
+    originalSummary: raw.textSnippet,
     sourceName: raw.sourceName,
-    summary: raw.textSnippet
+    sourceUrl: raw.sourceUrl
   });
 
   if (!translation.ok) {
@@ -242,7 +243,7 @@ async function mapRawNewsToCyberNewsForFetch(raw: RawCyberNews): Promise<CyberNe
     summaryShortTr: translated.summary_short_tr,
     summaryLongTr: translated.summary_long_tr,
     riskNote: translated.summary_short_tr,
-    whyItMattersTr: translated.summary_long_tr,
+    whyItMattersTr: translated.why_it_matters_tr,
     publicAdvice: translated.public_advice,
     affectedGroupsTr: translated.affected_groups_tr,
     recommendationsTr: translated.recommendations_tr,
