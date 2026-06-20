@@ -1,23 +1,41 @@
 import { CyberVisualTone } from "@/lib/cyberArchive";
 
-const toneStyles: Record<CyberVisualTone, string> = {
-  infrastructure: "from-slate-950 via-blue-950 to-slate-900",
-  ransomware: "from-slate-950 via-red-950 to-slate-900",
-  privacy: "from-slate-950 via-indigo-950 to-slate-900",
-  worm: "from-slate-950 via-emerald-950 to-slate-900",
-  darkweb: "from-slate-950 via-zinc-900 to-slate-900",
-  sabotage: "from-slate-950 via-amber-950 to-slate-900",
-  breach: "from-slate-950 via-cyan-950 to-slate-900"
-};
-
-const accentStyles: Record<CyberVisualTone, string> = {
-  infrastructure: "bg-blue-300/80",
-  ransomware: "bg-red-300/80",
-  privacy: "bg-indigo-300/80",
-  worm: "bg-emerald-300/80",
-  darkweb: "bg-zinc-200/80",
-  sabotage: "bg-amber-300/80",
-  breach: "bg-cyan-300/80"
+const toneStyles: Record<CyberVisualTone, { gradient: string; accent: string; dot: string }> = {
+  infrastructure: {
+    gradient: "from-slate-950 via-blue-950 to-slate-900",
+    accent: "rgba(96, 165, 250, 0.75)",
+    dot: "bg-blue-300"
+  },
+  ransomware: {
+    gradient: "from-slate-950 via-red-950 to-slate-900",
+    accent: "rgba(252, 165, 165, 0.75)",
+    dot: "bg-red-300"
+  },
+  privacy: {
+    gradient: "from-slate-950 via-indigo-950 to-slate-900",
+    accent: "rgba(165, 180, 252, 0.75)",
+    dot: "bg-indigo-300"
+  },
+  worm: {
+    gradient: "from-slate-950 via-emerald-950 to-slate-900",
+    accent: "rgba(110, 231, 183, 0.75)",
+    dot: "bg-emerald-300"
+  },
+  darkweb: {
+    gradient: "from-slate-950 via-zinc-900 to-slate-900",
+    accent: "rgba(212, 212, 216, 0.60)",
+    dot: "bg-zinc-300"
+  },
+  sabotage: {
+    gradient: "from-slate-950 via-amber-950 to-slate-900",
+    accent: "rgba(252, 211, 77, 0.70)",
+    dot: "bg-amber-300"
+  },
+  breach: {
+    gradient: "from-slate-950 via-cyan-950 to-slate-900",
+    accent: "rgba(103, 232, 249, 0.75)",
+    dot: "bg-cyan-300"
+  }
 };
 
 export function CyberEventVisual({
@@ -31,26 +49,64 @@ export function CyberEventVisual({
   tone: CyberVisualTone;
   year: string;
 }) {
+  const style = toneStyles[tone];
+
   return (
-    <div className={`relative min-h-[260px] overflow-hidden rounded-lg bg-gradient-to-br ${toneStyles[tone]} p-5 text-white shadow-lg shadow-slate-900/20`}>
-      <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_0%,rgba(255,255,255,0.08)_42%,transparent_70%)]" />
-      <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-white/12 blur-2xl" />
-      <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-black/45 to-transparent" />
-      <div className="absolute inset-x-6 top-24 grid grid-cols-6 gap-2 opacity-25">
-        {Array.from({ length: 24 }).map((_, index) => (
-          <span className="h-px bg-white" key={index} />
+    <div
+      className={`relative min-h-[280px] overflow-hidden rounded-xl bg-gradient-to-br ${style.gradient} p-5 text-white`}
+      style={{
+        boxShadow: `0 24px 80px rgba(2,6,23,0.50), 0 0 0 1px ${style.accent.replace("0.75", "0.18")}, inset 0 1px 0 rgba(255,255,255,0.07)`
+      }}
+    >
+      {/* Arka plan grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[length:36px_36px] opacity-40" />
+
+      {/* Köşe radyal glow */}
+      <div
+        className="absolute -right-12 -top-12 h-52 w-52 rounded-full blur-3xl"
+        style={{ background: style.accent.replace("0.75", "0.18") }}
+      />
+
+      {/* Sağ alt diagonal çizgiler */}
+      <div className="absolute bottom-0 right-0 h-40 w-40 overflow-hidden opacity-20">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            className="absolute h-px w-full origin-right -rotate-45 bg-white"
+            key={i}
+            style={{ top: `${i * 14}px`, right: `${i * 4}px` }}
+          />
         ))}
       </div>
-      <div className="relative flex h-full min-h-[220px] flex-col justify-between">
+
+      {/* Alt glow çizgisi */}
+      <div
+        className="absolute bottom-0 left-6 right-6 h-px"
+        style={{ background: `linear-gradient(90deg, transparent, ${style.accent}, transparent)` }}
+      />
+
+      {/* Alt overlay */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/60 to-transparent" />
+
+      {/* İçerik */}
+      <div className="relative flex h-full min-h-[240px] flex-col justify-between">
         <div className="flex items-start justify-between gap-4">
-          <span className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold backdrop-blur">
+          <span className="rounded-md border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold tracking-wide backdrop-blur-sm">
             {category}
           </span>
-          <span className={`h-3 w-3 rounded-full ${accentStyles[tone]} shadow-[0_0_28px_currentColor]`} />
+          <span
+            className={`h-2.5 w-2.5 rounded-full ${style.dot} flex-shrink-0 mt-1`}
+            style={{ boxShadow: `0 0 16px 4px ${style.accent}` }}
+          />
         </div>
+
         <div>
-          <p className="text-sm font-semibold text-white/70">{year}</p>
-          <p className="mt-2 max-w-md text-2xl font-bold leading-tight">{title}</p>
+          <p
+            className="text-xs font-bold uppercase tracking-[0.18em]"
+            style={{ color: style.accent }}
+          >
+            {year}
+          </p>
+          <p className="mt-2 max-w-md text-2xl font-extrabold leading-tight">{title}</p>
         </div>
       </div>
     </div>

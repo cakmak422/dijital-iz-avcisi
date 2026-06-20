@@ -50,10 +50,10 @@ export function CyberArchiveExplorer({ events }: { events: CyberArchiveEvent[] }
               value={search}
             />
           </label>
-          <ArchiveSelect label="YÄ±l" onChange={setYear} options={years} value={year} />
+          <ArchiveSelect label="Yıl" onChange={setYear} options={years} value={year} />
           <ArchiveSelect label="Kategori" onChange={setCategory} options={categories} value={category} />
           <ArchiveSelect label="Tehdit tipi" onChange={setThreatType} options={threatTypes} value={threatType} />
-          <ArchiveSelect label="Ã–nem" onChange={setSeverity} options={severities} value={severity} />
+          <ArchiveSelect label="Önem" onChange={setSeverity} options={severities} value={severity} />
         </div>
         <p className="mt-3 text-sm text-slate-400">{filteredEvents.length} olay listeleniyor.</p>
       </div>
@@ -99,7 +99,7 @@ export function CyberArchiveExplorer({ events }: { events: CyberArchiveEvent[] }
                 rel="noreferrer"
                 target="_blank"
               >
-                KaynaÄŸÄ± aÃ§: {event.sourceName}
+                Kaynağı aç: {event.sourceName}
               </a>
             </div>
           </article>
@@ -128,7 +128,7 @@ function ArchiveSelect({
         onChange={(event) => onChange(event.target.value)}
         value={value}
       >
-        <option value="all">TÃ¼mÃ¼</option>
+        <option value="all">Tümü</option>
         {options.map((option) => (
           <option key={option} value={option}>
             {option}

@@ -209,13 +209,13 @@ function AnnouncementBanner() {
 
 function StatsBand() {
   return (
-    <section className="cyber-section border-b border-slate-200 bg-slate-50 py-5 dark:border-white/10 dark:bg-slate-950">
+    <section className="cyber-section cyber-pattern-dots border-b border-cyan-300/12 py-5">
       <div className={`${HOME_CONTAINER} grid gap-3 sm:grid-cols-3`}>
         {platformStats.map((stat) => (
-            <article className="premium-card p-5" key={stat.label}>
-            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{stat.label}</p>
-            <p className="mt-2 text-3xl font-bold text-slate-950 dark:text-white">{stat.value}</p>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{stat.detail}</p>
+          <article className="stat-card premium-card p-5" key={stat.label}>
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">{stat.label}</p>
+            <p className="mt-2 text-3xl font-bold text-white">{stat.value}</p>
+            <p className="mt-1 text-xs text-slate-500">{stat.detail}</p>
           </article>
         ))}
       </div>
@@ -249,26 +249,24 @@ function TodayCyberEvent() {
   }, []);
 
   return (
-    <section className="cyber-section border-b border-slate-200 bg-white py-8 dark:border-white/10 dark:bg-slate-950">
-      <div className={`${HOME_CONTAINER} grid gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:items-center`}>
+    <section className="cyber-section cyber-pattern-section border-b border-cyan-300/12 py-10">
+      <div className={`${HOME_CONTAINER} grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center`}>
         <CyberEventVisual category={event.category} title={event.title} tone={event.visualTone} year={event.year} />
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200">
-            Bugünün Siber Olayı
-          </p>
-          <h2 className="mt-2 text-3xl font-bold">Siber Kırılma Noktaları</h2>
-          <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-400">{event.dateLabel}</p>
-          <p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">{event.summary}</p>
-          <EditableContent as="p" className="mt-3 leading-7 text-slate-600 dark:text-slate-300" contentKey="home.todayCyberEvent.text" />
-          <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">
-            <span className="font-bold">Etkisi: </span>
+          <p className="cyber-eyebrow">Bugünün Siber Olayı</p>
+          <h2 className="mt-4 text-3xl font-bold text-white">Siber Kırılma Noktaları</h2>
+          <p className="mt-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{event.dateLabel}</p>
+          <p className="mt-4 leading-7 text-slate-300">{event.summary}</p>
+          <EditableContent as="p" className="mt-3 leading-7 text-slate-400" contentKey="home.todayCyberEvent.text" />
+          <div className="mt-5 rounded-lg border border-amber-300/30 bg-amber-300/10 p-4 text-sm leading-6 text-amber-100">
+            <span className="font-bold text-amber-50">Etkisi: </span>
             {event.impact}
           </div>
           <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            <Link className="flex min-h-11 items-center justify-center rounded-md bg-slate-900 px-5 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200" href={`/siber-arsiv#${event.slug}`}>
+            <Link className="btn-primary min-h-11 px-5" href={`/siber-arsiv#${event.slug}`}>
               Detayını Oku
             </Link>
-            <a className="flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-100 dark:border-white/15 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10" href={event.sourceUrl} rel="noreferrer" target="_blank">
+            <a className="btn-secondary min-h-11 px-5" href={event.sourceUrl} rel="noreferrer" target="_blank">
               Kaynak: {event.sourceName}
             </a>
           </div>
@@ -307,27 +305,30 @@ function GuidesPreview() {
   ];
 
   return (
-    <section id="rehberler" className="cyber-section border-t border-slate-200 bg-white py-8 dark:border-white/10 dark:bg-slate-950">
-      <div className={`${HOME_CONTAINER} grid gap-5 lg:grid-cols-[340px_1fr]`}>
+    <section id="rehberler" className="cyber-section cyber-pattern-circuit border-t border-cyan-300/12 py-10">
+      <div className={`${HOME_CONTAINER} grid gap-6 lg:grid-cols-[320px_1fr]`}>
         <div>
-          <EditableContent as="p" className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-200" contentKey="home.guides.eyebrow" />
-          <EditableContent as="h2" className="mt-2 text-3xl font-bold" contentKey="home.guides.title" />
-          <EditableContent as="p" className="mt-3 leading-7 text-slate-600 dark:text-slate-300" contentKey="home.guides.description" />
+          <EditableContent as="p" className="cyber-eyebrow" contentKey="home.guides.eyebrow" />
+          <EditableContent as="h2" className="mt-4 text-3xl font-bold text-white" contentKey="home.guides.title" />
+          <EditableContent as="p" className="mt-3 leading-7 text-slate-300" contentKey="home.guides.description" />
         </div>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {guides.map((guide, index) => (
-            <article className="premium-card flex h-full flex-col overflow-hidden bg-slate-50 dark:bg-white/5" key={guide.title}>
-              <div className={`h-20 bg-gradient-to-br ${index % 2 === 0 ? "from-cyan-950 via-slate-900 to-emerald-900" : "from-slate-950 via-blue-950 to-cyan-900"} p-4 text-white`}>
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-cyan-200/20 bg-white/10 text-sm font-bold">{index + 1}</span>
+            <article className="premium-card flex h-full flex-col overflow-hidden" key={guide.title}>
+              <div className={`relative h-24 overflow-hidden bg-gradient-to-br ${index % 2 === 0 ? "from-cyan-950 via-slate-900 to-emerald-950" : "from-slate-950 via-blue-950 to-cyan-950"} p-4`}>
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.08)_1px,transparent_1px)] bg-[length:24px_24px]" />
+                <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-md border border-cyan-200/25 bg-white/10 text-sm font-bold text-white shadow-[0_0_20px_rgba(34,211,238,0.15)]">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
               </div>
               <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cyan-700 dark:text-cyan-200">{guide.category}</p>
-                  <span className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-bold text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">{guide.readTime}</span>
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cyan-200">{guide.category}</p>
+                  <span className="rounded-md border border-cyan-300/18 bg-cyan-300/10 px-2 py-1 text-xs font-bold text-cyan-100">{guide.readTime}</span>
                 </div>
-                <h3 className="mt-3 font-bold">{guide.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{guide.summary}</p>
-                <button className="mt-auto rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold transition hover:bg-white dark:border-white/10 dark:hover:bg-white/10" type="button">
+                <h3 className="mt-3 font-bold text-white">{guide.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-300">{guide.summary}</p>
+                <button className="btn-secondary mt-auto min-h-9 px-3 text-xs" type="button">
                   Rehberi Oku
                 </button>
               </div>
@@ -344,7 +345,7 @@ function Footer() {
   const reportEmail = useEditableContent("home.footer.reportEmail").content;
 
   return (
-    <footer className="border-t border-slate-200 bg-slate-950 py-8 text-white">
+    <footer className="site-footer-premium border-t border-cyan-300/15 bg-slate-950 py-10 text-white">
       <div className={`${HOME_CONTAINER} grid gap-8 lg:grid-cols-[1.25fr_0.8fr_0.8fr_1fr]`}>
         <div>
           <EditableContent as="p" className="text-lg font-bold" contentKey="home.footer.title" />
@@ -353,25 +354,25 @@ function Footer() {
             Platform bilgilendirme amacıyla risk sinyalleri üretir; kesin hüküm veya suç isnadı oluşturmaz.
           </p>
         </div>
-        <nav className="grid gap-2 text-sm text-slate-300">
-          <p className="font-bold text-white">Hızlı bağlantılar</p>
-          <Link className="transition hover:text-cyan-100" href="/sorgu-paneli">Sorgu Paneli</Link>
-          <Link className="transition hover:text-cyan-100" href="/dijital-arac-merkezi">Dijital Araç Merkezi</Link>
-          <Link className="transition hover:text-cyan-100" href="/siber-arsiv">Siber Arşiv</Link>
-          <Link className="transition hover:text-cyan-100" href="/hakkimizda">Hakkımızda</Link>
+        <nav className="grid content-start gap-1.5 text-sm">
+          <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-slate-300">Hızlı Bağlantılar</p>
+          <Link className="footer-link" href="/sorgu-paneli">Sorgu Paneli</Link>
+          <Link className="footer-link" href="/dijital-arac-merkezi">Dijital Araç Merkezi</Link>
+          <Link className="footer-link" href="/siber-arsiv">Siber Arşiv</Link>
+          <Link className="footer-link" href="/hakkimizda">Hakkımızda</Link>
         </nav>
-        <nav className="grid gap-2 text-sm text-slate-300">
-          <p className="font-bold text-white">Yasal</p>
-          <Link className="transition hover:text-cyan-100" href="/kvkk">KVKK</Link>
-          <Link className="transition hover:text-cyan-100" href="/gizlilik">Gizlilik</Link>
-          <Link className="transition hover:text-cyan-100" href="/yasal-uyari">Yasal Uyarı</Link>
-          <Link className="transition hover:text-cyan-100" href="/iletisim">İletişim</Link>
+        <nav className="grid content-start gap-1.5 text-sm">
+          <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-slate-300">Yasal</p>
+          <Link className="footer-link" href="/kvkk">KVKK</Link>
+          <Link className="footer-link" href="/gizlilik">Gizlilik</Link>
+          <Link className="footer-link" href="/yasal-uyari">Yasal Uyarı</Link>
+          <Link className="footer-link" href="/iletisim">İletişim</Link>
         </nav>
-        <div className="grid content-start gap-2 text-sm text-slate-300">
-          <p className="font-bold text-white">İletişim</p>
-          <a className="transition hover:text-cyan-100" href={`mailto:${supportEmail}`}>{supportEmail}</a>
-          <a className="transition hover:text-cyan-100" href={`mailto:${reportEmail}`}>{reportEmail}</a>
-          <EditableContent as="p" className="pt-3 text-xs text-slate-500" contentKey="home.footer.copyright" />
+        <div className="grid content-start gap-2 text-sm text-slate-400">
+          <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-slate-300">İletişim</p>
+          <a className="footer-link" href={`mailto:${supportEmail}`}>{supportEmail}</a>
+          <a className="footer-link" href={`mailto:${reportEmail}`}>{reportEmail}</a>
+          <EditableContent as="p" className="pt-3 text-xs text-slate-600" contentKey="home.footer.copyright" />
         </div>
       </div>
     </footer>
