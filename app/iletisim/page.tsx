@@ -4,6 +4,7 @@ import { ContactForm } from "@/components/ContactForm";
 import { ContactInfoCard } from "@/components/ContactInfoCard";
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { EditableContent } from "@/components/admin/content/EditableContent";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export default function ContactPage() {
   return (
@@ -25,6 +26,8 @@ export default function ContactPage() {
           <ContactForm />
         </div>
       </section>
+
+      <SiteFooter />
     </CyberPageShell>
   );
 }

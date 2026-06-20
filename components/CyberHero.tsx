@@ -17,7 +17,7 @@ const heroVisuals: Record<CyberPageVariant, {
 }> = {
   archive: {
     code: "ARC",
-    label: "Zaman cizelgesi",
+    label: "Zaman çizelgesi",
     metric: "Kaynaklı olay arşivi",
     nodes: ["1988", "2010", "2017", "2026"],
     title: "Dijital arşiv halkası"
@@ -27,7 +27,7 @@ const heroVisuals: Record<CyberPageVariant, {
     label: "Güvenli erişim",
     metric: "Kimlik doğrulama kapısı",
     nodes: ["KEY", "OTP", "ROLE", "LOCK"],
-    title: "Token kontrol katmani"
+    title: "Token kontrol katmanı"
   },
   contact: {
     code: "MSG",
@@ -41,12 +41,12 @@ const heroVisuals: Record<CyberPageVariant, {
     label: "Farkındalık",
     metric: "Sade güvenlik bilgisi",
     nodes: ["READ", "LEARN", "CHECK", "ACT"],
-    title: "Egitim modulu"
+    title: "Eğitim modülü"
   },
   home: {
     code: "DI",
     label: "Dijital güvenlik merkezi",
-    metric: "Risk radari aktif",
+    metric: "Risk radarı aktif",
     nodes: ["URL", "SMS", "IP", "AI"],
     title: "Siber güvenlik ağı"
   },
@@ -55,21 +55,21 @@ const heroVisuals: Record<CyberPageVariant, {
     label: "Siber haber merkezi",
     metric: "Kaynaklı bülten akışı",
     nodes: ["CISA", "USOM", "BTK", "CVE"],
-    title: "Yayin sinyali"
+    title: "Yayın sinyali"
   },
   query: {
     code: "SCAN",
-    label: "Analiz laboratuvari",
+    label: "Analiz laboratuvarı",
     metric: "Sorgu motoru hazır",
     nodes: ["URL", "DNS", "EXIF", "IP"],
-    title: "Veri tarama halkasi"
+    title: "Veri tarama halkası"
   },
   tools: {
     code: "TOOL",
     label: "Araç merkezi",
     metric: "Modüler güvenlik paneli",
     nodes: ["QR", "WHOIS", "HASH", "META"],
-    title: "Kontrol modulleri"
+    title: "Kontrol modülleri"
   },
   about: {
     code: "TRUST",

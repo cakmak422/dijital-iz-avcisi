@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AwarenessSlider } from "@/components/AwarenessSlider";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberPageShell } from "@/components/CyberPageShell";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export default function AwarenessPage() {
   return (
@@ -32,6 +33,8 @@ export default function AwarenessPage() {
         scope="all"
         title="Yayınlanan Bilinçlendirme Afişleri"
       />
+
+      <SiteFooter />
     </CyberPageShell>
   );
 }

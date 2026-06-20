@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { ManagedPageHero } from "@/components/ManagedPageHero";
+import { SiteFooter } from "@/components/SiteFooter";
 import { primaryDigitalTools, roadmapDigitalTools, statusLabels, ToolStatus } from "@/lib/digitalTools";
 
 const statusStyles: Record<ToolStatus, string> = {
@@ -28,7 +29,7 @@ export default function DigitalToolsPage() {
         <div className="mx-auto max-w-7xl">
           <div className="max-w-2xl">
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">İlk 5 araç</p>
-            <h2 className="mt-2 text-3xl font-bold">Cekirdek servisler.</h2>
+            <h2 className="mt-2 text-3xl font-bold">Çekirdek servisler.</h2>
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             {primaryDigitalTools.map((tool) => (
@@ -41,7 +42,7 @@ export default function DigitalToolsPage() {
       <section className="px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Yol haritasi</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Yol haritası</p>
           <h2 className="mt-2 text-3xl font-bold">Sonraki güvenlik araçları.</h2>
           </div>
           <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -51,6 +52,8 @@ export default function DigitalToolsPage() {
           </div>
         </div>
       </section>
+
+      <SiteFooter />
     </CyberPageShell>
   );
 }

@@ -4,6 +4,7 @@ import { AnalysisWorkspace } from "@/components/AnalysisWorkspace";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { ManagedPageHero } from "@/components/ManagedPageHero";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export default function QueryPanelPage() {
   return (
@@ -20,10 +21,12 @@ export default function QueryPanelPage() {
       <QueryReferenceHero />
 
       <div id="analysis-workspace">
-        <Suspense fallback={<div className="px-4 py-10 text-center">Sorgu paneli yukleniyor...</div>}>
+        <Suspense fallback={<div className="px-4 py-10 text-center">Sorgu paneli yükleniyor...</div>}>
           <AnalysisWorkspace />
         </Suspense>
       </div>
+
+      <SiteFooter />
     </CyberPageShell>
   );
 }
