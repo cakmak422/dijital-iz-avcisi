@@ -224,39 +224,84 @@ function StatsBand() {
 }
 
 function TodayCyberEvent() {
-  const [event, setEvent] = useState<CyberArchiveEvent>(() => getTodayCyberEvent());
+  const [events, setEvents] = useState<CyberArchiveEvent[]>([getTodayCyberEvent()]);
+  const [activeIdx, setActiveIdx] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadTimelineEvent() {
+    async function loadTimelineEvents() {
       try {
-        const response = await fetch("/api/cyber-timeline/events?today=1", { cache: "no-store" });
+        // Tüm listeyi çek — slider için ilk 5 olay
+        const response = await fetch("/api/cyber-timeline/events", { cache: "no-store" });
         if (!response.ok) return;
-        const data = (await response.json()) as { event?: CyberArchiveEvent };
-        if (!cancelled && data.event) {
-          setEvent(data.event);
+        const data = (await response.json()) as { events?: CyberArchiveEvent[] };
+        if (!cancelled && Array.isArray(data.events) && data.events.length > 0) {
+          setEvents(data.events.slice(0, 5));
+          setActiveIdx(0);
         }
       } catch {
         // Timeline DB erişilemezse yerel arşiv fallback'i ekranda kalır.
       }
     }
 
-    loadTimelineEvent();
-    return () => {
-      cancelled = true;
-    };
+    loadTimelineEvents();
+    return () => { cancelled = true; };
   }, []);
+
+  const event = events[activeIdx] ?? events[0];
+  const hasMultiple = events.length > 1;
+
+  function prev() { setActiveIdx((i) => (i - 1 + events.length) % events.length); }
+  function next() { setActiveIdx((i) => (i + 1) % events.length); }
 
   return (
     <section className="cyber-section cyber-pattern-section border-b border-cyan-300/12 py-10">
       <div className={`${HOME_CONTAINER} grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center`}>
-        <CyberEventVisual category={event.category} title={event.title} tone={event.visualTone} year={event.year} />
+
+        {/* Sol: görsel — imageUrl varsa gerçek görsel, yoksa CyberEventVisual fallback */}
+        <div className="relative overflow-hidden rounded-xl">
+          {event.imageUrl ? (
+            <img
+              alt={event.title}
+              className="aspect-[4/3] w-full rounded-xl object-cover"
+              loading="lazy"
+              src={event.imageUrl}
+            />
+          ) : (
+            <CyberEventVisual category={event.category} title={event.title} tone={event.visualTone} year={event.year} />
+          )}
+
+          {/* Slider okları — görsel üzerinde */}
+          {hasMultiple && (
+            <div className="absolute inset-x-0 top-1/2 flex -translate-y-1/2 items-center justify-between px-2">
+              <button
+                aria-label="Önceki olay"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-slate-950/70 text-white transition hover:bg-cyan-900/80"
+                onClick={prev}
+                type="button"
+              >
+                ‹
+              </button>
+              <button
+                aria-label="Sonraki olay"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-slate-950/70 text-white transition hover:bg-cyan-900/80"
+                onClick={next}
+                type="button"
+              >
+                ›
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Sağ: metin */}
         <div>
-          <p className="cyber-eyebrow">Bugünün Siber Olayı</p>
+          <p className="cyber-eyebrow">Siber Arşiv</p>
           <h2 className="mt-4 text-3xl font-bold text-white">Siber Kırılma Noktaları</h2>
           <p className="mt-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{event.dateLabel}</p>
-          <p className="mt-4 leading-7 text-slate-300">{event.summary}</p>
+          <p className="mt-1 text-xl font-bold leading-snug text-cyan-100">{event.title}</p>
+          <p className="mt-3 leading-7 text-slate-300">{event.summary}</p>
           <EditableContent as="p" className="mt-3 leading-7 text-slate-400" contentKey="home.todayCyberEvent.text" />
           <div className="mt-5 rounded-lg border border-amber-300/30 bg-amber-300/10 p-4 text-sm leading-6 text-amber-100">
             <span className="font-bold text-amber-50">Etkisi: </span>
@@ -270,6 +315,24 @@ function TodayCyberEvent() {
               Kaynak: {event.sourceName}
             </a>
           </div>
+
+          {/* Dot göstergesi */}
+          {hasMultiple && (
+            <div className="mt-5 flex items-center gap-1.5">
+              {events.map((_, i) => (
+                <button
+                  aria-label={`Olay ${i + 1}`}
+                  className={`h-1.5 rounded-full transition-all ${
+                    i === activeIdx ? "w-5 bg-cyan-400" : "w-1.5 bg-slate-600 hover:bg-slate-400"
+                  }`}
+                  key={i}
+                  onClick={() => setActiveIdx(i)}
+                  type="button"
+                />
+              ))}
+              <span className="ml-2 text-xs text-slate-500">{activeIdx + 1} / {events.length}</span>
+            </div>
+          )}
         </div>
       </div>
     </section>
