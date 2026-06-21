@@ -284,10 +284,15 @@ export function AnalysisWorkspace() {
       return;
     }
 
-    const analysis = await analyzeProduct(sanitizedInput);
-    setResult(analysis);
-    await refreshHistory();
-    setIsLoading(false);
+    try {
+      const analysis = await analyzeProduct(sanitizedInput);
+      setResult(analysis);
+      await refreshHistory();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ürün analizi tamamlanamadı. Lütfen tekrar deneyin.");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -467,6 +472,16 @@ function AnalyzerPanel({
             </div>
           ))}
         </div>
+
+        {activeModule.id === "product" && (
+          <div className="mt-5 flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-400/30 dark:bg-blue-400/10">
+            <span className="mt-0.5 shrink-0 text-blue-600 dark:text-blue-300">ℹ</span>
+            <p className="text-xs leading-5 text-blue-800 dark:text-blue-200">
+              <span className="font-bold">Beta:</span>{" "}
+              Ürün Analizi modülü aktif geliştirme sürecindedir. Sonuçlar bilgilendirme amaçlıdır. Satıcı güven motoru, kategori analizi ve sahte ürün risk tespiti üzerinde geliştirmeler devam etmektedir.
+            </p>
+          </div>
+        )}
       </div>
 
       <ResultPanel activeModule={activeModule} messageResult={messageResult} ipResult={ipResult} exifResult={exifResult} phishingResult={phishingResult} siteResult={siteResult} result={result} isLoading={isLoading} />
@@ -544,33 +559,422 @@ function ResultPanel({
     );
   }
 
+  const ds = result.detailed_summary;
+  const breakdown = result.trust_score_breakdown ?? [];
+  const flags = result.data_quality_flags ?? [];
+  const badges = result.risk_badges ?? [];
+  const decision = result.decision ?? null;
+  const strengths = result.strengths ?? [];
+  const weaknesses = result.weaknesses ?? [];
+  const isSignalBased = result.analysis_mode === "signal_based" || (!ds && result.review_snippet_count === 0);
+
+  const decisionStyles: Record<string, string> = {
+    safe:      "border-emerald-400 bg-emerald-100 dark:border-emerald-400/60 dark:bg-emerald-400/20",
+    recommend: "border-emerald-300 bg-emerald-50 dark:border-emerald-400/40 dark:bg-emerald-400/10",
+    caution:   "border-amber-300 bg-amber-50 dark:border-amber-400/40 dark:bg-amber-400/10",
+    avoid:     "border-red-400 bg-red-100 dark:border-red-400/60 dark:bg-red-400/20",
+  };
+  const decisionTextStyles: Record<string, string> = {
+    safe:      "text-emerald-900 dark:text-emerald-100",
+    recommend: "text-emerald-800 dark:text-emerald-200",
+    caution:   "text-amber-800 dark:text-amber-200",
+    avoid:     "text-red-900 dark:text-red-100",
+  };
+  const decisionIcons: Record<string, string> = {
+    safe:      "🟢",
+    recommend: "🟢",
+    caution:   "🟡",
+    avoid:     "🔴",
+  };
+
+  const badgeToneStyles: Record<string, string> = {
+    safe:    "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-400/40 dark:bg-emerald-400/10 dark:text-emerald-100",
+    caution: "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-100",
+    risk:    "border-red-300 bg-red-50 text-red-800 dark:border-red-400/40 dark:bg-red-400/10 dark:text-red-100",
+    neutral: "border-slate-300 bg-slate-100 text-slate-700 dark:border-white/20 dark:bg-white/10 dark:text-slate-200",
+  };
+
+  const verdictStyles: Record<string, string> = {
+    buy: "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-400/40 dark:bg-emerald-400/10 dark:text-emerald-200",
+    caution: "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-200",
+    avoid: "border-red-300 bg-red-50 text-red-800 dark:border-red-400/40 dark:bg-red-400/10 dark:text-red-200",
+  };
+  const verdictIcons: Record<string, string> = { buy: "✓", caution: "!", avoid: "✕" };
+  const fakeRiskStyles: Record<string, string> = {
+    "düşük": riskStyles.safe,
+    "orta": riskStyles.caution,
+    "yüksek": riskStyles.risk,
+  };
+
   return (
     <section className="premium-card p-5">
+      {/* Başlık + Skor + Net Tavsiye */}
       <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-white/10">
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{result.marketplace}</p>
-          <h2 className="mt-1 text-2xl font-bold">{result.product_name}</h2>
-          <p className="mt-2 text-slate-600 dark:text-slate-300">Satıcı: {result.seller_name}</p>
+          <h2 className="mt-1 text-2xl font-bold leading-tight">{result.product_name}</h2>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600 dark:text-slate-300">
+            {result.brand_name && (
+              <span>Marka: <span className="font-semibold">{result.brand_name}</span></span>
+            )}
+            <span>
+              Satıcı:{" "}
+              <span className="font-semibold">
+                {result.seller_name ? result.seller_name : "Satıcı doğrulanamadı"}
+              </span>
+            </span>
+          </div>
         </div>
-        <div className={`rounded-lg border px-4 py-3 text-center ${riskStyles[result.risk_level]}`}>
-          <p className="text-sm font-semibold">Güven Skoru</p>
-          <p className="text-3xl font-bold">{result.trust_score}</p>
-          <p className="text-sm font-semibold">{riskLabels[result.risk_level]}</p>
+        <div className="flex shrink-0 flex-col items-end gap-2 sm:items-center">
+          <div className={`rounded-lg border px-5 py-3 text-center ${riskStyles[result.risk_level]}`}>
+            <p className="text-xs font-bold uppercase tracking-widest">Güven Skoru</p>
+            <p className="text-4xl font-bold">{result.trust_score}</p>
+            <p className="text-sm font-semibold">{riskLabels[result.risk_level]}</p>
+          </div>
         </div>
       </div>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        <Metric label="Puan" value={result.rating.toFixed(1)} />
-        <Metric label="Yorum" value={result.review_count.toString()} />
-        <Metric label="Negatif yoğunluk" value={`%${result.negative_review_density}`} />
+      {/* V4: Karar Kutusu */}
+      {decision && (
+        <div className={`mt-5 rounded-xl border-2 p-5 ${decisionStyles[decision.decision_level]}`}>
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">{decisionIcons[decision.decision_level]}</span>
+            <div>
+              <p className={`text-xl font-bold ${decisionTextStyles[decision.decision_level]}`}>
+                {decision.decision_label}
+              </p>
+              <p className={`mt-0.5 text-sm font-medium ${decisionTextStyles[decision.decision_level]}`}>
+                {decision.decision_reason}
+              </p>
+            </div>
+          </div>
+          {decision.decision_points.length > 0 && (
+            <ul className="mt-4 space-y-2 border-t border-current/20 pt-4">
+              {decision.decision_points.map((pt, i) => (
+                <li key={i} className={`flex items-start gap-2 text-sm font-medium leading-6 ${decisionTextStyles[decision.decision_level]}`}>
+                  <span className="mt-0.5 shrink-0 font-bold">›</span>
+                  <span>{pt}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* V4: Risk Özeti Kutusu */}
+      {result.risk_summary_level && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 dark:border-white/10 dark:bg-white/5">
+          <span className={`text-sm font-bold ${
+            result.risk_summary_level === "Yüksek Risk" ? "text-red-600 dark:text-red-400" :
+            result.risk_summary_level === "Orta Risk"   ? "text-amber-600 dark:text-amber-400" :
+            "text-emerald-600 dark:text-emerald-400"
+          }`}>
+            {result.risk_summary_level}
+          </span>
+          {(result.risk_summary_reasons ?? []).map((r, i) => (
+            <span key={i} className="rounded bg-slate-200 px-2 py-1 text-xs font-medium text-slate-800 dark:bg-white/15 dark:text-slate-200">
+              {r}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Sinyal bazlı analiz modu bandı */}
+      {isSignalBased && (
+        <div className="mt-4 rounded-lg border border-slate-300 bg-slate-100 p-4 dark:border-white/20 dark:bg-white/5">
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300">Sinyal Bazlı Analiz</p>
+          <p className="text-sm leading-6 text-slate-700 dark:text-slate-300">
+            Yorum metni alınamadığı için AI yorum analizi çalışmadı. Bu analiz yalnızca <strong>ürün puanı, yorum sayısı, satıcı ve URL sinyallerine</strong> dayanıyor. Gerçek yorumlar için ürünün yorum sayfasını ziyaret edin.
+          </p>
+        </div>
+      )}
+
+      {/* Eksik veri uyarıları */}
+      {flags.length > 0 && (
+        <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-400/40 dark:bg-amber-400/10">
+          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-amber-700 dark:text-amber-300">Eksik Veri Uyarıları</p>
+          <ul className="space-y-1">
+            {flags.map((flag, i) => (
+              <li className="flex items-start gap-2 text-sm text-amber-800 dark:text-amber-200" key={i}>
+                <span className="mt-0.5 shrink-0 font-bold">⚠</span>
+                <span>{flag}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Rozet bandı */}
+      {badges.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {badges.map((badge, i) => (
+            <span
+              key={i}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold ${badgeToneStyles[badge.tone]}`}
+              title={badge.detail}
+            >
+              {badge.tone === "safe" && "✓ "}
+              {badge.tone === "risk" && "⚠ "}
+              {badge.tone === "caution" && "! "}
+              {badge.label}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* V4: Güçlü / Zayıf Yönler */}
+      {(strengths.length > 0 || weaknesses.length > 0) && (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {strengths.length > 0 && (
+            <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 dark:border-emerald-400/40 dark:bg-emerald-400/10">
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-emerald-800 dark:text-emerald-200">Güçlü Yönler</p>
+              <ul className="space-y-1.5">
+                {strengths.map((s, i) => (
+                  <li key={i} className="flex items-center gap-2 text-sm font-medium leading-6 text-emerald-900 dark:text-emerald-100">
+                    <span className="shrink-0 font-bold text-emerald-700 dark:text-emerald-300">✓</span>{s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {weaknesses.length > 0 && (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-slate-300">Zayıf Yönler</p>
+              <ul className="space-y-1.5">
+                {weaknesses.map((w, i) => (
+                  <li key={i} className="flex items-center gap-2 text-sm font-medium leading-6 text-slate-800 dark:text-slate-200">
+                    <span className="shrink-0 font-bold text-red-600 dark:text-red-400">✗</span>{w}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Metrik satırı */}
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Metric label="Ürün Puanı" value={result.rating > 0 ? result.rating.toFixed(1) : "—"} />
+        <Metric label="Yorum Sayısı" value={result.review_count > 0 ? result.review_count.toString() : "—"} />
+        <Metric label="Negatif Yoğunluk" value={`%${result.negative_review_density}`} />
+        {result.data_confidence_grade && (
+          <div className="min-w-0 rounded-md border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+            <p className="text-xs font-bold uppercase tracking-[0.06em] text-slate-600 dark:text-slate-300">Veri Güvenilirliği</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{result.data_confidence_grade}</p>
+            <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
+              {result.data_confidence_grade === "A" ? "Çok güçlü veri" :
+               result.data_confidence_grade === "B" ? "Yeterli veri" :
+               result.data_confidence_grade === "C" ? "Sınırlı veri" : "Zayıf veri"}
+            </p>
+          </div>
+        )}
+        {result.rating_trust_signal ? (
+          <div className="min-w-0 rounded-md border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5 sm:col-span-2 lg:col-span-1">
+            <p className="text-xs font-bold uppercase tracking-[0.06em] text-slate-600 dark:text-slate-300">Puan Güvenilirliği</p>
+            <p className="mt-2 text-sm font-medium leading-7 text-slate-800 dark:text-slate-200">{result.rating_trust_signal}</p>
+          </div>
+        ) : null}
       </div>
 
-      <div className="mt-5 grid gap-3 lg:grid-cols-3">
-        <DecisionPanel title="Neden bu sonuç?" body={result.ai_summary.negative} footer={`Güven skoru ${result.trust_score}/100 olarak hesaplandı.`} />
-        <DecisionPanel title="Görülen sinyaller" body={`${result.ai_summary.fake_review_pattern} ${result.ai_summary.delivery_complaints}`} footer={`Parser ${result.review_snippet_count} yorum örneği yakaladı.`} />
-        <DecisionPanel title="Kullanıcı Önerisi" body={result.ai_summary.recommendation} footer={result.parser_notes.length ? result.parser_notes.join(" ") : "Ek parser notu yok."} />
+      {/* V3 Pro sinyal kartları */}
+      {(result.category_risk_level || result.brand_trust_signal || result.price_performance_signal || (result.data_confidence_score !== undefined)) && (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {result.category_risk_level && (
+            <ProductDetailCard
+              title={result.category_risk_level !== "belirsiz"
+                ? `Kategori Riski — ${result.category_risk_level}`
+                : "Kategori Riski — belirsiz"}
+              body={result.category_risk_level !== "belirsiz"
+                ? (result.category_risk_reason ?? "")
+                : "Kategori URL veya ürün adından tespit edilemedi — manuel kontrol önerilir."}
+            />
+          )}
+          {result.brand_trust_signal && (
+            <ProductDetailCard
+              title={`Marka Güveni — ${result.brand_trust_score ?? 50}/100`}
+              body={result.brand_trust_signal}
+            />
+          )}
+          {result.price_performance_signal && (
+            <ProductDetailCard
+              title="Fiyat / Performans"
+              body={result.price_performance_signal}
+            />
+          )}
+          {result.fake_product_risk_level && result.fake_product_risk_level !== "düşük" && (
+            <div className={`min-w-0 rounded-lg border p-4 ${
+              result.fake_product_risk_level === "yüksek"
+                ? "border-red-300 bg-red-50 dark:border-red-400/40 dark:bg-red-400/10"
+                : "border-amber-300 bg-amber-50 dark:border-amber-400/40 dark:bg-amber-400/10"
+            }`}>
+              <h3 className={`text-xs font-bold uppercase tracking-widest ${
+                result.fake_product_risk_level === "yüksek"
+                  ? "text-red-800 dark:text-red-200"
+                  : "text-amber-800 dark:text-amber-200"
+              }`}>
+                Sahte Ürün Riski — {result.fake_product_risk_level}
+              </h3>
+              <p className={`mt-2 text-sm font-medium leading-6 ${
+                result.fake_product_risk_level === "yüksek"
+                  ? "text-red-900 dark:text-red-100"
+                  : "text-amber-900 dark:text-amber-100"
+              }`}>
+                {result.fake_product_risk_reason}
+              </p>
+            </div>
+          )}
+          {result.data_confidence_score !== undefined && (
+            <div className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300">
+                Veri Güvenilirliği — {result.data_confidence_score}/100
+              </h3>
+              <ul className="mt-2 space-y-1">
+                {(result.data_confidence_reasons ?? []).map((r, i) => (
+                  <li className="text-xs font-medium leading-5 text-slate-700 dark:text-slate-300" key={i}>{r}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* V4: Skor Özeti — her zaman görünür */}
+      {result.score_summary && (
+        <p className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium italic leading-7 text-slate-800 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+          {result.score_summary}
+        </p>
+      )}
+
+      {/* V4: Kategori Karşılaştırması */}
+      <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+        <p className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300">Kategori Karşılaştırması</p>
+        <p className="mt-1.5 text-sm font-medium leading-7 text-slate-800 dark:text-slate-200">
+          {result.category_comparison
+            ? result.category_comparison.category_position_text
+            : "Kategori bilgisi tespit edilemedi — URL veya ürün adından kategori çıkarılamadı."}
+        </p>
       </div>
+
+      {ds ? (
+        <>
+          {/* Olumlu / Olumsuz özet */}
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <DecisionPanel
+              title="Olumlu Yorum Özeti"
+              body={ds.positive_summary}
+              footer={`${result.review_snippet_count} yorum örneği değerlendirildi.`}
+            />
+            <DecisionPanel
+              title="Olumsuz Yorum Özeti"
+              body={ds.negative_summary}
+              footer={`Güven skoru ${result.trust_score}/100 olarak hesaplandı.`}
+            />
+          </div>
+
+          {/* En sık şikayetler */}
+          {ds.top_complaints.length > 0 && (
+            <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+              <h3 className="mb-3 text-sm font-bold text-slate-950 dark:text-white">En Sık Şikayet Konuları</h3>
+              <ul className="space-y-1.5">
+                {ds.top_complaints.map((complaint, i) => (
+                  <li className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300" key={i}>
+                    <span className="mt-0.5 shrink-0 font-bold text-red-500">{i + 1}.</span>
+                    <span>{complaint}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Detay grid — 3 sütun */}
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <ProductDetailCard title="Kargo / Teslimat" body={ds.delivery_issues} />
+            <ProductDetailCard title="Paketleme" body={ds.packaging_issues} />
+            <ProductDetailCard title="Satıcı Güvenilirliği" body={ds.seller_reliability} />
+            <div className={`min-w-0 rounded-lg border p-4 ${fakeRiskStyles[ds.fake_review_risk] ?? riskStyles.caution}`}>
+              <h3 className="text-xs font-bold uppercase tracking-widest">Sahte Yorum İhtimali</h3>
+              <p className="mt-1 text-sm font-bold capitalize">{ds.fake_review_risk}</p>
+              <p className="mt-2 text-sm leading-6">{ds.repetitive_pattern}</p>
+            </div>
+            <ProductDetailCard title="Fiyat / Performans" body={ds.price_performance} />
+            <ProductDetailCard title="İade / Değişim" body={ds.return_problems} />
+          </div>
+
+          {/* Veri kalitesi notu */}
+          {ds.data_quality && (
+            <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
+              <span className="font-semibold">Veri kalitesi: </span>{ds.data_quality}
+            </p>
+          )}
+        </>
+      ) : (
+        /* detailed_summary yoksa — sinyal bazlı veya fallback kartlar */
+        <div className="mt-5 grid gap-3 lg:grid-cols-3">
+          <DecisionPanel
+            title={isSignalBased ? "Risk Sinyalleri" : "Neden bu sonuç?"}
+            body={result.ai_summary.negative}
+            footer={isSignalBased ? "Yorum metni olmadan sinyal bazlı değerlendirme." : `Güven skoru ${result.trust_score}/100 olarak hesaplandı.`}
+          />
+          <DecisionPanel
+            title={isSignalBased ? "Analiz Kapsamı" : "Görülen sinyaller"}
+            body={isSignalBased ? result.ai_summary.fake_review_pattern : `${result.ai_summary.fake_review_pattern} ${result.ai_summary.delivery_complaints}`}
+            footer={isSignalBased ? "Yorum metni alınamadı — sahte yorum ve teslimat analizi mevcut değil." : `Parser ${result.review_snippet_count} yorum örneği yakaladı.`}
+          />
+          <DecisionPanel
+            title="Kullanıcı Önerisi"
+            body={result.ai_summary.recommendation}
+            footer={result.parser_notes.length ? result.parser_notes.join(" ") : "Ek parser notu yok."}
+          />
+        </div>
+      )}
+
+      {/* Güven skoru kırılımı */}
+      {breakdown.length > 0 && (
+        <details className="mt-5 rounded-lg border border-slate-200 dark:border-white/10">
+          <summary className="cursor-pointer select-none px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200">
+            Güven Skoru Kırılımı — neden {result.trust_score}?
+          </summary>
+          <div className="border-t border-slate-200 px-4 py-3 dark:border-white/10">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                  <th className="pb-2 pr-4">Faktör</th>
+                  <th className="pb-2 pr-4 text-right">Puan</th>
+                  <th className="pb-2">Açıklama</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                {breakdown.map((item, i) => (
+                  <tr key={i}>
+                    <td className="py-2 pr-4 font-semibold text-slate-800 dark:text-slate-200">{item.label}</td>
+                    <td className={`py-2 pr-4 text-right font-bold ${item.points > 0 ? "text-emerald-600 dark:text-emerald-400" : item.points < 0 ? "text-red-600 dark:text-red-400" : "text-slate-500 dark:text-slate-400"}`}>
+                      {item.points > 0 ? `+${item.points}` : item.points}
+                    </td>
+                    <td className="py-2 text-slate-600 dark:text-slate-300">{item.detail}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )}
+
+      {/* Parser notları */}
+      {result.parser_notes.length > 0 && (
+        <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">
+          {result.parser_notes.join(" ")}
+        </p>
+      )}
     </section>
+  );
+}
+
+function ProductDetailCard({ body, title }: { body: string; title: string }) {
+  return (
+    <article className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+      <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">{body}</p>
+    </article>
   );
 }
 

@@ -1,16 +1,88 @@
 export type RiskLevel = "safe" | "caution" | "risk";
 
+export type TrustScoreItem = {
+  label: string;
+  points: number;
+  detail: string;
+};
+
+export type DetailedAiSummary = {
+  positive_summary: string;
+  negative_summary: string;
+  top_complaints: string[];
+  delivery_issues: string;
+  packaging_issues: string;
+  seller_reliability: string;
+  fake_review_risk: "düşük" | "orta" | "yüksek";
+  repetitive_pattern: string;
+  price_performance: string;
+  return_problems: string;
+  verdict: "buy" | "caution" | "avoid";
+  verdict_label: string;
+  data_quality: string;
+};
+
+export type AnalysisMode = "signal_based" | "review_based";
+
+export type RiskBadge = {
+  label: string;
+  tone: "safe" | "caution" | "risk" | "neutral";
+  detail: string;
+};
+
+export type DecisionLevel = "recommend" | "caution" | "avoid";
+
+export type DecisionResult = {
+  decision_level: DecisionLevel;
+  decision_label: string;
+  decision_reason: string;
+  decision_points: string[];
+};
+
+export type CategoryComparison = {
+  category_review_band: string;
+  category_position_text: string;
+};
+
 export type AnalysisResult = {
   product_name: string;
   seller_name: string;
+  brand_name?: string | null;
+  original_price?: string | null;
+  discount_percent?: number | null;
+  brand_trust_score?: number;
+  brand_trust_signal?: string;
+  seller_trust_score?: number;
+  seller_trust_signal?: string;
+  fake_product_risk_level?: string;
+  fake_product_risk_reason?: string;
+  rating_trust_signal?: string;
+  category_risk_level?: string;
+  category_risk_reason?: string;
+  price_performance_signal?: string;
+  data_confidence_score?: number;
+  data_confidence_reasons?: string[];
+  risk_badges?: RiskBadge[];
+  decision?: DecisionResult;
+  category_comparison?: CategoryComparison;
+  risk_summary_level?: string;
+  risk_summary_reasons?: string[];
+  data_confidence_grade?: string;
+  strengths?: string[];
+  weaknesses?: string[];
+  score_summary?: string;
   marketplace: string;
   rating: number;
   review_count: number;
   negative_review_density: number;
   trust_score: number;
   risk_level: RiskLevel;
+  analysis_mode?: AnalysisMode;
   review_snippet_count: number;
   parser_notes: string[];
+  data_quality_flags?: string[];
+  trust_score_breakdown?: TrustScoreItem[];
+  detailed_summary?: DetailedAiSummary;
   ai_summary: {
     positive: string;
     negative: string;
@@ -332,51 +404,28 @@ export type ExifAnalysisResult = {
   ela_warning?: string | null;
 };
 
-const fallbackResult: AnalysisResult = {
-  product_name: "Demo Ürün analizi",
-  seller_name: "örnek Satıcı",
-  marketplace: "Demo",
-  rating: 4.2,
-  review_count: 128,
-  negative_review_density: 18,
-  trust_score: 74,
-  risk_level: "caution",
-  review_snippet_count: 0,
-  parser_notes: ["Frontend fallback demo sonucu kullanildi."],
-  ai_summary: {
-    positive: "Kullanıcılar Ürün kalitesi ve fiyat-performans dengesini olumlu buluyor.",
-    negative: "Bazı yorumlarda paketleme ve geç teslimat şikayetleri öne çıkıyor.",
-    fake_review_pattern: "Tekrarlayan kısa yorumlar nedeniyle düşük-orta seviyede sahte yorum paterni ihtimali var.",
-    delivery_complaints: "Teslimat şikayetleri yogun değil, ancak tamamen ihmal edilebilir seviyede de değil.",
-    return_issues: "İade süreciyle ilgili sınırlı sayıda olumsuz sinyal var.",
-    recommendation: "Satın almadan önce satıcı puanini ve en yeni yorumlari tekrar kontrol edin."
-  }
-};
 
 export async function analyzeProduct(url: string): Promise<AnalysisResult> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
+  let response: Response;
   try {
-    const response = await fetch(`${apiUrl}/api/analyze`, {
+    response = await fetch(`${apiUrl}/api/analyze`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({ url })
     });
-
-    if (!response.ok) {
-      throw new Error("Analysis request failed");
-    }
-
-    return (await response.json()) as AnalysisResult;
   } catch {
-    return {
-      ...fallbackResult,
-      marketplace: detectMarketplace(url),
-    product_name: "Backend bağlantısı olmadan demo analiz"
-    };
+    throw new Error("Backend'e bağlanılamadı. Lütfen backend servisinin çalıştığını kontrol edin (127.0.0.1:8000).");
   }
+
+  if (!response.ok) {
+    throw new Error(`Analiz isteği başarısız oldu (HTTP ${response.status}).`);
+  }
+
+  return (await response.json()) as AnalysisResult;
 }
 
 export async function fetchAnalysisHistory(): Promise<AnalysisHistoryItem[]> {
@@ -481,12 +530,3 @@ export async function analyzeExifImage(file: File): Promise<ExifAnalysisResult> 
   return (await response.json()) as ExifAnalysisResult;
 }
 
-function detectMarketplace(url: string) {
-  const normalized = url.toLowerCase();
-
-  if (normalized.includes("trendyol")) return "Trendyol";
-  if (normalized.includes("hepsiburada")) return "Hepsiburada";
-  if (normalized.includes("n11")) return "N11";
-
-  return "Bilinmeyen pazar yeri";
-}
