@@ -809,6 +809,19 @@ function ThemeEditor({ onUpdate, theme }: { onUpdate: (patch: Partial<ManagedThe
         <TextField label="Destek e-posta" onChange={(value) => onUpdate({ supportEmail: value })} value={theme.supportEmail} />
         <TextField label="İhbar e-posta" onChange={(value) => onUpdate({ reportEmail: value })} value={theme.reportEmail} />
       </div>
+      {/* Hero metinleri — Site Ayarları ekranından taşındı */}
+      <div className="mt-3 grid gap-3">
+        <TextField
+          label="Ana sayfa hero başlığı"
+          onChange={(value) => onUpdate({ siteHeroTitle: value })}
+          value={theme.siteHeroTitle ?? ""}
+        />
+        <TextareaField
+          label="Ana sayfa hero alt açıklaması"
+          onChange={(value) => onUpdate({ siteHeroSubtitle: value })}
+          value={theme.siteHeroSubtitle ?? ""}
+        />
+      </div>
       <ImageUploadField label="Hero arka plan görseli" onChange={(url) => onUpdate({ heroBackgroundImage: url })} subfolder="theme" value={theme.heroBackgroundImage} />
       <ImageUploadField label="Sayfa genel arka plan görseli" onChange={(url) => onUpdate({ pageBackgroundImage: url })} subfolder="theme" value={theme.pageBackgroundImage} />
       <TextareaField label="Footer metni" onChange={(value) => onUpdate({ footerText: value })} value={theme.footerText} />

@@ -106,6 +106,10 @@ export type ManagedThemeSettings = {
   radiusStyle: string;
   /** Bölüm/kart boşluğu: "tight" | "normal" | "airy" */
   spacingStyle: string;
+  /** Ana sayfa hero başlığı (siteSettingsStore'dan taşındı) */
+  siteHeroTitle: string;
+  /** Ana sayfa hero alt açıklaması (siteSettingsStore'dan taşındı) */
+  siteHeroSubtitle: string;
 };
 
 export type ManagedPageSettings = {

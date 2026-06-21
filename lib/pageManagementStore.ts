@@ -207,10 +207,12 @@ const defaultTheme: ManagedThemeSettings = {
   footerText: "Platform bilgilendirme amacıyla risk sinyalleri üretir; kesin hüküm veya suç isnadı oluşturmaz.",
   supportEmail: "iletisim@dijitalizavcisi.com",
   reportEmail: "iletisim@dijitalizavcisi.com",
-  fontPairing:   "system",
-  sizeScale:     "normal",
-  radiusStyle:   "soft",
-  spacingStyle:  "normal"
+  fontPairing:       "system",
+  sizeScale:         "normal",
+  radiusStyle:       "soft",
+  spacingStyle:      "normal",
+  siteHeroTitle:     "Dijital tehditleri sade risk sinyallerine dönüştür.",
+  siteHeroSubtitle:  "Sahte site, phishing link, riskli satıcı, şüpheli SMS ve dijital risk sinyallerini herkesin anlayacağı güven raporlarına çeviren AI destekli analiz platformu."
 };
 
 const defaultPages: ManagedPageSettings[] = [

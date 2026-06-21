@@ -2,11 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useSiteSettings } from "@/lib/siteSettingsStore";
+import { usePageManagementState } from "@/lib/pageManagementStore";
 
 export function BrandLogo({ subtitle }: { subtitle?: string }) {
-  const settings = useSiteSettings();
-  const logoText = settings.logoText || "Dijital İz Avcısı";
+  const { theme } = usePageManagementState();
+  const logoText = theme.logoText || "Dijital İz Avcısı";
 
   return (
     <Link className="flex min-w-0 items-center gap-3" href="/" aria-label={logoText}>
