@@ -9,6 +9,8 @@ export type CyberVisualTone =
 
 export type CyberArchiveSeverity = "Orta" | "Yüksek" | "Kritik";
 
+export type CyberArchiveImageSource = "ai-generated" | "admin-upload" | "none";
+
 export type CyberArchiveEvent = {
   slug: string;
   title: string;
@@ -27,6 +29,9 @@ export type CyberArchiveEvent = {
   sourceUrl: string;
   visualTone: CyberVisualTone;
   tags: string[];
+  imageUrl?: string | null;
+  imageSource?: CyberArchiveImageSource;
+  newsItemId?: string | null;
 };
 
 export const cyberArchiveEvents: CyberArchiveEvent[] = [

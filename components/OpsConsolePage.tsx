@@ -123,6 +123,15 @@ export function OpsConsolePage() {
         Site ayarlarını aç
                 </Link>
               </article>
+              <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+                <h2 className="text-xl font-bold">Siber Arşiv Görselleri</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">
+                  Arşiv olaylarına manuel görsel yükle, AI üretimini tetikle.
+                </p>
+                <Link className="mt-4 inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100" href="/ops-console/cyber-archive">
+                  Arşiv görsellerini yönet
+                </Link>
+              </article>
               <UsersTable />
               <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
                 <h2 className="text-xl font-bold">Parser sağlık durumu</h2>

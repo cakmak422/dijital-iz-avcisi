@@ -1,6 +1,7 @@
 import {
   cyberArchiveEvents,
   type CyberArchiveEvent,
+  type CyberArchiveImageSource,
   type CyberArchiveSeverity,
   type CyberVisualTone
 } from "@/lib/cyberArchive";
@@ -25,6 +26,9 @@ type CyberTimelineEventRow = {
   tags: string[] | null;
   status?: string | null;
   sort_order?: number | null;
+  image_url?: string | null;
+  image_source?: string | null;
+  news_item_id?: string | null;
 };
 
 export type CyberTimelineReadSource = "database" | "seed-fallback";
@@ -122,13 +126,21 @@ function fromTimelineRow(row: CyberTimelineEventRow): CyberArchiveEvent {
     sourceName: row.source_name,
     sourceUrl: row.source_url,
     visualTone: normalizeVisualTone(row.visual_tone),
-    tags: Array.isArray(row.tags) ? row.tags : []
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    imageUrl: row.image_url ?? null,
+    imageSource: normalizeImageSource(row.image_source),
+    newsItemId: row.news_item_id ?? null
   };
 }
 
 function normalizeSeverity(value: string): CyberArchiveSeverity {
   if (value === "Kritik" || value === "Yüksek" || value === "Orta") return value;
   return "Orta";
+}
+
+function normalizeImageSource(value: string | null | undefined): CyberArchiveImageSource {
+  if (value === "ai-generated" || value === "admin-upload") return value;
+  return "none";
 }
 
 function normalizeVisualTone(value: string): CyberVisualTone {
