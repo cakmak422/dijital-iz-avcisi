@@ -1,9 +1,18 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+
+export const metadata: Metadata = {
+  title: "Sorgu Paneli",
+  description: "Ürün analizi, phishing kontrolü, site güvenliği, IP istihbaratı, EXIF ve mesaj analizi için profesyonel sorgu paneli.",
+  alternates: { canonical: "/sorgu-paneli" },
+  openGraph: { title: "Sorgu Paneli | Dijital İz Avcısı", description: "Tek panelden dijital risk analizi.", url: "/sorgu-paneli" }
+};
 import { AnalysisWorkspace } from "@/components/AnalysisWorkspace";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { ManagedPageHero } from "@/components/ManagedPageHero";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export default function QueryPanelPage() {
   return (
@@ -24,6 +33,8 @@ export default function QueryPanelPage() {
           <AnalysisWorkspace />
         </Suspense>
       </div>
+
+      <SiteFooter />
     </CyberPageShell>
   );
 }

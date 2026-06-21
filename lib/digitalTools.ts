@@ -34,7 +34,7 @@ export const primaryDigitalTools: DigitalTool[] = [
     category: "Mobil tehditler",
     status: "planned",
     priority: "popular",
-    description: "Yüklenen QR kodun hedef URL'sini çözümleyip riskli yyönlendirme paternlerini açıklayacak.",
+    description: "Yüklenen QR kodun hedef URL'sini çözümleyip riskli yönlendirme paternlerini açıklayacak.",
     checks: ["QR hedefi", "Redirect", "Phishing", "Kısa link çözümleme"]
   },
   {

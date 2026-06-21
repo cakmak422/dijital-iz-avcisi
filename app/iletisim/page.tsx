@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ContactForm } from "@/components/ContactForm";
+
+export const metadata: Metadata = {
+  title: "İletişim",
+  description: "Şüpheli link, sahte SMS bildirimi, iş birliği ve öneri için Dijital İz Avcısı iletişim formu.",
+  alternates: { canonical: "/iletisim" },
+  openGraph: { title: "İletişim | Dijital İz Avcısı", description: "Güvenli iletişim merkezi.", url: "/iletisim" }
+};
 import { ContactInfoCard } from "@/components/ContactInfoCard";
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { EditableContent } from "@/components/admin/content/EditableContent";

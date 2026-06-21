@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
@@ -27,6 +28,27 @@ const riskStyles: Record<CyberNewsRiskLevel, string> = {
 };
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const { item } = await getNewsBySlugForPublic(slug);
+  if (!item) return { title: "Haber Bulunamadı" };
+
+  const title = getNewsTitle(item);
+  const summary = getNewsShortSummary(item) || title;
+
+  return {
+    title,
+    description: summary,
+    alternates: { canonical: `/haberler/${slug}` },
+    openGraph: {
+      title: `${title} | Dijital İz Avcısı`,
+      description: summary,
+      url: `/haberler/${slug}`,
+      type: "article"
+    }
+  };
+}
 
 export function generateStaticParams() {
   return getCyberNewsItems().map((item) => ({ slug: item.slug }));

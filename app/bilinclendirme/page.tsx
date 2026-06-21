@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { AwarenessSlider } from "@/components/AwarenessSlider";
+
+export const metadata: Metadata = {
+  title: "Bilinçlendirme",
+  description: "Dijital güvenlik farkındalığı için görsel ve bilgilendirici içerik afişleri.",
+  alternates: { canonical: "/bilinclendirme" },
+  openGraph: { title: "Bilinçlendirme | Dijital İz Avcısı", description: "Dijital güvenlik farkındalık materyalleri.", url: "/bilinclendirme" }
+};
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { SiteFooter } from "@/components/SiteFooter";

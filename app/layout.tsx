@@ -36,7 +36,9 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/logo.png",
+        // TODO: /public/og-image.png (1200x630) üretilince bu path güncellenmeli.
+        // Mevcut logo.png 1536x1024 ve 2.3MB — OG için ideal değil.
+        url: "/dijital-iz-avcisi-logo.png",
         width: 1200,
         height: 630,
         alt: "Dijital İz Avcısı"
@@ -55,10 +57,13 @@ export const metadata: Metadata = {
     follow: true
   },
   icons: {
+    // favicon.ico mevcut hali 2.3MB / 1536x1024 — üzerine yazılmış logo.png kopyası.
+    // Gerçek .ico (16x16 veya 32x32) üretilince /public/favicon.ico değiştirilmeli.
+    // Tarayıcılar favicon-32.png'yi PNG önceliğiyle doğru seçer.
     icon: [
-      { url: "/favicon.ico" },
       { url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
-      { url: "/logo-icon.png", type: "image/png", sizes: "64x64" }
+      { url: "/logo-icon.png", type: "image/png", sizes: "64x64" },
+      { url: "/favicon.ico", sizes: "any" }
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }]
   }

@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { AboutSection } from "@/components/AboutSection";
+
+export const metadata: Metadata = {
+  title: "Hakkımızda",
+  description: "Dijital İz Avcısı platformunun amacı, vizyonu ve hukuki bilgilendirme yaklaşımı.",
+  alternates: { canonical: "/hakkimizda" },
+  openGraph: { title: "Hakkımızda | Dijital İz Avcısı", description: "Güvenilir dijital analiz için sade ve sorumlu teknoloji yaklaşımı.", url: "/hakkimizda" }
+};
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { ManagedPageHero } from "@/components/ManagedPageHero";

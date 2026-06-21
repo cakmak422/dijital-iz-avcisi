@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberArchiveExplorer } from "@/components/CyberArchiveExplorer";
+
+export const metadata: Metadata = {
+  title: "Siber Arşiv",
+  description: "Tarihte iz bırakan siber olaylar, veri sızıntıları ve dijital tehdit arşivi.",
+  alternates: { canonical: "/siber-arsiv" },
+  openGraph: { title: "Siber Arşiv | Dijital İz Avcısı", description: "Siber kırılma noktaları ve dijital güvenlik tarihi.", url: "/siber-arsiv" }
+};
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { ManagedPageHero } from "@/components/ManagedPageHero";
 import { SiteFooter } from "@/components/SiteFooter";

@@ -1,35 +1,98 @@
+"use client";
+
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { ManagedPageHero } from "@/components/ManagedPageHero";
 import { SiteFooter } from "@/components/SiteFooter";
+import { usePageManagementState } from "@/lib/pageManagementStore";
+import type { ManagedGuide } from "@/types/pageManagement";
 
-const guides = [
+const fallbackGuides: ManagedGuide[] = [
   {
+    id: "guide-fake-site-static",
+    title: "Sahte site nasıl anlaşılır?",
     category: "Site güvenliği",
-    readTime: "4 dk",
+    readingTime: "4 dk",
     summary: "Alan adı, SSL, marka taklidi ve ödeme sayfası sinyallerini kontrol etmek için pratik rehber.",
-    title: "Sahte site nasıl anlaşılır?"
+    body: "",
+    coverImage: "",
+    tags: "",
+    status: "active",
+    order: 10,
+    featured: true
   },
   {
+    id: "guide-risky-sms-static",
+    title: "Riskli SMS nasıl tespit edilir?",
     category: "Mesaj analizi",
-    readTime: "3 dk",
+    readingTime: "3 dk",
     summary: "Aciliyet baskısı, kurum taklidi, link yönlendirmesi ve kod talebi gibi paternleri ayırt edin.",
-    title: "Riskli SMS nasıl tespit edilir?"
+    body: "",
+    coverImage: "",
+    tags: "",
+    status: "active",
+    order: 20,
+    featured: false
   },
   {
+    id: "guide-fake-review-static",
+    title: "Sahte yorum nasıl anlaşılır?",
     category: "Alışveriş güvenliği",
-    readTime: "5 dk",
+    readingTime: "5 dk",
     summary: "Tekrarlayan ifade, ani puan artışları ve aşırı benzer yorum sinyallerini sade şekilde okuyun.",
-    title: "Sahte yorum nasıl anlaşılır?"
+    body: "",
+    coverImage: "",
+    tags: "",
+    status: "active",
+    order: 30,
+    featured: false
   },
   {
+    id: "guide-instagram-static",
+    title: "Instagram hesabı nasıl korunur?",
     category: "Siber farkındalık",
-    readTime: "4 dk",
+    readingTime: "4 dk",
     summary: "2FA, oturum kontrolü, fake destek mesajları ve hesap kurtarma riskleri için temel kontrol listesi.",
-    title: "Instagram hesabı nasıl korunur?"
+    body: "",
+    coverImage: "",
+    tags: "",
+    status: "active",
+    order: 40,
+    featured: false
   }
 ];
+
+function GuidesGrid() {
+  const state = usePageManagementState();
+  const managedGuides = state.guides.filter((g) => g.status === "active");
+  const guides = managedGuides.length > 0 ? managedGuides : fallbackGuides;
+
+  return (
+    <section className="cyber-section cyber-pattern-dots px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-2">
+        {guides.map((guide, index) => (
+          <article className="cyber-card rounded-lg border p-5 transition hover:-translate-y-0.5" key={guide.id}>
+            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-lg border border-cyan-300/20 bg-cyan-300/10 text-lg font-bold text-cyan-100">
+              {String(index + 1).padStart(2, "0")}
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-200">{guide.category}</p>
+              <span className="rounded-md border border-cyan-300/20 bg-white/5 px-2 py-1 text-xs font-bold text-slate-200">
+                {guide.readingTime}
+              </span>
+            </div>
+            <h2 className="mt-4 text-2xl font-bold text-white">{guide.title}</h2>
+            <p className="mt-3 leading-7 text-slate-300">{guide.summary}</p>
+            <button className="btn-secondary mt-5 min-h-10 px-4" type="button">
+              Rehberi Oku
+            </button>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default function GuidesPage() {
   return (
@@ -43,48 +106,23 @@ export default function GuidesPage() {
         </nav>
       </header>
 
-      <GuidesReferenceHero />
+      <ManagedPageHero
+        actions={[
+          { href: "/sorgu-paneli", label: "Sorgu Panelini Aç" },
+          { href: "/iletisim", label: "Öneri Gönder", variant: "secondary" }
+        ]}
+        className="guides-reference-hero"
+        fallback={{
+          title: "Güvenlik bilgisi herkes için.",
+          description: "Teknik tehditleri sade, uygulanabilir ve anlaşılır rehberlere dönüştüren siber farkındalık alanı.",
+          image: "/awareness/rehberler.png"
+        }}
+        slug="rehberler"
+      />
 
-      <section className="cyber-section px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-2">
-          {guides.map((guide, index) => (
-            <article className="cyber-card rounded-lg border p-5 transition hover:-translate-y-0.5" key={guide.title}>
-              <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-lg border border-cyan-300/20 bg-cyan-300/10 text-lg font-bold text-cyan-100">
-                {String(index + 1).padStart(2, "0")}
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-200">{guide.category}</p>
-                <span className="rounded-md border border-cyan-300/20 bg-white/5 px-2 py-1 text-xs font-bold text-slate-200">{guide.readTime}</span>
-              </div>
-              <h2 className="mt-4 text-2xl font-bold text-white">{guide.title}</h2>
-              <p className="mt-3 leading-7 text-slate-300">{guide.summary}</p>
-              <button className="btn-secondary mt-5 min-h-10 px-4" type="button">
-                Rehberi Oku
-              </button>
-            </article>
-          ))}
-        </div>
-      </section>
+      <GuidesGrid />
 
       <SiteFooter />
     </CyberPageShell>
-  );
-}
-
-function GuidesReferenceHero() {
-  return (
-    <ManagedPageHero
-      actions={[
-        { href: "/sorgu-paneli", label: "Sorgu Panelini Aç" },
-        { href: "/iletisim", label: "Öneri Gönder", variant: "secondary" }
-      ]}
-      className="guides-reference-hero"
-      fallback={{
-        title: "Güvenlik bilgisi herkes için.",
-        description: "Teknik tehditleri sade, uygulanabilir ve anlaşılır rehberlere dönüştüren siber farkındalık alanı.",
-        image: "/awareness/rehberler.png"
-      }}
-      slug="rehberler"
-    />
   );
 }

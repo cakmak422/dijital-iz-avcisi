@@ -1525,3 +1525,83 @@ footer.border-t::before {
   }
 }
 
+/* ── Arka plan zenginleştirme utility'leri ──────────────────────────────── */
+
+/* İnce grid: boş section'larda hafif yapı hissi */
+.cyber-pattern-grid {
+  position: relative;
+}
+.cyber-pattern-grid::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(34, 211, 238, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.045) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.cyber-pattern-grid > * { position: relative; z-index: 1; }
+
+/* Nokta matrisi: sade bilişim grid dokusu */
+.cyber-pattern-dots {
+  position: relative;
+}
+.cyber-pattern-dots::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: radial-gradient(circle, rgba(34, 211, 238, 0.18) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.55;
+}
+.cyber-pattern-dots > * { position: relative; z-index: 1; }
+
+/* Radar halkaları: genişleyen siber nöbet efekti */
+.cyber-pattern-radar {
+  position: relative;
+  overflow: hidden;
+}
+.cyber-pattern-radar::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    repeating-radial-gradient(circle at 50% 50%,
+      transparent 0,
+      transparent 55px,
+      rgba(34, 211, 238, 0.07) 56px,
+      transparent 57px
+    );
+}
+.cyber-pattern-radar > * { position: relative; z-index: 1; }
+
+/* Ambiyans glow: alt bölümler için yumuşak ışık */
+.cyber-pattern-glow {
+  position: relative;
+}
+.cyber-pattern-glow::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(34, 211, 238, 0.06), transparent),
+    radial-gradient(ellipse 40% 30% at 80% 100%, rgba(16, 185, 129, 0.05), transparent);
+}
+.cyber-pattern-glow > * { position: relative; z-index: 1; }
+
+/* Mobilde opaklığı düşür */
+@media (max-width: 767px) {
+  .cyber-pattern-grid::before  { opacity: 0.5; }
+  .cyber-pattern-dots::before  { opacity: 0.3; }
+  .cyber-pattern-radar::before { opacity: 0.5; }
+  .cyber-pattern-glow::before  { opacity: 0.6; }
+}
+

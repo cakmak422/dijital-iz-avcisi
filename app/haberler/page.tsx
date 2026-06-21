@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberNewsCard } from "@/components/CyberNewsCard";
+
+export const metadata: Metadata = {
+  title: "Güncel Siber Haberler",
+  description: "Kaynaklı siber güvenlik ve dijital dolandırıcılık haberleri — vatandaş için sade risk notiyle.",
+  alternates: { canonical: "/haberler" },
+  openGraph: { title: "Güncel Siber Haberler | Dijital İz Avcısı", description: "Kaynaklı siber güvenlik haberleri.", url: "/haberler" }
+};
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { ManagedPageHero } from "@/components/ManagedPageHero";
 import { SiteFooter } from "@/components/SiteFooter";

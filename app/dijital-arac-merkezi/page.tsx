@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberPageShell } from "@/components/CyberPageShell";
+
+export const metadata: Metadata = {
+  title: "Dijital Araç Merkezi",
+  description: "Link, domain, QR, veri sızıntısı ve mahremiyet kontrollerini tek panelde toplayan dijital güvenlik araç merkezi.",
+  alternates: { canonical: "/dijital-arac-merkezi" },
+  openGraph: { title: "Dijital Araç Merkezi | Dijital İz Avcısı", description: "Tek panelden güvenlik kontrolleri.", url: "/dijital-arac-merkezi" }
+};
 import { ManagedPageHero } from "@/components/ManagedPageHero";
 import { SiteFooter } from "@/components/SiteFooter";
 import { primaryDigitalTools, roadmapDigitalTools, statusLabels, ToolStatus } from "@/lib/digitalTools";

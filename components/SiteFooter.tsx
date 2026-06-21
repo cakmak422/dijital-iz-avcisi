@@ -1,7 +1,34 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { usePageManagementState } from "@/lib/pageManagementStore";
+
+const fallbackNavLinks = [
+  { href: "/sorgu-paneli", label: "Sorgu Paneli" },
+  { href: "/dijital-arac-merkezi", label: "Dijital Araç Merkezi" },
+  { href: "/siber-arsiv", label: "Siber Arşiv" },
+  { href: "/haberler", label: "Haberler" },
+  { href: "/rehberler", label: "Rehberler" },
+  { href: "/bilinclendirme", label: "Bilinçlendirme" }
+];
+
+const legalLinks = [
+  { href: "/kvkk", label: "KVKK" },
+  { href: "/gizlilik", label: "Gizlilik" },
+  { href: "/yasal-uyari", label: "Yasal Uyarı" },
+  { href: "/hakkimizda", label: "Hakkımızda" },
+  { href: "/iletisim", label: "İletişim" }
+];
 
 export function SiteFooter() {
+  const state = usePageManagementState();
+  const managedNav = state.navigation.filter((n) => n.status === "active");
+  const navLinks =
+    managedNav.length > 0
+      ? managedNav.map((n) => ({ href: n.href, label: n.label }))
+      : fallbackNavLinks;
+
   return (
     <footer className="site-footer-premium border-t border-cyan-300/15 bg-slate-950 py-12 text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1.5fr_0.8fr_0.8fr_1fr] lg:gap-8 lg:px-8">
@@ -34,31 +61,18 @@ export function SiteFooter() {
           </p>
         </div>
 
-        {/* Hızlı Bağlantılar */}
+        {/* Hızlı Bağlantılar — page management navigation'dan */}
         <nav aria-label="Hızlı bağlantılar" className="grid content-start gap-1.5">
           <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-slate-300">Hızlı Bağlantılar</p>
-          {[
-            { href: "/sorgu-paneli", label: "Sorgu Paneli" },
-            { href: "/dijital-arac-merkezi", label: "Dijital Araç Merkezi" },
-            { href: "/siber-arsiv", label: "Siber Arşiv" },
-            { href: "/haberler", label: "Haberler" },
-            { href: "/rehberler", label: "Rehberler" },
-            { href: "/bilinclendirme", label: "Bilinçlendirme" }
-          ].map(({ href, label }) => (
+          {navLinks.map(({ href, label }) => (
             <Link className="footer-link text-sm" href={href} key={href}>{label}</Link>
           ))}
         </nav>
 
-        {/* Yasal */}
+        {/* Yasal — sabit (legal sayfalar admin'den kaldırılmamalı) */}
         <nav aria-label="Yasal sayfalar" className="grid content-start gap-1.5">
           <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-slate-300">Yasal</p>
-          {[
-            { href: "/kvkk", label: "KVKK" },
-            { href: "/gizlilik", label: "Gizlilik" },
-            { href: "/yasal-uyari", label: "Yasal Uyarı" },
-            { href: "/hakkimizda", label: "Hakkımızda" },
-            { href: "/iletisim", label: "İletişim" }
-          ].map(({ href, label }) => (
+          {legalLinks.map(({ href, label }) => (
             <Link className="footer-link text-sm" href={href} key={href}>{label}</Link>
           ))}
         </nav>
