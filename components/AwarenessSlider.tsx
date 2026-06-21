@@ -167,7 +167,7 @@ export function AwarenessSlider({
           <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-slate-950/78 via-slate-950/42 to-slate-950/80 sm:bg-gradient-to-r sm:from-slate-950 sm:via-slate-950/82 sm:to-slate-950/58" />
         </>
       ) : null}
-      <div className="relative z-10 mx-auto max-w-7xl">
+      <div className="relative z-10 mx-auto w-full max-w-[1560px] px-4 sm:px-6 lg:px-10 xl:px-12">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(360px,560px)_minmax(0,0.85fr)] lg:items-center">
           <div className="max-w-xl lg:max-w-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-200">{activeCategory}</p>

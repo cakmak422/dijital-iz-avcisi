@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
+import { ColorInputField } from "@/components/admin/ColorInputField";
+import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { awarenessBannersChangedEventName } from "@/lib/awarenessBanners";
 import {
   createHomeBlock,
@@ -521,9 +523,9 @@ function HomeBlockEditor({
         <TextField label="İkon" onChange={(value) => onUpdate({ icon: value })} value={block.icon} />
         <TextField label="Buton metni" onChange={(value) => onUpdate({ buttonLabel: value })} value={block.buttonLabel} />
         <TextField label="Buton linki" onChange={(value) => onUpdate({ buttonHref: value })} value={block.buttonHref} />
-        <TextField label="Arka plan görseli" onChange={(value) => onUpdate({ backgroundImage: value })} value={block.backgroundImage} />
         <NumberField label="Sıra" onChange={(value) => onUpdate({ order: value })} value={block.order} />
       </div>
+      <ImageUploadField label="Arka plan görseli" onChange={(url) => onUpdate({ backgroundImage: url })} subfolder="blocks" value={block.backgroundImage} />
       <EditorActions onMoveDown={onMoveDown} onMoveUp={onMoveUp} onRemove={onRemove} showMoveDown={showMoveDown} showMoveUp={showMoveUp} />
     </EditorCard>
   );
@@ -553,8 +555,10 @@ function CardEditor({
         <SelectField label="Durum" onChange={(value) => onUpdate({ status: value as ManagedStatus })} options={statusOptions} value={card.status} />
         <TextField label="Açıklama" onChange={(value) => onUpdate({ description: value })} value={card.description} />
         <TextField label="İkon adı veya görseli" onChange={(value) => onUpdate({ icon: value })} value={card.icon} />
-        <TextField label="Arka plan rengi" onChange={(value) => onUpdate({ backgroundColor: value })} value={card.backgroundColor} />
-        <TextField label="Arka plan görseli" onChange={(value) => onUpdate({ backgroundImage: value })} value={card.backgroundImage} />
+        <ColorInputField label="Arka plan rengi" onChange={(value) => onUpdate({ backgroundColor: value })} value={card.backgroundColor} />
+      </div>
+      <ImageUploadField label="Arka plan görseli" onChange={(url) => onUpdate({ backgroundImage: url })} subfolder="cards" value={card.backgroundImage} />
+      <div className="grid gap-3 md:grid-cols-2">
         <TextField label="Buton metni" onChange={(value) => onUpdate({ buttonLabel: value })} value={card.buttonLabel} />
         <TextField label="Buton linki" onChange={(value) => onUpdate({ buttonHref: value })} value={card.buttonHref} />
         <TextField label="Etiket" onChange={(value) => onUpdate({ tag: value })} value={card.tag} />
@@ -698,13 +702,13 @@ function GuideEditor({
         <TextField label="Rehber başlığı" onChange={(value) => onUpdate({ title: value })} value={guide.title} />
         <SelectField label="Durum" onChange={(value) => onUpdate({ status: value as ManagedStatus })} options={statusOptions} value={guide.status} />
         <TextField label="Kısa açıklama" onChange={(value) => onUpdate({ summary: value })} value={guide.summary} />
-        <TextField label="Kapak görseli" onChange={(value) => onUpdate({ coverImage: value })} value={guide.coverImage} />
         <TextField label="Kategori" onChange={(value) => onUpdate({ category: value })} value={guide.category} />
         <TextField label="Etiketler" onChange={(value) => onUpdate({ tags: value })} value={guide.tags} />
         <TextField label="Okuma süresi" onChange={(value) => onUpdate({ readingTime: value })} value={guide.readingTime} />
         <NumberField label="Sıralama" onChange={(value) => onUpdate({ order: value })} value={guide.order} />
       </div>
       <TextareaField label="İçerik metni" onChange={(value) => onUpdate({ body: value })} value={guide.body} />
+      <ImageUploadField label="Kapak görseli" onChange={(url) => onUpdate({ coverImage: url })} subfolder="guides" value={guide.coverImage} />
       <CheckField checked={guide.featured} label="Öne çıkar" onChange={(value) => onUpdate({ featured: value })} />
       <EditorActions onMoveDown={onMoveDown} onMoveUp={onMoveUp} onRemove={onRemove} showMoveDown={showMoveDown} showMoveUp={showMoveUp} />
     </EditorCard>
@@ -749,15 +753,64 @@ function ThemeEditor({ onUpdate, theme }: { onUpdate: (patch: Partial<ManagedThe
       <div className="grid gap-3 md:grid-cols-2">
         <TextField label="Site adı" onChange={(value) => onUpdate({ siteName: value })} value={theme.siteName} />
         <TextField label="Logo metni" onChange={(value) => onUpdate({ logoText: value })} value={theme.logoText} />
-        <TextField label="Ana renk" onChange={(value) => onUpdate({ primaryColor: value })} value={theme.primaryColor} />
-        <TextField label="İkincil renk" onChange={(value) => onUpdate({ secondaryColor: value })} value={theme.secondaryColor} />
-        <TextField label="Arka plan teması" onChange={(value) => onUpdate({ backgroundTheme: value })} value={theme.backgroundTheme} />
+        <ColorInputField label="Ana renk" onChange={(value) => onUpdate({ primaryColor: value })} value={theme.primaryColor} />
+        <ColorInputField label="İkincil renk" onChange={(value) => onUpdate({ secondaryColor: value })} value={theme.secondaryColor} />
+
+        {/* Font çifti */}
+        <SelectField
+          label="Yazı tipi"
+          onChange={(value) => onUpdate({ fontPairing: value })}
+          options={[
+            { label: "Varsayılan (Sistem fontu)", value: "system" },
+            { label: "Monospace (Terminal hissi)", value: "mono" },
+            { label: "Serif (Gazete/dergi hissi)", value: "editorial" }
+          ]}
+          value={theme.fontPairing ?? "system"}
+        />
+
+        {/* Yazı boyutu ölçeği */}
+        <SelectField
+          label="Yazı boyutu ölçeği"
+          onChange={(value) => onUpdate({ sizeScale: value })}
+          options={[
+            { label: "Kompakt", value: "compact" },
+            { label: "Normal (varsayılan)", value: "normal" },
+            { label: "Geniş", value: "wide" }
+          ]}
+          value={theme.sizeScale ?? "normal"}
+        />
+
+        {/* Köşe yuvarlaklığı */}
+        <SelectField
+          label="Köşe yuvarlaklığı"
+          onChange={(value) => onUpdate({ radiusStyle: value })}
+          options={[
+            { label: "Köşeli", value: "sharp" },
+            { label: "Yumuşak (varsayılan)", value: "soft" },
+            { label: "Yuvarlak", value: "round" }
+          ]}
+          value={theme.radiusStyle ?? "soft"}
+        />
+
+        {/* Boşluk */}
+        <SelectField
+          label="Bölüm/kart boşluğu"
+          onChange={(value) => onUpdate({ spacingStyle: value })}
+          options={[
+            { label: "Sıkı", value: "tight" },
+            { label: "Normal (varsayılan)", value: "normal" },
+            { label: "Ferah", value: "airy" }
+          ]}
+          value={theme.spacingStyle ?? "normal"}
+        />
+
+        <TextField label="Arka plan teması (URL)" onChange={(value) => onUpdate({ backgroundTheme: value })} value={theme.backgroundTheme} />
         <TextField label="Kart arka plan stili" onChange={(value) => onUpdate({ cardStyle: value })} value={theme.cardStyle} />
-        <TextField label="Hero arka plan görseli" onChange={(value) => onUpdate({ heroBackgroundImage: value })} value={theme.heroBackgroundImage} />
-        <TextField label="Sayfa genel arka plan görseli" onChange={(value) => onUpdate({ pageBackgroundImage: value })} value={theme.pageBackgroundImage} />
         <TextField label="Destek e-posta" onChange={(value) => onUpdate({ supportEmail: value })} value={theme.supportEmail} />
         <TextField label="İhbar e-posta" onChange={(value) => onUpdate({ reportEmail: value })} value={theme.reportEmail} />
       </div>
+      <ImageUploadField label="Hero arka plan görseli" onChange={(url) => onUpdate({ heroBackgroundImage: url })} subfolder="theme" value={theme.heroBackgroundImage} />
+      <ImageUploadField label="Sayfa genel arka plan görseli" onChange={(url) => onUpdate({ pageBackgroundImage: url })} subfolder="theme" value={theme.pageBackgroundImage} />
       <TextareaField label="Footer metni" onChange={(value) => onUpdate({ footerText: value })} value={theme.footerText} />
     </EditorCard>
   );
@@ -771,10 +824,10 @@ function PageSettingsEditor({ onUpdate, page }: { onUpdate: (patch: Partial<Mana
         <SelectField label="Durum" onChange={(value) => onUpdate({ status: value as ManagedStatus })} options={statusOptions} value={page.status} />
         <TextField label="Açıklama" onChange={(value) => onUpdate({ description: value })} value={page.description} />
         <TextField label="Hero metni" onChange={(value) => onUpdate({ heroTitle: value })} value={page.heroTitle} />
-        <TextField label="Hero görseli" onChange={(value) => onUpdate({ heroImage: value })} value={page.heroImage} />
         <TextField label="SEO title" onChange={(value) => onUpdate({ seoTitle: value })} value={page.seoTitle} />
       </div>
       <TextareaField label="Hero açıklaması" onChange={(value) => onUpdate({ heroDescription: value })} value={page.heroDescription} />
+      <ImageUploadField label="Hero görseli" onChange={(url) => onUpdate({ heroImage: url })} subfolder="pages" value={page.heroImage} />
       <TextareaField label="SEO description" onChange={(value) => onUpdate({ seoDescription: value })} value={page.seoDescription} />
     </EditorCard>
   );

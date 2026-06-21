@@ -1605,3 +1605,48 @@ footer.border-t::before {
   .cyber-pattern-glow::before  { opacity: 0.6; }
 }
 
+/* ── Tema CSS Custom Property Bağlantıları ──────────────────────────────────
+   ThemeStyleInjector bu variable'ları .cyber-page üzerinde enjekte eder.
+   Default preset seçiliyken variable tanımlı değildir → fallback devreye girer.
+   Fallback değerleri mevcut görünümle birebir aynıdır.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* 1. Font — başlık ve gövde (sadece .cyber-page içi, admin paneli etkilenmez) */
+.cyber-page {
+  font-family: var(--font-body, system-ui, -apple-system, "Segoe UI", Arial, sans-serif);
+}
+.cyber-page :where(h1, h2, h3, h4) {
+  font-family: var(--font-heading, system-ui, -apple-system, "Segoe UI", Arial, sans-serif);
+}
+
+/* 2. Yazı boyutu ölçeği — hero başlıklar */
+.cyber-page .cyber-hero :where(h1) {
+  font-size: var(--size-h1, 2.5rem);
+}
+.cyber-page .cyber-hero :where(h2) {
+  font-size: var(--size-h2, 1.75rem);
+}
+.cyber-page :where(.managed-page-hero) h1 {
+  font-size: var(--size-h1, 2.5rem);
+}
+
+/* 3. Köşe yuvarlaklığı */
+.cyber-page :where(.premium-card, article.rounded-lg, aside.rounded-lg, form.rounded-lg, .rounded-lg.border) {
+  border-radius: var(--radius-card, 8px);
+}
+.cyber-page :where(.btn-primary) {
+  border-radius: var(--radius-btn, 6px) !important;
+}
+.cyber-page :where(.btn-secondary) {
+  border-radius: var(--radius-btn, 6px) !important;
+}
+
+/* 4. Boşluk (section padding + kart padding) */
+.cyber-page .cyber-section {
+  padding-top:    var(--spacing-section, 2.5rem) !important;
+  padding-bottom: var(--spacing-section, 2.5rem) !important;
+}
+.cyber-page :where(.premium-card) {
+  padding: var(--spacing-card, 1.25rem);
+}
+

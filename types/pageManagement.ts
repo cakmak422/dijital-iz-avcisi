@@ -98,6 +98,14 @@ export type ManagedThemeSettings = {
   footerText: string;
   supportEmail: string;
   reportEmail: string;
+  /** Font çifti: "system" | "mono" | "editorial" */
+  fontPairing: string;
+  /** Yazı boyutu ölçeği: "compact" | "normal" | "wide" */
+  sizeScale: string;
+  /** Köşe yuvarlaklığı: "sharp" | "soft" | "round" */
+  radiusStyle: string;
+  /** Bölüm/kart boşluğu: "tight" | "normal" | "airy" */
+  spacingStyle: string;
 };
 
 export type ManagedPageSettings = {

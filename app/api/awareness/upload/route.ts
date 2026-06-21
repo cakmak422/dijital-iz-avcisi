@@ -49,7 +49,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: "Görsel boyutu en fazla 5 MB olabilir." }, { status: 400 });
     }
 
-    const safePath = createSafeStoragePath(file.name, typeInfo.extension);
+    const subfolder = getSafeSubfolder(String(formData.get("subfolder") ?? ""));
+    const safePath = createSafeStoragePath(file.name, typeInfo.extension, subfolder);
     const uploadResponse = await fetch(`${supabaseUrl}/storage/v1/object/${bucketName}/${safePath}`, {
       method: "POST",
       headers: {
@@ -116,16 +117,23 @@ function isUploadFile(value: FormDataEntryValue | null): value is File {
   return typeof File !== "undefined" && value instanceof File;
 }
 
-function createSafeStoragePath(fileName: string, extension: string) {
+const ALLOWED_SUBFOLDERS = new Set(["banners", "blocks", "cards", "theme", "pages", "guides"]);
+
+function getSafeSubfolder(value: string): string {
+  const trimmed = value.trim().toLowerCase().replace(/[^a-z]/g, "");
+  return ALLOWED_SUBFOLDERS.has(trimmed) ? trimmed : "banners";
+}
+
+function createSafeStoragePath(fileName: string, extension: string, subfolder = "banners") {
   const nameWithoutExtension = fileName.replace(/\.[^.]+$/, "");
   const safeName =
     normalizeForFileName(nameWithoutExtension)
       .replace(/[^a-z0-9-]/g, "")
       .replace(/-+/g, "-")
       .replace(/^-|-$/g, "")
-      .slice(0, 60) || "afis";
+      .slice(0, 60) || "gorsel";
 
-  return `banners/${Date.now()}-${crypto.randomUUID()}-${safeName}.${extension}`;
+  return `${subfolder}/${Date.now()}-${crypto.randomUUID()}-${safeName}.${extension}`;
 }
 
 function normalizeForFileName(value: string) {

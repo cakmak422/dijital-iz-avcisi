@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { ThemeStyleInjector } from "@/components/ThemeStyleInjector";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -76,7 +77,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
-      <body>{children}</body>
+      <body>
+        <ThemeStyleInjector />
+        {children}
+      </body>
     </html>
   );
 }
