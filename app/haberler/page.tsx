@@ -3,6 +3,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { CyberNewsCard } from "@/components/CyberNewsCard";
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { ManagedPageHero } from "@/components/ManagedPageHero";
+import { SiteFooter } from "@/components/SiteFooter";
 import { getAllNewsForPublic } from "@/lib/newsReadService";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +40,8 @@ export default async function NewsPage() {
           ))}
         </div>
       </section>
+
+      <SiteFooter />
     </CyberPageShell>
   );
 }

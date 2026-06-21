@@ -4,6 +4,7 @@ import { ContactForm } from "@/components/ContactForm";
 import { ContactInfoCard } from "@/components/ContactInfoCard";
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { EditableContent } from "@/components/admin/content/EditableContent";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export default function ContactPage() {
   return (
@@ -11,7 +12,7 @@ export default function ContactPage() {
       <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <BrandLogo subtitle="İletişim" />
-          <Link className="rounded-md border border-cyan-900/12 px-4 py-2 text-sm font-semibold transition hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10" href="/">
+          <Link className="btn-secondary px-4 py-2" href="/">
             Ana sayfa
           </Link>
         </nav>
@@ -19,12 +20,14 @@ export default function ContactPage() {
 
       <ContactReferenceHero />
 
-      <section id="iletisim-formu" className="px-4 py-10 sm:px-6 lg:px-8">
+      <section id="iletisim-formu" className="cyber-pattern-radar px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-4xl gap-5">
           <ContactInfoCard />
           <ContactForm />
         </div>
       </section>
+
+      <SiteFooter />
     </CyberPageShell>
   );
 }

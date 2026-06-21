@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { ManagedPageHero } from "@/components/ManagedPageHero";
+import { SiteFooter } from "@/components/SiteFooter";
 
 const guides = [
   {
@@ -19,7 +20,7 @@ const guides = [
   {
     category: "Alışveriş güvenliği",
     readTime: "5 dk",
-    summary: "Tekrarlayan ifade, ani puan artisleri ve asiri benzer yorum sinyallerini sade şekilde okuyun.",
+    summary: "Tekrarlayan ifade, ani puan artışları ve aşırı benzer yorum sinyallerini sade şekilde okuyun.",
     title: "Sahte yorum nasıl anlaşılır?"
   },
   {
@@ -64,6 +65,8 @@ export default function GuidesPage() {
           ))}
         </div>
       </section>
+
+      <SiteFooter />
     </CyberPageShell>
   );
 }

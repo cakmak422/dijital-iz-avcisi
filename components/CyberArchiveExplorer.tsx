@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { CyberEventVisual } from "@/components/CyberEventVisual";
@@ -6,7 +6,7 @@ import type { CyberArchiveEvent } from "@/lib/cyberArchive";
 
 const severityStyles: Record<CyberArchiveEvent["severity"], string> = {
   Orta: "border-amber-300/30 bg-amber-300/10 text-amber-100",
-  Yüksek: "border-orange-300/30 bg-orange-300/10 text-orange-100",
+  "Y\u00fcksek": "border-orange-300/30 bg-orange-300/10 text-orange-100",
   Kritik: "border-red-300/30 bg-red-300/10 text-red-100"
 };
 
@@ -85,9 +85,10 @@ export function CyberArchiveExplorer({ events }: { events: CyberArchiveEvent[] }
                 {event.impact}
               </div>
               <details className="mt-4 rounded-md border border-cyan-300/15 bg-cyan-300/10 p-4 text-sm leading-6 text-slate-200">
-                <summary className="cursor-pointer font-bold text-cyan-100">Detaylı açıklama ve öneriler</summary>
+                <summary className="cursor-pointer font-bold text-cyan-100">Detaylı açıklama, etki ve öneriler</summary>
                 <div className="mt-4 grid gap-4">
-                  <p>{event.details}</p>
+                  <ArchiveInfoBlock title="Detaylı açıklama">{event.details}</ArchiveInfoBlock>
+                  <ArchiveInfoBlock title="Etkisi">{event.impact}</ArchiveInfoBlock>
                   <ArchiveBulletList title="Kimleri etkileyebilir?" items={event.affectedGroups} />
                   <ArchiveBulletList title="Öneriler" items={event.recommendations} />
                 </div>
@@ -150,6 +151,16 @@ function ArchiveBulletList({ items, title }: { items: string[]; title: string })
         ))}
       </ul>
     </div>
+  );
+}
+
+
+function ArchiveInfoBlock({ children, title }: { children: string; title: string }) {
+  return (
+    <section className="rounded-md border border-cyan-300/15 bg-slate-950/45 p-4">
+      <h3 className="font-bold text-cyan-100">{title}</h3>
+      <p className="mt-2 text-slate-200">{children}</p>
+    </section>
   );
 }
 

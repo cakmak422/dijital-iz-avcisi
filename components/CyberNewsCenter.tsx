@@ -39,7 +39,7 @@ export function CyberNewsCenter() {
   }
 
   return (
-    <section className="cyber-section border-b border-slate-200 bg-white py-10 dark:border-white/10 dark:bg-slate-950">
+    <section className="cyber-section cyber-pattern-dots border-b border-cyan-300/12 py-10">
       <div className="mx-auto w-full max-w-[1560px] px-4 sm:px-6 lg:px-10 xl:px-12">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>

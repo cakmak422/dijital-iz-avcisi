@@ -4,11 +4,13 @@ import type { ReactNode } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberNewsVisual } from "@/components/CyberNewsCard";
 import { CyberPageShell } from "@/components/CyberPageShell";
+import { SiteFooter } from "@/components/SiteFooter";
 import { getNewsBySlugForPublic } from "@/lib/newsReadService";
 import {
   getCyberNewsItems,
   getNewsAffectedGroups,
   getNewsLongSummary,
+  getNewsPublicAdvice,
   getNewsRecommendations,
   getNewsSeverity,
   getNewsShortSummary,
@@ -19,9 +21,9 @@ import {
 } from "@/lib/newsStore";
 
 const riskStyles: Record<CyberNewsRiskLevel, string> = {
-  Düşük: "border-emerald-300/35 bg-emerald-300/10 text-emerald-100",
+  "Düşük": "border-emerald-300/35 bg-emerald-300/10 text-emerald-100",
   Orta: "border-amber-300/35 bg-amber-300/10 text-amber-100",
-  Yüksek: "border-red-300/35 bg-red-300/10 text-red-100"
+  "Yüksek": "border-red-300/35 bg-red-300/10 text-red-100"
 };
 
 export const dynamic = "force-dynamic";
@@ -78,11 +80,11 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
         <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[1fr_360px]">
           <div className="grid gap-4">
             <NewsDetailSection title="Olayın Özeti">
-              <p>{getNewsLongSummary(item)}</p>
+              <p className="whitespace-pre-line">{getNewsLongSummary(item)}</p>
             </NewsDetailSection>
 
             <NewsDetailSection title="Neden Önemli?">
-              <p>{getNewsWhyItMatters(item)}</p>
+              <p className="whitespace-pre-line">{getNewsWhyItMatters(item)}</p>
             </NewsDetailSection>
 
             <NewsDetailSection title="Kimleri Etkileyebilir?">
@@ -91,6 +93,10 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
 
             <NewsDetailSection title="Teknik Sinyaller">
               <BulletList items={getNewsTechnicalSignals(item)} />
+            </NewsDetailSection>
+
+            <NewsDetailSection title="Vatandaş Ne Yapmalı?">
+              <BulletList items={getNewsPublicAdvice(item)} />
             </NewsDetailSection>
 
             <NewsDetailSection title="Kullanıcı/Kurum İçin Öneriler">
@@ -127,6 +133,8 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
           </aside>
         </div>
       </article>
+
+      <SiteFooter />
     </CyberPageShell>
   );
 }

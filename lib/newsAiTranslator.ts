@@ -2,15 +2,17 @@ import { cleanNewsDisplayText } from "@/lib/newsTranslation";
 
 export type NewsAiTranslationInput = {
   originalTitle: string;
-  summary: string;
+  originalSummary: string;
   sourceName: string;
   category: string;
+  sourceUrl: string;
 };
 
 export type NewsAiTranslationOutput = {
   title_tr: string;
   summary_short_tr: string;
   summary_long_tr: string;
+  why_it_matters_tr: string;
   public_advice: string[];
   affected_groups_tr: string[];
   recommendations_tr: string[];
@@ -119,14 +121,19 @@ async function requestGeminiTranslation(
 
 function buildPrompt(input: NewsAiTranslationInput) {
   const originalTitle = clampText(input.originalTitle);
-  const summary = clampText(input.summary);
+  const originalSummary = clampText(input.originalSummary);
   const sourceName = clampText(input.sourceName, 140);
   const category = clampText(input.category, 140);
+  const sourceUrl = clampText(input.sourceUrl, 300);
 
   return [
     "Asagidaki siber guvenlik haberini Turkce, sade ve vatandas odakli dile cevir.",
     "Metni birebir kopyalama; anlamini koruyarak temiz Turkce ozet uret.",
     "Ingilizce baslik veya yarim ceviri birakma.",
+    "summary_short_tr tam olarak 2 cumlelik kisa kart ozeti olsun.",
+    "summary_long_tr 2-3 paragraf halinde ayrintili ama sade aciklama olsun.",
+    "why_it_matters_tr bu haber neden onemli sorusuna tek paragrafla cevap versin.",
+    "public_advice vatandasin ne yapmasi gerektigini anlatan uygulanabilir maddeler olsun.",
     "Abartili kesin hukum kullanma.",
     "Sadece gecerli JSON dondur.",
     "",
@@ -135,6 +142,7 @@ function buildPrompt(input: NewsAiTranslationInput) {
     '  "title_tr": "string",',
     '  "summary_short_tr": "string",',
     '  "summary_long_tr": "string",',
+    '  "why_it_matters_tr": "string",',
     '  "public_advice": ["string", "string", "string"],',
     '  "affected_groups_tr": ["string", "string"],',
     '  "recommendations_tr": ["string", "string", "string"]',
@@ -142,8 +150,9 @@ function buildPrompt(input: NewsAiTranslationInput) {
     "",
     `Kaynak: ${sourceName}`,
     `Kategori: ${category}`,
+    `Kaynak URL: ${sourceUrl}`,
     `Orijinal baslik: ${originalTitle}`,
-    `Kaynak ozet: ${summary}`
+    `Kaynak ozet: ${originalSummary}`
   ].join("\n");
 }
 
@@ -163,12 +172,13 @@ function parseTranslationPayload(value: string): NewsAiTranslationResult {
     title_tr: cleanField(record.title_tr),
     summary_short_tr: cleanField(record.summary_short_tr),
     summary_long_tr: cleanField(record.summary_long_tr),
+    why_it_matters_tr: cleanField(record.why_it_matters_tr),
     public_advice: cleanArray(record.public_advice),
     affected_groups_tr: cleanArray(record.affected_groups_tr),
     recommendations_tr: cleanArray(record.recommendations_tr)
   };
 
-  if (!data.title_tr || !data.summary_short_tr || !data.summary_long_tr) {
+  if (!data.title_tr || !data.summary_short_tr || !data.summary_long_tr || !data.why_it_matters_tr) {
     return { ok: false, reason: "Gemini zorunlu metin alanlarini eksik dondurdu." };
   }
   if (!data.public_advice.length || !data.affected_groups_tr.length || !data.recommendations_tr.length) {

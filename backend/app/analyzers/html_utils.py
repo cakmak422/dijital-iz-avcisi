@@ -45,25 +45,36 @@ def fetch_soup(url: str, timeout: int = 12) -> Any:
 
 def fetch_rendered_soup(url: str, wait_selector: str | None = None, timeout_ms: int = 15000) -> Any:
     from bs4 import BeautifulSoup
-    from playwright.sync_api import sync_playwright
+
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError as exc:
+        raise RuntimeError("Playwright kurulu degil. Calistirin: python -m playwright install chromium") from exc
 
     validate_outbound_url(url)
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=True)
-        page = browser.new_page(
-            locale="tr-TR",
-            user_agent=DEFAULT_HEADERS["User-Agent"],
-            viewport={"width": 1366, "height": 900},
-        )
-        page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
-        if wait_selector:
-            try:
-                page.wait_for_selector(wait_selector, timeout=5000)
-            except Exception:
-                pass
-        page.wait_for_timeout(1200)
-        html = page.content()
-        browser.close()
+    try:
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            page = browser.new_page(
+                locale="tr-TR",
+                user_agent=DEFAULT_HEADERS["User-Agent"],
+                viewport={"width": 1366, "height": 900},
+            )
+            page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+            if wait_selector:
+                try:
+                    page.wait_for_selector(wait_selector, timeout=5000)
+                except Exception:
+                    pass
+            page.wait_for_timeout(1200)
+            html = page.content()
+            browser.close()
+    except Exception as exc:
+        if "Executable doesn't exist" in str(exc) or "chromium" in str(exc).lower():
+            raise RuntimeError(
+                "Playwright Chromium binary bulunamadi. Calistirin: python -m playwright install chromium"
+            ) from exc
+        raise
 
     return BeautifulSoup(html, "html.parser")
 
@@ -210,9 +221,10 @@ def _fetch_html(url: str, timeout: int) -> str:
     try:
         import requests
 
-        response = requests.get(url, headers=DEFAULT_HEADERS, timeout=timeout)
+        response = requests.get(url, headers=DEFAULT_HEADERS, timeout=timeout, allow_redirects=True)
         response.raise_for_status()
-        return response.text
+        encoding = response.apparent_encoding or response.encoding or "utf-8"
+        return response.content.decode(encoding, errors="replace")
     except ModuleNotFoundError:
         request = Request(url, headers=DEFAULT_HEADERS)
         with urlopen(request, timeout=timeout) as response:

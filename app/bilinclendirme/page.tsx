@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AwarenessSlider } from "@/components/AwarenessSlider";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CyberPageShell } from "@/components/CyberPageShell";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export default function AwarenessPage() {
   return (
@@ -15,7 +16,7 @@ export default function AwarenessPage() {
         </nav>
       </header>
 
-      <section className="cyber-section px-4 py-10 text-white sm:px-6 lg:px-8">
+      <section className="cyber-section cyber-pattern-dots px-4 py-10 text-white sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-200">Dijital farkındalık merkezi</p>
           <h1 className="mt-3 max-w-3xl text-4xl font-extrabold tracking-normal text-white sm:text-5xl">
@@ -32,6 +33,8 @@ export default function AwarenessPage() {
         scope="all"
         title="Yayınlanan Bilinçlendirme Afişleri"
       />
+
+      <SiteFooter />
     </CyberPageShell>
   );
 }
