@@ -65,12 +65,10 @@ async function validateAccess(request: Request) {
     return { allowed: true, status: 200, error: "" };
   }
 
-  // Admin oturumu
-  const cookieStore  = await cookies();
-  const allowDemo    = process.env.NEXT_PUBLIC_ENABLE_DEMO_AUTH === "true" || process.env.NODE_ENV !== "production";
-  const session      = cookieStore.get("__Host-dia_session")?.value ?? (allowDemo ? cookieStore.get("dia_session")?.value : undefined);
-  const role         = cookieStore.get("__Host-dia_role")?.value    ?? (allowDemo ? cookieStore.get("dia_role")?.value    : undefined);
-  if (session && role === "admin") return { allowed: true, status: 200, error: "" };
+  // Admin oturumu — imzalı çerez doğrulaması
+  const { validateAdminFromCookies } = await import("@/lib/serverAuth");
+  const adminCheck = await validateAdminFromCookies();
+  if (adminCheck.ok) return { allowed: true, status: 200, error: "" };
 
   // Secret token (header veya query)
   if (configuredSecret) {

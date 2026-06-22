@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AboutSection } from "@/components/AboutSection";
@@ -14,7 +14,7 @@ import { FeedbackForm } from "@/components/FeedbackForm";
 import { EditableContent } from "@/components/admin/content/EditableContent";
 import { useEditableContent } from "@/lib/contentStore";
 import { getTodayCyberEvent, type CyberArchiveEvent } from "@/lib/cyberArchive";
-import { getCurrentDemoUser } from "@/lib/auth";
+import { getCurrentDemoUser, logoutDemoUser } from "@/lib/auth";
 import type { User } from "@/lib/users";
 
 type Theme = "light" | "dark";
@@ -60,6 +60,8 @@ function Navbar({
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
   const navItems = [
     { href: "/hakkimizda", label: "Hakkımızda" },
     { href: "/siber-arsiv", label: "Siber Arşiv" },
@@ -78,6 +80,21 @@ function Navbar({
     setCurrentUser(getCurrentDemoUser());
   }, []);
 
+  // Dropdown dışına tıklanınca kapat
+  useEffect(() => {
+    function handlePointerDown(e: MouseEvent) {
+      if (!userMenuRef.current?.contains(e.target as Node)) setUserMenuOpen(false);
+    }
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, []);
+
+  function handleUserLogout() {
+    logoutDemoUser();
+    setCurrentUser(null);
+    setUserMenuOpen(false);
+  }
+
   return (
     <header className="sticky top-0 z-30 border-b border-cyan-900/10 bg-white/88 shadow-sm shadow-cyan-950/5 backdrop-blur-xl dark:border-cyan-300/10 dark:bg-slate-950/88">
       <nav className={`${HOME_CONTAINER} grid min-h-16 gap-3 py-3 xl:grid-cols-[auto_1fr_auto] xl:items-center`}>
@@ -87,6 +104,38 @@ function Navbar({
           <div className="flex items-center gap-2 xl:order-3">
             {isAdmin ? (
               <AdminSessionMenu className="hidden lg:block" onLogout={() => setCurrentUser(null)} user={currentUser} />
+            ) : currentUser ? (
+              /* Normal kullanıcı oturumu açık — dropdown menü */
+              <div className="relative hidden lg:block" ref={userMenuRef}>
+                <button
+                  aria-expanded={userMenuOpen}
+                  className="focus-ring flex items-center gap-2 rounded-md border border-emerald-300/40 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 transition hover:border-emerald-400/60 hover:bg-emerald-100 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200 dark:hover:bg-emerald-400/15"
+                  onClick={() => setUserMenuOpen((v) => !v)}
+                  type="button"
+                >
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  {currentUser.username}
+                  <span className="ml-0.5 text-xs opacity-60">{userMenuOpen ? "▲" : "▼"}</span>
+                </button>
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-full mt-1 w-44 rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-white/10 dark:bg-slate-900">
+                    <Link
+                      className="flex min-h-9 items-center px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/5"
+                      href="/kullanici-paneli"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      Kullanıcı Paneli
+                    </Link>
+                    <button
+                      className="flex w-full min-h-9 items-center px-4 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-400/10"
+                      onClick={handleUserLogout}
+                      type="button"
+                    >
+                      Çıkış Yap
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
               authItems.map((item) => (
                 <Link
@@ -142,6 +191,25 @@ function Navbar({
                 onNavigate={() => setMenuOpen(false)}
                 user={currentUser}
               />
+            ) : currentUser ? (
+              /* Normal kullanıcı — mobil menü */
+              <>
+                <Link
+                  className="focus-ring flex min-h-11 items-center justify-center gap-2 rounded-md border border-emerald-300/40 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200"
+                  href="/kullanici-paneli"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  {currentUser.username} · Panelim
+                </Link>
+                <button
+                  className="focus-ring flex min-h-11 w-full items-center justify-center rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-400/30 dark:bg-red-400/10 dark:text-red-300"
+                  onClick={() => { handleUserLogout(); setMenuOpen(false); }}
+                  type="button"
+                >
+                  Çıkış Yap
+                </button>
+              </>
             ) : (
               authItems.map((item) => (
                 <Link

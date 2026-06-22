@@ -88,16 +88,9 @@ export async function POST(request: Request) {
 }
 
 async function validateAdminUploadAccess() {
-  const cookieStore = await cookies();
-  const allowDemoCookies = process.env.NEXT_PUBLIC_ENABLE_DEMO_AUTH === "true" || process.env.NODE_ENV !== "production";
-  const sessionCookie = cookieStore.get("__Host-dia_session")?.value ?? (allowDemoCookies ? cookieStore.get("dia_session")?.value : undefined);
-  const sessionRole = cookieStore.get("__Host-dia_role")?.value ?? (allowDemoCookies ? cookieStore.get("dia_role")?.value : undefined);
-
-  if (sessionCookie && sessionRole === "admin") {
-    return { allowed: true, status: 200, error: "" };
-  }
-
-  return { allowed: false, status: 401, error: "Bu işlem için admin oturumu gerekir." };
+  const { validateAdminFromCookies } = await import("@/lib/serverAuth");
+  const result = await validateAdminFromCookies();
+  return { allowed: result.ok, status: result.status, error: result.error };
 }
 
 function getSupabaseBaseUrl() {

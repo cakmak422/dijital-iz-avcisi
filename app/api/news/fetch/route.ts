@@ -126,12 +126,13 @@ async function validateNewsFetchAccess(request: Request) {
     return { allowed: true, status: 200, body: {} };
   }
 
-  const cookieStore = await cookies();
-  const authorization = request.headers.get("authorization") ?? "";
-  const sessionCookie = cookieStore.get("__Host-dia_session")?.value;
-  const sessionRole = cookieStore.get("__Host-dia_role")?.value;
-  const hasAdminSession = Boolean(sessionCookie && sessionRole === "admin");
+  const authorization  = request.headers.get("authorization") ?? "";
   const providedSecret = getProvidedSecret(request);
+
+  // İmzalı oturum doğrulaması
+  const { validateAdminFromCookies } = await import("@/lib/serverAuth");
+  const adminCheck = await validateAdminFromCookies();
+  const hasAdminSession = adminCheck.ok;
 
   if (hasAdminSession || providedSecret === configuredSecret || authorization === `Bearer ${configuredSecret}`) {
     return { allowed: true, status: 200, body: {} };

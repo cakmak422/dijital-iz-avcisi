@@ -5,40 +5,40 @@ export type DemoAuthRecord = {
   password: string;
 };
 
-const USERS_KEY = "dijital-iz-avcisi-demo-users";
+const USERS_KEY   = "dijital-iz-avcisi-demo-users";
 const SESSION_KEY = "dijital-iz-avcisi-demo-session";
-const DEMO_SESSION_COOKIE = "dia_session";
-const DEMO_ROLE_COOKIE = "dia_role";
 
-// Demo admin is only for local/admin panel access in the current frontend MVP.
-// This is not production authentication; real deployment needs backend auth,
-// password hashing, server-side authorization, and HttpOnly Secure sessions.
+/**
+ * Seed admin: password alanı "server-verified" placeholder.
+ * Gerçek admin şifresi sunucuda ADMIN_PASSPHRASE_HASH / DEMO_ADMIN_PASSWORD
+ * env değişkenleriyle tutulur — client tarafına GÖNDERİLMEZ.
+ * NEXT_PUBLIC_DEMO_ADMIN_PASSWORD kaldırıldı.
+ */
 const seededUsers: DemoAuthRecord[] = [
   {
     user: {
-      id: "demo-admin",
-      username: process.env.NEXT_PUBLIC_DEMO_ADMIN_USERNAME ?? "admin",
-      email: process.env.NEXT_PUBLIC_DEMO_ADMIN_EMAIL ?? "admin@dijitalizavcisi.com",
-      firstName: "Demo",
-      lastName: "Admin",
-      birthDate: "1990-01-01",
-      phone: "",
-      role: "admin",
+      id:              "demo-admin",
+      username:        process.env.NEXT_PUBLIC_DEMO_ADMIN_USERNAME ?? "admin",
+      email:           process.env.NEXT_PUBLIC_DEMO_ADMIN_EMAIL    ?? "admin@dijitalizavcisi.com",
+      firstName:       "Demo",
+      lastName:        "Admin",
+      birthDate:       "1990-01-01",
+      phone:           "",
+      role:            "admin",
       isEmailVerified: true,
-      createdAt: "2026-06-01",
-      status: "active"
+      createdAt:       "2026-06-01",
+      status:          "active"
     },
-    password: process.env.NEXT_PUBLIC_DEMO_ADMIN_PASSWORD ?? "Gokce42+-"
+    // Şifre artık client'ta saklanmıyor — sunucu taraflı ADMIN_PASSPHRASE_HASH ile doğrulanır
+    password: "server-verified"
   }
 ];
 
 function normalizeSeededUsers(records: DemoAuthRecord[]) {
   const safeRecords = records.filter((record) => record.user.role !== "admin");
-  const adminSeed = seededUsers.find((record) => record.user.role === "admin");
+  const adminSeed   = seededUsers.find((record) => record.user.role === "admin");
   if (!adminSeed) return safeRecords;
-
-  const withoutAdmin = safeRecords.filter((record) => record.user.role !== "admin");
-  return [...withoutAdmin, adminSeed];
+  return [...safeRecords, adminSeed];
 }
 
 export function getDemoUsers(): DemoAuthRecord[] {
@@ -51,7 +51,7 @@ export function getDemoUsers(): DemoAuthRecord[] {
   }
 
   try {
-    const parsed = JSON.parse(stored) as DemoAuthRecord[];
+    const parsed     = JSON.parse(stored) as DemoAuthRecord[];
     const normalized = normalizeSeededUsers(parsed);
     window.localStorage.setItem(USERS_KEY, JSON.stringify(normalized));
     return normalized;
@@ -64,17 +64,60 @@ export function getDemoUsers(): DemoAuthRecord[] {
 export function saveDemoUser(user: User, password: string) {
   if (typeof window === "undefined") return;
 
-  const users = getDemoUsers();
-  const nextUsers = users.filter((record) => record.user.email !== user.email && record.user.username !== user.username);
+  const users     = getDemoUsers();
+  const nextUsers = users.filter(
+    (record) => record.user.email !== user.email && record.user.username !== user.username
+  );
   nextUsers.push({ user, password });
   window.localStorage.setItem(USERS_KEY, JSON.stringify(nextUsers));
 }
 
+/**
+ * Giriş meta verilerini günceller: loginCount, lastLoginAt, lastKnownIp.
+ * Hem admin hem normal kullanıcı için kullanılır.
+ * İlk girişte loginCount undefined olabilir — (loginCount ?? 0) + 1 ile güvenli artış.
+ */
+export function updateUserLoginMeta(userId: string, lastKnownIp: string, lastLoginAt: string) {
+  if (typeof window === "undefined") return;
+
+  const records = getDemoUsers();
+  const idx     = records.findIndex((r) => r.user.id === userId);
+  if (idx === -1) return;
+
+  const prev = records[idx].user;
+  const updated: User = {
+    ...prev,
+    lastLoginAt,
+    lastKnownIp,
+    loginCount: (prev.loginCount ?? 0) + 1
+  };
+
+  records[idx] = { ...records[idx], user: updated };
+  window.localStorage.setItem(USERS_KEY, JSON.stringify(records));
+
+  // SESSION_KEY de güncelle (açık oturum varsa yansısın)
+  const sessionStored = window.localStorage.getItem(SESSION_KEY);
+  if (sessionStored) {
+    try {
+      const sessionUser = JSON.parse(sessionStored) as User;
+      if (sessionUser.id === userId) {
+        window.localStorage.setItem(SESSION_KEY, JSON.stringify(updated));
+      }
+    } catch {/* ignore */}
+  }
+}
+
+/**
+ * Sadece NON-ADMIN kullanıcılar için client-side giriş.
+ * Admin girişi LoginForm içinde doğrudan /api/auth/session üzerinden yapılır.
+ */
 export function loginDemoUser(identifier: string, password: string): User | null {
   const normalized = identifier.trim().toLowerCase();
-  const record = getDemoUsers().find(
+  const record     = getDemoUsers().find(
     (item) =>
-      (item.user.email.toLowerCase() === normalized || item.user.username.toLowerCase() === normalized) &&
+      (item.user.email.toLowerCase() === normalized ||
+        item.user.username.toLowerCase() === normalized) &&
+      item.user.role !== "admin" && // admin bu yolu kullanmaz
       item.password === password &&
       item.user.status === "active" &&
       item.user.isEmailVerified
@@ -84,7 +127,6 @@ export function loginDemoUser(identifier: string, password: string): User | null
 
   if (typeof window !== "undefined") {
     window.localStorage.setItem(SESSION_KEY, JSON.stringify(record.user));
-    setDemoSessionCookies(record.user);
   }
 
   return record.user;
@@ -97,37 +139,34 @@ export function getCurrentDemoUser(): User | null {
   if (!stored) return null;
 
   try {
-    const user = JSON.parse(stored) as User;
-    setDemoSessionCookies(user);
-    return user;
+    return JSON.parse(stored) as User;
   } catch {
     window.localStorage.removeItem(SESSION_KEY);
-    clearDemoSessionCookies();
     return null;
   }
 }
 
 export function logoutDemoUser() {
   if (typeof window === "undefined") return;
-
   window.localStorage.removeItem(SESSION_KEY);
-  clearDemoSessionCookies();
+  // Çerez temizleme /api/auth/session DELETE endpoint'i tarafından yapılır
+  void fetch("/api/auth/session", { method: "DELETE" }).catch(() => null);
 }
 
-function setDemoSessionCookies(user: User) {
-  const maxAge = 60 * 60 * 8;
-  document.cookie = `${DEMO_SESSION_COOKIE}=demo-session; Path=/; SameSite=Lax; Max-Age=${maxAge}`;
-  document.cookie = `${DEMO_ROLE_COOKIE}=${user.role}; Path=/; SameSite=Lax; Max-Age=${maxAge}`;
-
-  if (window.location.protocol === "https:") {
-    document.cookie = `__Host-${DEMO_SESSION_COOKIE}=demo-session; Path=/; Secure; SameSite=Lax; Max-Age=${maxAge}`;
-    document.cookie = `__Host-${DEMO_ROLE_COOKIE}=${user.role}; Path=/; Secure; SameSite=Lax; Max-Age=${maxAge}`;
-  }
+/** Admin kullanıcısını identifier'a göre bul (şifre kontrolü yapma) */
+export function findAdminByIdentifier(identifier: string): User | null {
+  const normalized = identifier.trim().toLowerCase();
+  const record     = getDemoUsers().find(
+    (item) =>
+      item.user.role === "admin" &&
+      (item.user.email.toLowerCase()    === normalized ||
+       item.user.username.toLowerCase() === normalized)
+  );
+  return record?.user ?? null;
 }
 
-function clearDemoSessionCookies() {
-  document.cookie = `${DEMO_SESSION_COOKIE}=; Path=/; SameSite=Lax; Max-Age=0`;
-  document.cookie = `${DEMO_ROLE_COOKIE}=; Path=/; SameSite=Lax; Max-Age=0`;
-  document.cookie = `__Host-${DEMO_SESSION_COOKIE}=; Path=/; Secure; SameSite=Lax; Max-Age=0`;
-  document.cookie = `__Host-${DEMO_ROLE_COOKIE}=; Path=/; Secure; SameSite=Lax; Max-Age=0`;
+/** Admin için localStorage oturumunu kaydet (çerez /api/auth/session'dan gelir) */
+export function setAdminSession(user: User) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(SESSION_KEY, JSON.stringify(user));
 }

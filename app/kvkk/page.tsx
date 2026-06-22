@@ -15,6 +15,10 @@ export default function KvkkPage() {
           body: "Veriler; risk sinyali üretmek, analiz geçmişi göstermek, kullanıcı bildirimlerini incelemek ve platform güvenliğini geliştirmek amacıyla kullanılabilir."
         },
         {
+          title: "Oturum ve güvenlik takibi",
+          body: "Başarılı girişlerde kullanıcının IP adresi, giriş zamanı ve giriş sayısı güvenlik/oturum takibi amacıyla tarayıcı localStorage'ında saklanır. Bu bilgiler üçüncü taraflarla paylaşılmaz ve yalnızca platform yöneticisi tarafından görüntülenebilir."
+        },
+        {
           title: "Bilgilendirme niteliği",
           body: "Sunulan analizler kesin hüküm değildir. Sonuçlar teknik sinyaller ve örüntü değerlendirmeleri temelinde bilgilendirme amacı taşır."
         }

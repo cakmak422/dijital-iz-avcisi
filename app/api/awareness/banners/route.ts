@@ -61,12 +61,7 @@ function getScope(value: string | null): AwarenessBannerScope {
 }
 
 async function hasAdminSession() {
-  const cookieStore = await cookies();
-  const allowDemoCookies = process.env.NEXT_PUBLIC_ENABLE_DEMO_AUTH === "true" || process.env.NODE_ENV !== "production";
-  const hostSession = cookieStore.get("__Host-dia_session")?.value;
-  const hostRole = cookieStore.get("__Host-dia_role")?.value;
-  const demoSession = allowDemoCookies ? cookieStore.get("dia_session")?.value : undefined;
-  const demoRole = allowDemoCookies ? cookieStore.get("dia_role")?.value : undefined;
-
-  return Boolean((hostSession && hostRole === "admin") || (demoSession && demoRole === "admin"));
+  const { validateAdminFromCookies } = await import("@/lib/serverAuth");
+  const result = await validateAdminFromCookies();
+  return result.ok;
 }

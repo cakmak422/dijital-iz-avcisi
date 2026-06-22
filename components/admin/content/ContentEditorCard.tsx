@@ -3,13 +3,23 @@
 import { useMemo, useState } from "react";
 import { getCurrentDemoUser } from "@/lib/auth";
 import { resetEditableContent, saveEditableContent } from "@/lib/contentStore";
-import type { EditableContent } from "@/types/content";
+import type { EditableContent, EditableContentKey } from "@/types/content";
 
 type SaveState = "idle" | "saving" | "saved" | "reset" | "error";
 
-export function ContentEditorCard({ item }: { item: EditableContent }) {
+/** Key tipine göre makul karakter sınırı — aşılınca uyarı rengi */
+function maxLengthFor(key: EditableContentKey): number {
+  if (key.endsWith("Email") || key.endsWith("email")) return 120;
+  if (key.endsWith(".title") || key.endsWith(".eyebrow") || key.endsWith(".copyright")) return 80;
+  if (key.endsWith(".banner") || key.endsWith(".text")) return 400;
+  return 320; // açıklama / paragraf
+}
+
+export function ContentEditorCard({ item, onReset }: { item: EditableContent; onReset?: () => void }) {
   const [value, setValue] = useState(item.content);
   const [status, setStatus] = useState<SaveState>("idle");
+  const limit = maxLengthFor(item.key);
+  const isOverLimit = value.length > limit;
 
   const formattedDate = useMemo(() => {
     return new Intl.DateTimeFormat("tr-TR", {
@@ -25,7 +35,6 @@ export function ContentEditorCard({ item }: { item: EditableContent }) {
 
   function handleSave() {
     setStatus("saving");
-
     try {
       saveEditableContent(item.key, value.trim(), getAdminName());
       setStatus("saved");
@@ -36,11 +45,11 @@ export function ContentEditorCard({ item }: { item: EditableContent }) {
 
   function handleReset() {
     setStatus("saving");
-
     try {
       const resetItem = resetEditableContent(item.key, getAdminName());
       setValue(resetItem.content);
       setStatus("reset");
+      onReset?.();
     } catch {
       setStatus("error");
     }
@@ -53,8 +62,13 @@ export function ContentEditorCard({ item }: { item: EditableContent }) {
           <h3 className="text-lg font-bold">{item.title}</h3>
           <p className="mt-1 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">{item.key}</p>
         </div>
-        <span className="w-fit rounded-md border border-cyan-200 bg-cyan-50 px-2 py-1 text-xs font-bold text-cyan-700 dark:border-cyan-400/30 dark:bg-cyan-400/10 dark:text-cyan-100">
-          {value.length} karakter
+        {/* Karakter sayacı — sınır aşılınca amber uyarı */}
+        <span className={`w-fit rounded-md border px-2 py-1 text-xs font-bold ${
+          isOverLimit
+            ? "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-300"
+            : "border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-400/30 dark:bg-cyan-400/10 dark:text-cyan-100"
+        }`}>
+          {value.length} / {limit} karakter{isOverLimit ? " ⚠" : ""}
         </span>
       </div>
 
@@ -72,13 +86,13 @@ export function ContentEditorCard({ item }: { item: EditableContent }) {
       />
 
       <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-950/60">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Canlı onizleme</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Canlı önizleme</p>
         <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700 dark:text-slate-200">{value || "Önizleme için metin girin."}</p>
       </div>
 
       <div className="mt-4 flex flex-col gap-3 border-t border-slate-200 pt-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
-          Son güncelleme: {formattedDate} / {item.updatedBy}
+          Son güncelleme: {formattedDate} · {item.updatedBy}
         </p>
         <div className="flex gap-2">
           <button
@@ -87,7 +101,7 @@ export function ContentEditorCard({ item }: { item: EditableContent }) {
             onClick={handleReset}
             type="button"
           >
-            Sifirla
+            Sıfırla
           </button>
           <button
             className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100"
@@ -95,26 +109,26 @@ export function ContentEditorCard({ item }: { item: EditableContent }) {
             onClick={handleSave}
             type="button"
           >
-            {status === "saving" ? "Kaydediliyor..." : "Kaydet"}
+            {status === "saving" ? "Kaydediliyor…" : "Kaydet"}
           </button>
         </div>
       </div>
 
-      {status === "saved" ? (
+      {status === "saved" && (
         <p className="mt-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-100">
-          İçerik başarıyla göncellendi.
+          İçerik başarıyla güncellendi.
         </p>
-      ) : null}
-      {status === "reset" ? (
+      )}
+      {status === "reset" && (
         <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">
           İçerik varsayılan değerlere döndürüldü.
         </p>
-      ) : null}
-      {status === "error" ? (
+      )}
+      {status === "error" && (
         <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 dark:border-red-400/30 dark:bg-red-400/10 dark:text-red-100">
           Kayıt sırasında hata oluştu. Lütfen tekrar deneyin.
         </p>
-      ) : null}
+      )}
     </article>
   );
 }

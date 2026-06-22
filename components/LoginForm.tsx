@@ -2,17 +2,23 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
-import { loginDemoUser } from "@/lib/auth";
+import {
+  findAdminByIdentifier,
+  loginDemoUser,
+  setAdminSession,
+  updateUserLoginMeta
+} from "@/lib/auth";
 import { checkClientRateLimit } from "@/lib/rateLimit";
 import { sanitizeText } from "@/lib/sanitize";
 
 export function LoginForm() {
   const [identifier, setIdentifier] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [password, setPassword]     = useState("");
+  const [error, setError]           = useState("");
+  const [success, setSuccess]       = useState("");
+  const [loading, setLoading]       = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setSuccess("");
@@ -24,23 +30,89 @@ export function LoginForm() {
     }
 
     const cleanIdentifier = sanitizeText(identifier, 120);
-    const cleanPassword = password.trim().slice(0, 128);
+    const cleanPassword   = password.trim().slice(0, 128);
 
     if (!cleanIdentifier || !cleanPassword) {
-      setError("E-posta/kullanıcı adi ve Şifre alanlarıni doldÜrün.");
+      setError("E-posta/kullanıcı adı ve şifre alanlarını doldurun.");
       return;
     }
 
+    setLoading(true);
+
+    // Admin girişi → client-side şifre kontrolü YAPILMAZ,
+    // doğrulama sadece sunucuda (scrypt hash) gerçekleşir
+    const adminUser = findAdminByIdentifier(cleanIdentifier);
+    if (adminUser) {
+      try {
+        const res = await fetch("/api/auth/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId:     adminUser.id,
+            role:       "admin",
+            passphrase: cleanPassword
+          })
+        });
+
+        if (res.status === 429) {
+          const data = await res.json() as { error?: string };
+          setError(data.error ?? "Çok fazla deneme. Daha sonra tekrar deneyin.");
+          return;
+        }
+
+        if (!res.ok) {
+          setError("Admin şifresi hatalı.");
+          return;
+        }
+
+        const data = await res.json() as { ok: boolean; lastKnownIp?: string; lastLoginAt?: string };
+
+        // Admin loginCount/lastLoginAt/lastKnownIp güncelle
+        if (data.lastKnownIp && data.lastLoginAt) {
+          updateUserLoginMeta(adminUser.id, data.lastKnownIp, data.lastLoginAt);
+        }
+
+        // Sunucu doğruladı — localStorage oturumunu kaydet
+        setAdminSession(adminUser);
+        setSuccess("Giriş başarılı. Yönlendiriliyorsunuz.");
+        const destination = getSafeNextPath() ?? "/ops-console";
+        window.location.assign(destination);
+      } catch {
+        setError("Bağlantı hatası. Tekrar deneyin.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Normal kullanıcı — mevcut client-side akış değişmez
     const user = loginDemoUser(cleanIdentifier, cleanPassword);
     if (!user) {
       setError("Giriş bilgileri eşleşmedi veya e-posta doğrulaması tamamlanmamış.");
+      setLoading(false);
       return;
     }
 
+    // Normal kullanıcı için oturum çerezi yaz + meta güncelle
+    try {
+      const sessionRes = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, role: user.role })
+      });
+      if (sessionRes.ok) {
+        const sessionData = await sessionRes.json() as { ok: boolean; lastKnownIp?: string; lastLoginAt?: string };
+        if (sessionData.lastKnownIp && sessionData.lastLoginAt) {
+          updateUserLoginMeta(user.id, sessionData.lastKnownIp, sessionData.lastLoginAt);
+        }
+      }
+    } catch {
+      // Çerez yazılamazsa localStorage oturumu yeterli, devam et
+    }
+
     setSuccess("Giriş başarılı. Yönlendiriliyorsunuz.");
-    const destination = user.role === "admin" ? getSafeNextPath() ?? "/ops-console" : "/kullanici-paneli";
-    window.location.assign(destination);
-    return;
+    window.location.assign("/kullanici-paneli");
+    setLoading(false);
   }
 
   return (
@@ -55,11 +127,11 @@ export function LoginForm() {
         </div>
 
         <label className="grid gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-          E-posta veya kullanıcı adi
+          E-posta veya kullanıcı adı
           <input
             className="min-h-11 rounded-md border border-slate-300 bg-white px-3 text-slate-950 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:ring-cyan-400/20"
             value={identifier}
-            onChange={(event) => setIdentifier(event.target.value)}
+            onChange={(e) => setIdentifier(e.target.value)}
           />
         </label>
 
@@ -69,15 +141,19 @@ export function LoginForm() {
             className="min-h-11 rounded-md border border-slate-300 bg-white px-3 text-slate-950 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:ring-cyan-400/20"
             type="password"
             value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </label>
 
-        {error ? <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p> : null}
+        {error   ? <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p>           : null}
         {success ? <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">{success}</p> : null}
 
-        <button className="min-h-11 rounded-md bg-slate-900 px-5 font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100" type="submit">
-          Giriş Yap
+        <button
+          className="min-h-11 rounded-md bg-slate-900 px-5 font-semibold text-white transition hover:bg-cyan-700 disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100"
+          disabled={loading}
+          type="submit"
+        >
+          {loading ? "Giriş yapılıyor…" : "Giriş Yap"}
         </button>
       </form>
 
@@ -96,10 +172,8 @@ export function LoginForm() {
 
 function getSafeNextPath() {
   if (typeof window === "undefined") return null;
-
   const next = new URLSearchParams(window.location.search).get("next");
   if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
   if (!next.startsWith("/ops-console")) return null;
-
   return next;
 }

@@ -10,7 +10,9 @@ import type { ContactMessage } from "@/lib/contactStore";
 import type { ContactMessageStats } from "@/lib/contactStore";
 import { getContactMessageStats, getLatestContactMessages, subscribeToContactMessages } from "@/lib/contactStore";
 import { aiUsageLogs, alerts, posts } from "@/lib/content";
-import { mockUsers, UserStatus } from "@/lib/users";
+import { UserStatus } from "@/lib/users";
+import { getDemoUsers } from "@/lib/auth";
+import type { User } from "@/lib/users";
 
 const stats = [
   { label: "Toplam analiz", value: "12.480" },
@@ -156,54 +158,83 @@ export function OpsConsolePage() {
 }
 
 function UsersTable() {
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    // getDemoUsers() tüm kayıtlı kullanıcıları döndürür (admin dahil)
+    // DemoAuthRecord[] → User[] (password alanı hiçbir zaman burada gösterilmez)
+    const records = getDemoUsers();
+    setUsers(records.map((r) => r.user));
+  }, []);
+
   return (
     <article className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
       <div className="border-b border-slate-200 p-5 dark:border-white/10">
         <h2 className="text-xl font-bold">Üye listesi</h2>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Telefon doğrulaması kullanılmaz; e-posta doğrulama durumu takip edilir.</p>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+          Telefon doğrulaması kullanılmaz; e-posta doğrulama durumu takip edilir.
+        </p>
+        <p className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300">
+          Bu liste şu an yalnızca <strong>bu tarayıcıda</strong> kayıt olan/giriş yapan kullanıcıları gösterir.
+          Farklı cihaz/tarayıcıdan gelen kayıtlar için merkezi veritabanı entegrasyonu (Supabase) gerekir — bu ayrı bir fazda planlanmıştır.
+        </p>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[920px] text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase tracking-[0.08em] text-slate-500 dark:bg-white/5 dark:text-slate-400">
-            <tr>
-              <th className="px-4 py-3">Kullanıcı adı</th>
-              <th className="px-4 py-3">Ad Soyad</th>
-              <th className="px-4 py-3">E-posta</th>
-              <th className="px-4 py-3">Telefon</th>
-              <th className="px-4 py-3">E-posta doğrulandı mı</th>
-              <th className="px-4 py-3">Rol</th>
-              <th className="px-4 py-3">Durum</th>
-              <th className="px-4 py-3">Kayıt tarihi</th>
-              <th className="px-4 py-3">İşlemler</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200 dark:divide-white/10">
-            {mockUsers.map((user) => (
-              <tr key={user.id}>
-                <td className="px-4 py-3 font-semibold">{user.username}</td>
-                <td className="px-4 py-3">{user.firstName} {user.lastName}</td>
-                <td className="px-4 py-3">{user.email}</td>
-                <td className="px-4 py-3">{user.phone}</td>
-                <td className="px-4 py-3">
-                  <span className={`rounded-md border px-2 py-1 text-xs font-bold ${user.isEmailVerified ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
-                    {user.isEmailVerified ? "Evet" : "Hayır"}
-                  </span>
-                </td>
-                <td className="px-4 py-3">{user.role}</td>
-                <td className="px-4 py-3">
-                  <span className={`rounded-md border px-2 py-1 text-xs font-bold ${statusStyles[user.status]}`}>{user.status}</span>
-                </td>
-                <td className="px-4 py-3">{user.createdAt}</td>
-                <td className="px-4 py-3">
-                  <button className="rounded-md border border-slate-200 px-3 py-1 text-xs font-semibold dark:border-white/10" type="button">
-                    İncele
-                  </button>
-                </td>
+
+      {users.length === 0 ? (
+        <div className="px-5 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
+          Henüz kayıtlı kullanıcı yok.
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[920px] text-left text-sm">
+            <thead className="bg-slate-50 text-xs uppercase tracking-[0.08em] text-slate-500 dark:bg-white/5 dark:text-slate-400">
+              <tr>
+                <th className="px-4 py-3">Kullanıcı adı</th>
+                <th className="px-4 py-3">Ad Soyad</th>
+                <th className="px-4 py-3">E-posta</th>
+                <th className="px-4 py-3">Telefon</th>
+                <th className="px-4 py-3">E-posta doğrulandı mı</th>
+                <th className="px-4 py-3">Rol</th>
+                <th className="px-4 py-3">Durum</th>
+                <th className="px-4 py-3">Kayıt tarihi</th>
+                <th className="px-4 py-3">İşlemler</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-slate-200 dark:divide-white/10">
+              {users.map((user) => (
+                <tr key={user.id}>
+                  <td className="px-4 py-3 font-semibold">{user.username}</td>
+                  <td className="px-4 py-3">{user.firstName} {user.lastName}</td>
+                  <td className="px-4 py-3">{user.email}</td>
+                  <td className="px-4 py-3">{user.phone || "—"}</td>
+                  <td className="px-4 py-3">
+                    <span className={`rounded-md border px-2 py-1 text-xs font-bold ${user.isEmailVerified ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-300" : "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300"}`}>
+                      {user.isEmailVerified ? "Evet" : "Hayır"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`rounded-md border px-2 py-1 text-xs font-bold ${user.role === "admin" ? "border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-400/30 dark:bg-cyan-400/10 dark:text-cyan-300" : "border-slate-200 bg-slate-50 text-slate-600 dark:border-white/10 dark:bg-white/5"}`}>
+                      {user.role}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`rounded-md border px-2 py-1 text-xs font-bold ${statusStyles[user.status]}`}>{user.status}</span>
+                  </td>
+                  <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{user.createdAt}</td>
+                  <td className="px-4 py-3">
+                    <Link
+                      className="rounded-md border border-slate-200 px-3 py-1 text-xs font-semibold transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/10"
+                      href={`/ops-console/uyeler/${user.id}`}
+                    >
+                      İncele →
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </article>
   );
 }
