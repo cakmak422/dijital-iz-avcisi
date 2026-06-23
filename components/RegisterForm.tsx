@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { saveDemoUser } from "@/lib/auth";
-import { sendOtpEmail } from "@/lib/email";
+// sendOtpEmail artık direkt çağrılmıyor — /api/auth/send-otp route'u üzerinden sunucuya gider
 import { checkClientRateLimit } from "@/lib/rateLimit";
 import { isValidEmail, sanitizeText } from "@/lib/sanitize";
 import { User } from "@/lib/users";
@@ -118,10 +118,20 @@ export function RegisterForm() {
     setOtpInput("");
     setResendLeft(RESEND_SECONDS);
 
-    const result = await sendOtpEmail(email, code);
-    if (!result.delivered && result.error) {
-      // Gerçek hata — kullanıcıya dürüstçe göster
-      setError(`Doğrulama kodu gönderilemedi: ${result.error}`);
+    // Sunucu route'una gönder — RESEND_API_KEY sadece sunucu tarafında okunur
+    try {
+      const res = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code })
+      });
+      const data = await res.json() as { ok: boolean; error?: string };
+      if (!data.ok) {
+        setError(`Doğrulama kodu gönderilemedi: ${data.error ?? "Sunucu hatası."}`);
+        setStep("form");
+      }
+    } catch {
+      setError("Doğrulama kodu gönderilemedi: Bağlantı hatası.");
       setStep("form");
     }
   }
