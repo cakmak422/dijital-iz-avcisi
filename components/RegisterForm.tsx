@@ -117,7 +117,13 @@ export function RegisterForm() {
     setAttempts(0);
     setOtpInput("");
     setResendLeft(RESEND_SECONDS);
-    await sendOtpEmail(email, code);
+
+    const result = await sendOtpEmail(email, code);
+    if (!result.delivered && result.error) {
+      // Gerçek hata — kullanıcıya dürüstçe göster
+      setError(`Doğrulama kodu gönderilemedi: ${result.error}`);
+      setStep("form");
+    }
   }
 
   async function handleResend() {
