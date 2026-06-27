@@ -47,16 +47,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Geçersiz risk_level." }, { status: 400 });
   }
 
-  const { error } = await insertQueryLog(
-    queryType,
-    queryValue,
-    riskLevel as RiskLevel | null,
-    body.user_id ?? null
-  );
+  let insertError: string | null = null;
+  try {
+    const result = await insertQueryLog(
+      queryType,
+      queryValue,
+      riskLevel as RiskLevel | null,
+      body.user_id ?? null
+    );
+    insertError = result.error;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    console.error("[query-log] insertQueryLog exception:", msg, stack);
+    return NextResponse.json({ ok: false }, { status: 500 });
+  }
 
-  if (error) {
-    console.error("[query-log] Insert hatası:", error);
-    // Loglama başarısız olsa bile 200 dön — kullanıcı akışını engelleme
+  if (insertError) {
+    console.error("[query-log] Supabase insert hatası (tam mesaj):", insertError);
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 
