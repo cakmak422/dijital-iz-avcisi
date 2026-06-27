@@ -43,17 +43,24 @@ async function supabaseFetch<T>(
 ): Promise<{ data: T | null; error: string | null }> {
   const { url, serviceKey } = getSupabase();
   const { body, headers: extraHeaders, method } = options;
+  const httpMethod = method ?? "GET";
+
+  // newsDb.ts ile aynı kalıp: Prefer sadece açıkça verilince eklenir (GET'e eklenmez)
+  const baseHeaders: Record<string, string> = {
+    "Content-Type":  "application/json",
+    "apikey":        serviceKey,
+    "Authorization": `Bearer ${serviceKey}`,
+  };
+
+  // Mutasyonlar (POST/PATCH/DELETE) için varsayılan Prefer; extraHeaders geçersiz kılabilir
+  if (httpMethod !== "GET" && !extraHeaders?.["Prefer"]) {
+    baseHeaders["Prefer"] = "return=representation";
+  }
 
   try {
     const res = await fetch(`${url}/rest/v1/${path}`, {
-      method: method ?? "GET",
-      headers: {
-        "Content-Type":  "application/json",
-        "apikey":        serviceKey,
-        "Authorization": `Bearer ${serviceKey}`,
-        "Prefer":        "return=representation",
-        ...(extraHeaders ?? {}),
-      },
+      method: httpMethod,
+      headers: { ...baseHeaders, ...(extraHeaders ?? {}) },
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
 
