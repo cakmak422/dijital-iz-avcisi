@@ -47,20 +47,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Geçersiz risk_level." }, { status: 400 });
   }
 
-  // user_id: UUID formatı değilse (örn. "demo-admin") null olarak logla
-  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const rawUserId = body.user_id ?? null;
-  const userId = rawUserId && UUID_RE.test(rawUserId) ? rawUserId : null;
-
-  const { error: insertError } = await insertQueryLog(
-    queryType,
-    queryValue,
-    riskLevel as RiskLevel | null,
-    userId
-  );
+  let insertError: string | null = null;
+  try {
+    const result = await insertQueryLog(
+      queryType,
+      queryValue,
+      riskLevel as RiskLevel | null,
+      body.user_id ?? null
+    );
+    insertError = result.error;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    console.error("[query-log] insertQueryLog exception:", msg, stack);
+    return NextResponse.json({ ok: false }, { status: 500 });
+  }
 
   if (insertError) {
-    console.error("[query-log] Supabase insert hatası:", insertError);
+    console.error("[query-log] Supabase insert hatası (tam mesaj):", insertError);
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 
