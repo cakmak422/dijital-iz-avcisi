@@ -47,13 +47,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Geçersiz risk_level." }, { status: 400 });
   }
 
+  // user_id: UUID formatı değilse (örn. "demo-admin") null olarak logla
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const userId = body.user_id && UUID_RE.test(body.user_id) ? body.user_id : null;
+
   let insertError: string | null = null;
   try {
     const result = await insertQueryLog(
       queryType,
       queryValue,
       riskLevel as RiskLevel | null,
-      body.user_id ?? null
+      userId
     );
     insertError = result.error;
   } catch (err) {
