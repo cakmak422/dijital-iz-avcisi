@@ -18,6 +18,30 @@ import {
   SiteSafetyResult
 } from "@/lib/api";
 import { checkClientRateLimit } from "@/lib/rateLimit";
+import { getCurrentDemoUser } from "@/lib/auth";
+
+// Backend risk_level ("safe"/"caution"/"risk") → DB değeri ("Düşük"/"Orta"/"Yüksek")
+function toDbRisk(level?: RiskLevel | string | null): string | null {
+  if (level === "safe")    return "Düşük";
+  if (level === "caution") return "Orta";
+  if (level === "risk")    return "Yüksek";
+  return null;
+}
+
+// Fire-and-forget: analiz sonucu logla, kullanıcıyı beklettirme
+function logQuery(type: string, value: string, riskLevel?: RiskLevel | string | null) {
+  const user = getCurrentDemoUser();
+  void fetch("/api/query-log", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({
+      query_type:  type,
+      query_value: value,
+      risk_level:  toDbRisk(riskLevel),
+      user_id:     user?.id ?? null,
+    }),
+  }).catch(() => { /* loglama başarısız olsa kullanıcı akışı etkilenmiyor */ });
+}
 import { isLikelyUrl, sanitizeMultiline, sanitizeText } from "@/lib/sanitize";
 
 type ModuleId = "product" | "phishing" | "site" | "exif" | "ip" | "message";
@@ -207,7 +231,12 @@ export function AnalysisWorkspace() {
       setIpResult(null);
       setExifResult(null);
       try {
-        setExifResult(await analyzeExifImage(selectedExifFile));
+        const exif = await analyzeExifImage(selectedExifFile);
+        setExifResult(exif);
+        // ai_risk_level serbest string olduğu için önce onu dene, tanınmıyorsa privacy_risk'e düş
+        // privacy_risk: "safe"|"caution" — "risk" değeri yok, "caution" → "Orta" olarak loglanır
+        const exifRisk = (exif?.ai_risk_level as RiskLevel | undefined) ?? exif?.privacy_risk;
+        logQuery("exif", selectedExifFile.name, exifRisk);
       } catch (error) {
       setError(error instanceof Error ? error.message : "EXIF analizi tamamlanamadı. JPG/JPEG/PNG dosyası seçtiğinizden emin olun.");
       } finally {
@@ -246,7 +275,9 @@ export function AnalysisWorkspace() {
 
     if (activeModule === "phishing") {
       try {
-        setPhishingResult(await analyzePhishing(sanitizedInput));
+        const phishing = await analyzePhishing(sanitizedInput);
+        setPhishingResult(phishing);
+        logQuery("phishing", sanitizedInput, phishing?.risk_level ?? phishing?.riskLevel);
       } catch {
         setError("Phishing analizi tamamlanamadı. Backend bağlantısını ve OSINT servislerini kontrol edin.");
       } finally {
@@ -257,14 +288,18 @@ export function AnalysisWorkspace() {
 
     if (activeModule === "message") {
       await new Promise((resolve) => setTimeout(resolve, 350));
-      setMessageResult(analyzeMessageText(sanitizedInput));
+      const msg = analyzeMessageText(sanitizedInput);
+      setMessageResult(msg);
+      logQuery("message", sanitizedInput, msg?.riskLevel);
       setIsLoading(false);
       return;
     }
 
     if (activeModule === "site") {
       try {
-        setSiteResult(await analyzeSiteSafety(sanitizedInput));
+        const site = await analyzeSiteSafety(sanitizedInput);
+        setSiteResult(site);
+        logQuery("site", sanitizedInput, site?.risk_level);
       } catch {
       setError("Site güvenlik analizi şu anda tamamlanamadı. Backend bağlantısını ve OSINT servislerini kontrol edin.");
       } finally {
@@ -275,7 +310,9 @@ export function AnalysisWorkspace() {
 
     if (activeModule === "ip") {
       try {
-        setIpResult(await analyzeIpIntelligence(sanitizedInput));
+        const ip = await analyzeIpIntelligence(sanitizedInput);
+        setIpResult(ip);
+        logQuery("ip", sanitizedInput, ip?.risk_level);
       } catch {
       setError("IP istihbaratı analizi şu anda tamamlanamadı. Backend bağlantısını ve RDAP servislerini kontrol edin.");
       } finally {
@@ -287,6 +324,7 @@ export function AnalysisWorkspace() {
     try {
       const analysis = await analyzeProduct(sanitizedInput);
       setResult(analysis);
+      logQuery("product", sanitizedInput, analysis?.risk_level);
       await refreshHistory();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ürün analizi tamamlanamadı. Lütfen tekrar deneyin.");

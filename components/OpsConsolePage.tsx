@@ -8,16 +8,7 @@ import { getCurrentDemoUser } from "@/lib/auth";
 
 // ── PLACEHOLDER VERİLER ───────────────────────────────────────────────────────
 
-// PLACEHOLDER - Faz 2'de gerçek sorgu verileriyle değiştirilecek
-const CHART_DATA = [
-  { day: "15 May", val: 3100 },
-  { day: "16 May", val: 3800 },
-  { day: "17 May", val: 3200 },
-  { day: "18 May", val: 4800 },
-  { day: "19 May", val: 5100 },
-  { day: "20 May", val: 5300 },
-  { day: "21 May", val: 5421 },
-];
+// Grafik verisi artık API'den geliyor — bu sabit kaldırıldı
 
 // PLACEHOLDER - Faz 2'de gerçek sistem monitöründen alınacak
 const SYSTEM_STATUS = [
@@ -29,23 +20,7 @@ const SYSTEM_STATUS = [
   { name: "Güvenlik Duvarı", icon: "🛡️" },
 ];
 
-// PLACEHOLDER - Faz 2'de gerçek sorgu geçmişiyle değiştirilecek
-const RECENT_QUERIES = [
-  { id: 1, query: "http://sahte-site.com",  type: "URL",     result: "RİSKLİ",  date: "21.05.2025 14:32" },
-  { id: 2, query: "info@dolandirici.com",   type: "E-POSTA", result: "RİSKLİ",  date: "21.05.2025 14:28" },
-  { id: 3, query: "+90 555 123 45 67",      type: "TELEFON", result: "ŞÜPHELİ", date: "21.05.2025 14:21" },
-  { id: 4, query: "www.guvenli-site.com",   type: "URL",     result: "GÜVENLİ", date: "21.05.2025 14:15" },
-  { id: 5, query: "destek@sirket.com",      type: "E-POSTA", result: "GÜVENLİ", date: "21.05.2025 14:10" },
-];
-
-// PLACEHOLDER - Faz 2'de gerçek ihbar sistemiyle değiştirilecek
-const RECENT_ALERTS = [
-  { title: "Sahte yatırım sitesi",            cat: "Finans / Dolandırıcılık",    time: "14:30" },
-  { title: "Kimlik avı (phishing) e-postası", cat: "Phishing",                   time: "14:18" },
-  { title: "Sahte ürün satışı",               cat: "E-Ticaret / Dolandırıcılık", time: "13:55" },
-  { title: "Şüpheli telefon araması",         cat: "Telefon Dolandırıcılığı",    time: "13:42" },
-  { title: "Sahte kurum sitesi",              cat: "Resmi Kurum Taklidi",        time: "13:20" },
-];
+// Sorgu geçmişi ve ihbar listesi kaldırıldı — gerçek veri API'den geliyor
 
 // Hızlı İşlemler — gerçek href'ler bağlandı, geri kalanlar placeholder
 const QUICK_ACTIONS = [
@@ -72,15 +47,33 @@ function typeStyle(t: string) {
 
 // ── SVG ÇİZGİ GRAFİĞİ ────────────────────────────────────────────────────────
 
-function LineChart() {
+function LineChart({ data }: { data: { date: string; count: number }[] }) {
   const [tip, setTip] = useState<number | null>(null);
-  const W = 460, H = 180, maxV = 6000;
+  const W = 460, H = 180;
   const pad = { l: 44, r: 20, t: 20, b: 32 };
-  const xs = CHART_DATA.map((_, i) => pad.l + (i / (CHART_DATA.length - 1)) * (W - pad.l - pad.r));
-  const ys = CHART_DATA.map(d => pad.t + (1 - d.val / maxV) * (H - pad.t - pad.b));
+  const maxV = Math.max(...data.map(d => d.count), 1); // en az 1, sıfır bölmeyi engeller
+
+  if (data.length === 0) {
+    return (
+      <div className="flex h-44 items-center justify-center text-xs text-slate-500">
+        Henüz sorgu verisi yok
+      </div>
+    );
+  }
+
+  const xs = data.map((_, i) => pad.l + (i / Math.max(data.length - 1, 1)) * (W - pad.l - pad.r));
+  const ys = data.map(d => pad.t + (1 - d.count / maxV) * (H - pad.t - pad.b));
   const linePath = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x},${ys[i]}`).join(" ");
   const fillPath = linePath + ` L${xs[xs.length - 1]},${H - pad.b} L${xs[0]},${H - pad.b} Z`;
-  const yLabels = [6000, 5000, 4000, 3000, 2000, 1000, 0];
+  const yMax = Math.ceil(maxV / 5) * 5 || 5;
+  const yLabels = [yMax, Math.round(yMax * 0.75), Math.round(yMax * 0.5), Math.round(yMax * 0.25), 0];
+
+  // Tarihi kısa "15 Haz" formatına çevir
+  function shortDate(iso: string) {
+    try {
+      return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "short" }).format(new Date(iso));
+    } catch { return iso.slice(5); }
+  }
 
   return (
     <div className="relative w-full">
@@ -96,16 +89,16 @@ function LineChart() {
           </filter>
         </defs>
         {yLabels.map((v, i) => {
-          const y = pad.t + (1 - v / maxV) * (H - pad.t - pad.b);
+          const y = pad.t + (1 - v / yMax) * (H - pad.t - pad.b);
           return (
             <g key={i}>
               <line x1={pad.l} y1={y} x2={W - pad.r} y2={y} stroke="rgba(56,189,248,0.1)" strokeWidth="1" strokeDasharray="4,4"/>
-              <text x={pad.l - 4} y={y + 4} fill="#94A3B8" fontSize="11" textAnchor="end">{v >= 1000 ? `${v/1000}K` : v}</text>
+              <text x={pad.l - 4} y={y + 4} fill="#94A3B8" fontSize="11" textAnchor="end">{v}</text>
             </g>
           );
         })}
-        {CHART_DATA.map((d, i) => (
-          <text key={i} x={xs[i]} y={H - 4} fill="#94A3B8" fontSize="10" textAnchor="middle">{d.day}</text>
+        {data.map((d, i) => (
+          <text key={i} x={xs[i]} y={H - 4} fill="#94A3B8" fontSize="10" textAnchor="middle">{shortDate(d.date)}</text>
         ))}
         <path d={fillPath} fill="url(#lg)"/>
         <path d={linePath} fill="none" stroke="#0EA5E9" strokeWidth="2.5" filter="url(#glow)"/>
@@ -123,10 +116,10 @@ function LineChart() {
             <rect x={xs[tip]-52} y={ys[tip]-44} width="104" height="38" rx="6"
               fill="rgba(8,20,45,0.95)" stroke="rgba(14,165,233,0.6)" strokeWidth="1"/>
             <text x={xs[tip]} y={ys[tip]-28} fill="#94A3B8" fontSize="9" textAnchor="middle">
-              {CHART_DATA[tip].day} 2025
+              {shortDate(data[tip].date)}
             </text>
             <text x={xs[tip]} y={ys[tip]-12} fill="#F8FAFC" fontSize="10" textAnchor="middle" fontWeight="bold">
-              {CHART_DATA[tip].val.toLocaleString("tr-TR")} Sorgu {/* PLACEHOLDER */}
+              {data[tip].count.toLocaleString("tr-TR")} Sorgu
             </text>
           </g>
         )}
@@ -137,17 +130,25 @@ function LineChart() {
 
 // ── ANA BILEŞEN ───────────────────────────────────────────────────────────────
 
+type QueryLogRow = {
+  id: string; query_type: string; query_value: string;
+  risk_level: string | null; created_at: string;
+};
+type DailyCount = { date: string; count: number };
+
 export function OpsConsolePage() {
-  const [adminName, setAdminName] = useState("Pro Admin");
-  const [userCount, setUserCount] = useState<number | null>(null);
-  const [newsCount, setNewsCount] = useState<number | null>(null);
+  const [adminName, setAdminName]       = useState("Pro Admin");
+  const [userCount, setUserCount]       = useState<number | null>(null);
+  const [newsCount, setNewsCount]       = useState<number | null>(null);
+  const [todayTotal, setTodayTotal]     = useState<number | null>(null);
+  const [riskyUrl, setRiskyUrl]         = useState<number | null>(null);
+  const [chartData, setChartData]       = useState<DailyCount[]>([]);
+  const [recentLogs, setRecentLogs]     = useState<QueryLogRow[]>([]);
 
   useEffect(() => {
-    // Gerçek kullanıcı adı
     const me = getCurrentDemoUser();
     if (me) setAdminName(me.firstName ? `${me.firstName} ${me.lastName ?? ""}`.trim() : me.username);
 
-    // Gerçek üye sayısı — Supabase'den (admin-korumalı endpoint)
     fetch("/api/admin/users")
       .then(r => r.json())
       .then((d: { ok: boolean; users?: unknown[] }) => {
@@ -155,39 +156,47 @@ export function OpsConsolePage() {
       })
       .catch(() => {});
 
-    // Gerçek haber sayısı
     fetch("/api/news/latest?limit=1")
       .then(r => r.json())
       .then(d => { if (typeof d.count === "number") setNewsCount(d.count); })
       .catch(() => {});
+
+    // Gerçek sorgu istatistikleri
+    fetch("/api/admin/query-stats")
+      .then(r => r.json())
+      .then((d: { ok: boolean; todayTotal?: number; riskyUrlCount?: number; last7Days?: DailyCount[]; recentLogs?: QueryLogRow[] }) => {
+        if (!d.ok) return;
+        if (typeof d.todayTotal === "number")   setTodayTotal(d.todayTotal);
+        if (typeof d.riskyUrlCount === "number") setRiskyUrl(d.riskyUrlCount);
+        if (Array.isArray(d.last7Days))         setChartData(d.last7Days);
+        if (Array.isArray(d.recentLogs))        setRecentLogs(d.recentLogs);
+      })
+      .catch(() => {});
   }, []);
 
-  // 6 metrik kart — gerçek veri olan 2 slot güncellendi, geri kalan PLACEHOLDER
+  // 5 metrik kart — "Gelen İhbar" kaldırıldı (gerçek özellik yok)
   const METRICS = [
     {
       label: "TOPLAM ÜYE",
-      value: userCount !== null ? String(userCount) : "…", // GERÇEK
-      change: "", sub: "Bu tarayıcıda kayıtlı",
+      value: userCount !== null ? String(userCount) : "…",
+      change: "", sub: "Kayıtlı kullanıcı",
       color: "#0EA5E9", bg: "rgba(14,165,233,0.12)", icon: "👥"
     },
     {
       label: "BUGÜNKÜ SORGU",
-      value: "5.421", change: "↑ 18.7%", sub: "Dün'e göre", // PLACEHOLDER - gerçek sorgu logu yok
+      value: todayTotal !== null ? String(todayTotal) : "…",
+      change: "", sub: "Bugün yapılan sorgu",
       color: "#22D3EE", bg: "rgba(34,211,238,0.12)", icon: "📡"
     },
     {
       label: "RİSKLİ URL",
-      value: "1.248", change: "↑ 7.3%", sub: "Toplam tespit", // PLACEHOLDER
+      value: riskyUrl !== null ? String(riskyUrl) : "…",
+      change: "", sub: "Yüksek riskli phishing/site",
       color: "#EF4444", bg: "rgba(239,68,68,0.12)", icon: "⚠️"
     },
     {
-      label: "GELEN İHBAR",
-      value: "63", change: "↑ 31.4%", sub: "Son 24 saat", // PLACEHOLDER
-      color: "#A855F7", bg: "rgba(168,85,247,0.12)", icon: "🚨"
-    },
-    {
       label: "HABER SAYISI",
-      value: newsCount !== null ? String(newsCount) : "…", // GERÇEK
+      value: newsCount !== null ? String(newsCount) : "…",
       change: "", sub: "Veritabanındaki haber",
       color: "#22C55E", bg: "rgba(34,197,94,0.12)", icon: "📄"
     },
@@ -208,8 +217,8 @@ export function OpsConsolePage() {
           <p className="mt-1 text-sm text-slate-500">Dijital İz Avcısı Operasyon Merkezi</p>
         </div>
 
-        {/* 6 METRİK KARTI */}
-        <div className="mb-4 grid grid-cols-6 gap-2.5">
+        {/* 5 METRİK KARTI — "Gelen İhbar" kaldırıldı */}
+        <div className="mb-4 grid grid-cols-5 gap-2.5">
           {METRICS.map((m, i) => (
             <div key={i} className="flex items-start gap-2.5 rounded-2xl p-3.5 backdrop-blur-md"
               style={{
@@ -261,7 +270,7 @@ export function OpsConsolePage() {
                 Son 7 Gün ▾ {/* PLACEHOLDER */}
               </div>
             </div>
-            <LineChart /> {/* PLACEHOLDER - ileride gerçek veriyle bağlanacak */}
+            <LineChart data={chartData} />
           </div>
 
           {/* Tehdit haritası — PLACEHOLDER */}
@@ -311,72 +320,53 @@ export function OpsConsolePage() {
           </div>
         </div>
 
-        {/* ALT SATIR: Sorgular | İhbarlar | Hızlı İşlemler */}
-        <div className="mb-4 grid gap-2.5" style={{ gridTemplateColumns: "1fr 0.75fr 0.55fr" }}>
+        {/* ALT SATIR: Sorgular (gerçek) | Hızlı İşlemler */}
+        <div className="mb-4 grid gap-2.5" style={{ gridTemplateColumns: "1fr 0.55fr" }}>
 
-          {/* Son sorgular — PLACEHOLDER */}
+          {/* Son sorgular — GERÇEK VERİ */}
           <div className="rounded-2xl p-4 backdrop-blur-md"
             style={{ background: "rgba(8,20,45,0.82)", border: "1px solid rgba(56,189,248,0.18)" }}>
             <div className="mb-3 text-xs font-bold tracking-wide text-slate-100">SON SORGULAR</div>
-            <table className="w-full border-collapse text-left text-sm">
-              <thead>
-                <tr>
-                  {["#","SORGULANAN","TÜR","SONUÇ","TARİH"].map(h => (
-                    <th key={h} className="pb-2 text-slate-400"
-                      style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", borderBottom: "1px solid rgba(56,189,248,0.1)", paddingRight: 6, paddingLeft: 4 }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {/* PLACEHOLDER - ileride gerçek veriyle bağlanacak */}
-                {RECENT_QUERIES.map((q, i) => {
-                  const rc = resultStyle(q.result);
-                  const tc = typeStyle(q.type);
-                  return (
-                    <tr key={i} style={{ borderBottom: "1px solid rgba(56,189,248,0.06)" }}>
-                      <td className="py-1.5 pl-1 text-[11px] text-slate-500">{q.id}</td>
-                      <td className="max-w-[130px] overflow-hidden text-ellipsis whitespace-nowrap py-1.5 pr-2 text-[11px] text-slate-300">{q.query}</td>
-                      <td className="py-1.5 pr-1">
-                        <span className="rounded px-1.5 py-0.5 text-[9px] font-bold tracking-wide"
-                          style={{ background: tc.bg, color: tc.color }}>{q.type}</span>
-                      </td>
-                      <td className="py-1.5 pr-1">
-                        <span className="rounded px-1.5 py-0.5 text-[9px] font-bold tracking-wide"
-                          style={{ background: rc.bg, color: rc.color, border: `1px solid ${rc.border}` }}>{q.result}</span>
-                      </td>
-                      <td className="whitespace-nowrap py-1.5 text-[10px] text-slate-500">{q.date}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            <div className="mt-3 cursor-pointer text-center text-xs" style={{ color: "#0EA5E9" }}>
-              Tüm sorguları görüntüle → {/* PLACEHOLDER */}
-            </div>
-          </div>
-
-          {/* Son ihbarlar — PLACEHOLDER */}
-          <div className="rounded-2xl p-4 backdrop-blur-md"
-            style={{ background: "rgba(8,20,45,0.82)", border: "1px solid rgba(56,189,248,0.18)" }}>
-            <div className="mb-3 flex items-center justify-between">
-              <div className="text-xs font-bold tracking-wide text-slate-100">SON İHBARLAR</div>
-              <span className="cursor-pointer text-[11px]" style={{ color: "#0EA5E9" }}>Tümünü Gör</span>
-            </div>
-            {/* PLACEHOLDER - ileride gerçek veriyle bağlanacak */}
-            {RECENT_ALERTS.map((a, i) => (
-              <div key={i} className="flex items-center gap-2.5 py-2"
-                style={{ borderBottom: i < RECENT_ALERTS.length - 1 ? "1px solid rgba(56,189,248,0.07)" : "none" }}>
-                <div className="h-2 w-2 shrink-0 rounded-full" style={{ background: "#EF4444", boxShadow: "0 0 6px #EF4444" }}/>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-xs font-medium text-slate-300">{a.title}</div>
-                  <div className="text-[10px] text-slate-500">{a.cat}</div>
-                </div>
-                <div className="shrink-0 text-[11px] text-slate-500">{a.time}</div>
-              </div>
-            ))}
-            <div className="mt-3 cursor-pointer text-center text-xs" style={{ color: "#0EA5E9" }}>
-              Tüm ihbarları görüntüle → {/* PLACEHOLDER */}
-            </div>
+            {recentLogs.length === 0 ? (
+              <p className="py-4 text-center text-xs text-slate-500">Henüz sorgu kaydı yok.</p>
+            ) : (
+              <table className="w-full border-collapse text-left text-sm">
+                <thead>
+                  <tr>
+                    {["SORGULANAN","TÜR","RİSK","TARİH"].map(h => (
+                      <th key={h} className="pb-2 text-slate-400"
+                        style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", borderBottom: "1px solid rgba(56,189,248,0.1)", paddingRight: 6, paddingLeft: 4 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentLogs.map((q) => {
+                    const riskColor = q.risk_level === "Yüksek"
+                      ? { bg: "rgba(239,68,68,0.15)", color: "#EF4444", border: "rgba(239,68,68,0.4)" }
+                      : q.risk_level === "Orta"
+                      ? { bg: "rgba(245,158,11,0.15)", color: "#F59E0B", border: "rgba(245,158,11,0.4)" }
+                      : { bg: "rgba(34,197,94,0.15)", color: "#22C55E", border: "rgba(34,197,94,0.4)" };
+                    const shortDate = (() => { try { return new Intl.DateTimeFormat("tr-TR", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" }).format(new Date(q.created_at)); } catch { return q.created_at.slice(0,16); } })();
+                    return (
+                      <tr key={q.id} style={{ borderBottom: "1px solid rgba(56,189,248,0.06)" }}>
+                        <td className="max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap py-1.5 pr-2 pl-1 text-[11px] text-slate-300">{q.query_value}</td>
+                        <td className="py-1.5 pr-1">
+                          <span className="rounded px-1.5 py-0.5 text-[9px] font-bold tracking-wide"
+                            style={{ background: "rgba(14,165,233,0.15)", color: "#38BDF8" }}>{q.query_type}</span>
+                        </td>
+                        <td className="py-1.5 pr-1">
+                          {q.risk_level ? (
+                            <span className="rounded px-1.5 py-0.5 text-[9px] font-bold tracking-wide"
+                              style={{ background: riskColor.bg, color: riskColor.color, border: `1px solid ${riskColor.border}` }}>{q.risk_level}</span>
+                          ) : <span className="text-[10px] text-slate-600">—</span>}
+                        </td>
+                        <td className="whitespace-nowrap py-1.5 text-[10px] text-slate-500">{shortDate}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {/* Hızlı işlemler — gerçek linkler bağlandı */}
