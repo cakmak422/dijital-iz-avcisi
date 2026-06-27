@@ -12,5 +12,7 @@ dist
 __pycache__
 *.pyc
 backend/venv
+backend/.venv
 
 _zip_clean/
+plaket_siber_lazer_final.svg

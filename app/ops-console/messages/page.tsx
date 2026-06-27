@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { AdminGate } from "@/components/AdminGate";
-import { AdminSessionMenu } from "@/components/AdminSessionMenu";
-import { BrandLogo } from "@/components/BrandLogo";
+import { AdminShell } from "@/components/admin/AdminShell";
 import type { ContactMessage, ContactMessageStatus } from "@/lib/contactStore";
 import { archiveMessage, getAllContactMessages, markAsRead, subscribeToContactMessages } from "@/lib/contactStore";
 
@@ -54,59 +52,40 @@ export default function OpsConsoleMessagesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
-      <header className="border-b border-cyan-900/10 bg-white dark:border-cyan-300/10 dark:bg-slate-950">
-        <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <BrandLogo subtitle="Ops Console" />
-          <div className="flex items-center gap-2">
-            <Link className="rounded-md border border-cyan-900/12 px-4 py-2 text-sm font-semibold transition hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10" href="/ops-console">
-              Ops Console
-            </Link>
-            <Link className="rounded-md border border-cyan-900/12 px-4 py-2 text-sm font-semibold transition hover:bg-cyan-50 dark:border-cyan-300/15 dark:hover:bg-cyan-300/10" href="/">
-              Ana sayfa
-            </Link>
-            <AdminSessionMenu />
-          </div>
-        </nav>
-      </header>
+    <AdminGate>
+      <AdminShell activeItem="messages">
+        <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-400">İletişim Mesajları</p>
+        <h1 className="mt-1 text-2xl font-bold text-slate-100">Gelen mesajlar</h1>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
+          İletişim formundan gönderilen mesajlar. Filtrele, okundu işaretle veya arşivle.
+        </p>
 
-      <AdminGate>
-        <section className="px-4 py-10 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">Local MVP</p>
-            <h1 className="mt-2 text-3xl font-bold sm:text-4xl">İletişim mesajları.</h1>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-          Bu ekran iletişim formundan localStorage'a kaydedilen mesajları listeler. Gerçek e-posta, API veya veritabanı bağlantısı bu fazda eklenmedi.
-            </p>
+        <div className="mt-5 flex flex-wrap gap-2">
+          {filters.map((item) => (
+            <button
+              className={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
+                filter === item.value
+                  ? "border-sky-500/60 bg-sky-500/15 text-sky-300"
+                  : "border-white/10 bg-white/5 text-slate-400 hover:border-sky-500/30 hover:text-slate-200"
+              }`}
+              key={item.value}
+              onClick={() => {
+                setFilter(item.value);
+                setSelectedId(null);
+              }}
+              type="button"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
 
-            <div className="mt-6 flex flex-wrap gap-2">
-              {filters.map((item) => (
-                <button
-                  className={`rounded-md border px-4 py-2 text-sm font-semibold transition ${
-                    filter === item.value
-                      ? "border-cyan-500 bg-cyan-50 text-cyan-800 dark:border-cyan-300/40 dark:bg-cyan-300/10 dark:text-cyan-100"
-                      : "border-slate-200 bg-white text-slate-700 hover:border-cyan-300 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
-                  }`}
-                  key={item.value}
-                  onClick={() => {
-                    setFilter(item.value);
-                    setSelectedId(null);
-                  }}
-                  type="button"
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_420px]">
-              <MessageList messages={filteredMessages} onSelect={setSelectedId} selectedId={selectedMessage?.id ?? null} />
-              <MessageDetail message={selectedMessage} onArchive={handleArchive} onMarkAsRead={handleMarkAsRead} />
-            </div>
-          </div>
-        </section>
-      </AdminGate>
-    </main>
+        <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_420px]">
+          <MessageList messages={filteredMessages} onSelect={setSelectedId} selectedId={selectedMessage?.id ?? null} />
+          <MessageDetail message={selectedMessage} onArchive={handleArchive} onMarkAsRead={handleMarkAsRead} />
+        </div>
+      </AdminShell>
+    </AdminGate>
   );
 }
 
@@ -121,8 +100,8 @@ function MessageList({
 }) {
   if (!messages.length) {
     return (
-      <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
-        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Bu filtrede mesaj yok.</p>
+      <article className="rounded-lg border border-white/10 bg-white/5 p-5">
+        <p className="text-sm font-semibold text-slate-400">Bu filtrede mesaj yok.</p>
       </article>
     );
   }
@@ -131,23 +110,23 @@ function MessageList({
     <div className="grid gap-3">
       {messages.map((message) => (
         <button
-          className={`rounded-lg border p-4 text-left shadow-sm transition hover:border-cyan-300 ${
+          className={`rounded-lg border p-4 text-left transition hover:border-sky-500/40 ${
             selectedId === message.id
-              ? "border-cyan-400 bg-cyan-50 dark:border-cyan-300/40 dark:bg-cyan-300/10"
-              : "border-slate-200 bg-white dark:border-white/10 dark:bg-white/5"
+              ? "border-sky-500/50 bg-sky-500/10"
+              : "border-white/10 bg-white/5"
           }`}
           key={message.id}
           onClick={() => onSelect(message.id)}
           type="button"
         >
           <div className="flex flex-wrap items-start justify-between gap-2">
-            <p className="font-semibold text-slate-900 dark:text-white">{message.topic}</p>
+            <p className="font-semibold text-slate-100">{message.topic}</p>
             <StatusBadge status={message.status} />
           </div>
-          <p className="mt-1 break-words text-sm text-slate-700 dark:text-slate-200">{message.name}</p>
-          <p className="mt-1 break-all text-xs text-slate-500 dark:text-slate-400">{message.email}</p>
-          <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-600 dark:text-slate-300">{message.message}</p>
-          <p className="mt-2 text-[11px] font-semibold text-slate-400 dark:text-slate-500">{formatDate(message.createdAt)}</p>
+          <p className="mt-1 break-words text-sm text-slate-300">{message.name}</p>
+          <p className="mt-1 break-all text-xs text-slate-400">{message.email}</p>
+          <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-400">{message.message}</p>
+          <p className="mt-2 text-[11px] font-semibold text-slate-500">{formatDate(message.createdAt)}</p>
         </button>
       ))}
     </div>
@@ -165,16 +144,16 @@ function MessageDetail({
 }) {
   if (!message) {
     return (
-      <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
-        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Detay görüntulemek için bir mesaj secin.</p>
+      <aside className="rounded-lg border border-white/10 bg-white/5 p-5">
+        <p className="text-sm font-semibold text-slate-400">Detay görüntülemek için bir mesaj seçin.</p>
       </aside>
     );
   }
 
   return (
-    <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5 lg:sticky lg:top-5">
+    <aside className="rounded-lg border border-white/10 bg-white/5 p-5 lg:sticky lg:top-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <h2 className="text-xl font-bold">Mesaj detayi</h2>
+        <h2 className="text-xl font-bold text-slate-100">Mesaj detayı</h2>
         <StatusBadge status={message.status} />
       </div>
       <div className="mt-4 grid gap-3 text-sm">
@@ -187,15 +166,15 @@ function MessageDetail({
       </div>
       <div className="mt-5 flex flex-wrap gap-2">
         <button
-          className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-55 dark:border-emerald-300/20 dark:bg-emerald-300/10 dark:text-emerald-100"
+          className="rounded-md border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-400/20 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={message.status === "read"}
           onClick={() => onMarkAsRead(message.id)}
           type="button"
         >
-          Okundu isaretle
+          Okundu işaretle
         </button>
         <button
-          className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-amber-300 hover:text-amber-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-100 dark:hover:border-amber-300"
+          className="rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-amber-400/40 hover:text-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={message.status === "archived"}
           onClick={() => onArchive(message.id)}
           type="button"
@@ -220,17 +199,17 @@ function DetailRow({
 }) {
   return (
     <div className="grid gap-1 sm:grid-cols-[110px_1fr]">
-      <span className="font-semibold text-slate-500 dark:text-slate-400">{label}</span>
-      <span className={`${breakAll ? "break-all" : "break-words"} ${multiline ? "whitespace-pre-wrap leading-6" : ""}`}>{value}</span>
+      <span className="font-semibold text-slate-500">{label}</span>
+      <span className={`text-slate-200 ${breakAll ? "break-all" : "break-words"} ${multiline ? "whitespace-pre-wrap leading-6" : ""}`}>{value}</span>
     </div>
   );
 }
 
 function StatusBadge({ status }: { status: ContactMessageStatus }) {
   const classes = {
-    archived: "border-slate-200 bg-slate-100 text-slate-600 dark:border-white/10 dark:bg-white/10 dark:text-slate-300",
-    new: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100",
-    read: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-300/20 dark:bg-emerald-300/10 dark:text-emerald-100"
+    archived: "border-white/10 bg-white/10 text-slate-300",
+    new: "border-amber-400/30 bg-amber-400/10 text-amber-300",
+    read: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
   } satisfies Record<ContactMessageStatus, string>;
 
   return (

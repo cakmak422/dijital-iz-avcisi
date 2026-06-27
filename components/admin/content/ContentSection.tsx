@@ -43,12 +43,12 @@ export function ContentSection({
     <section className="grid gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700 dark:text-cyan-200">{group.title}</p>
-          <h2 className="mt-2 text-2xl font-bold">{group.description}</h2>
+          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-sky-400">{group.title}</p>
+          <h2 className="mt-2 text-2xl font-bold text-slate-100">{group.description}</h2>
         </div>
         {groupItems.length > 1 && (
           <button
-            className="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 disabled:opacity-50 dark:border-white/10 dark:text-slate-300 dark:hover:border-red-400/40 dark:hover:bg-red-400/10 dark:hover:text-red-300"
+            className="rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300 disabled:opacity-50"
             disabled={resetting}
             onClick={handleResetAll}
             type="button"

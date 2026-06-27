@@ -4,10 +4,10 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import {
   findAdminByIdentifier,
-  loginDemoUser,
   setAdminSession,
-  updateUserLoginMeta
+  updateUserLoginMeta,
 } from "@/lib/auth";
+import type { User } from "@/lib/users";
 import { checkClientRateLimit } from "@/lib/rateLimit";
 import { sanitizeText } from "@/lib/sanitize";
 
@@ -85,34 +85,46 @@ export function LoginForm() {
       return;
     }
 
-    // Normal kullanıcı — mevcut client-side akış değişmez
-    const user = loginDemoUser(cleanIdentifier, cleanPassword);
-    if (!user) {
-      setError("Giriş bilgileri eşleşmedi veya e-posta doğrulaması tamamlanmamış.");
-      setLoading(false);
-      return;
-    }
-
-    // Normal kullanıcı için oturum çerezi yaz + meta güncelle
+    // Normal kullanıcı — Supabase tabanlı giriş (/api/auth/login)
     try {
-      const sessionRes = await fetch("/api/auth/session", {
-        method: "POST",
+      const res  = await fetch("/api/auth/login", {
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, role: user.role })
+        body:    JSON.stringify({ identifier: cleanIdentifier, password: cleanPassword }),
       });
-      if (sessionRes.ok) {
-        const sessionData = await sessionRes.json() as { ok: boolean; lastKnownIp?: string; lastLoginAt?: string };
-        if (sessionData.lastKnownIp && sessionData.lastLoginAt) {
-          updateUserLoginMeta(user.id, sessionData.lastKnownIp, sessionData.lastLoginAt);
-        }
-      }
-    } catch {
-      // Çerez yazılamazsa localStorage oturumu yeterli, devam et
-    }
 
-    setSuccess("Giriş başarılı. Yönlendiriliyorsunuz.");
-    window.location.assign("/kullanici-paneli");
-    setLoading(false);
+      if (res.status === 429) {
+        const data = await res.json() as { error?: string };
+        setError(data.error ?? "Çok fazla deneme. Daha sonra tekrar deneyin.");
+        return;
+      }
+
+      const data = await res.json() as { ok: boolean; user?: User; lastKnownIp?: string; lastLoginAt?: string; error?: string };
+
+      if (!data.ok || !data.user) {
+        setError(data.error ?? "Giriş bilgileri hatalı.");
+        return;
+      }
+
+      // Kullanıcıyı localStorage oturumuna yaz (getCurrentDemoUser() çalışsın)
+      setAdminSession(data.user); // aynı localStorage anahtarını kullanır
+
+      // Oturum çerezi yaz (proxy.ts koruması için isteğe bağlı — normal kullanıcı /ops-console'a giremez zaten)
+      try {
+        await fetch("/api/auth/session", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ userId: data.user.id, role: data.user.role }),
+        });
+      } catch { /* çerez yazılamazsa devam et */ }
+
+      setSuccess("Giriş başarılı. Yönlendiriliyorsunuz.");
+      window.location.assign("/kullanici-paneli");
+    } catch {
+      setError("Bağlantı hatası. Tekrar deneyin.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

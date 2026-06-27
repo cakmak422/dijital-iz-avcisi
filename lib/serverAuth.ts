@@ -16,22 +16,29 @@ export const DEV_COOKIE      = "dia_session";       // dev/HTTP için (non-__Hos
 
 // ── Rate limit (in-memory) ────────────────────────────────────────────────────
 
-const RL_MAP    = new Map<string, { count: number; resetAt: number }>();
-const RL_LIMIT  = 5;
-const RL_WINDOW = 60_000; // 1 dakika
+const RL_MAP = new Map<string, { count: number; resetAt: number }>();
 
-export function checkSessionRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = RL_MAP.get(ip);
+/**
+ * Genel rate limiter. key = "prefix:ip" formatında kullan.
+ * Aynı Map'i paylaşır; prefix farklı olduğu için çakışma olmaz.
+ */
+export function checkRateLimit(key: string, limit: number, windowMs: number): boolean {
+  const now   = Date.now();
+  const entry = RL_MAP.get(key);
 
   if (!entry || now > entry.resetAt) {
-    RL_MAP.set(ip, { count: 1, resetAt: now + RL_WINDOW });
+    RL_MAP.set(key, { count: 1, resetAt: now + windowMs });
     return true;
   }
 
-  if (entry.count >= RL_LIMIT) return false;
+  if (entry.count >= limit) return false;
   entry.count++;
   return true;
+}
+
+/** Geriye dönük uyumluluk — admin session endpoint'i bu fonksiyonu kullanıyor */
+export function checkSessionRateLimit(ip: string): boolean {
+  return checkRateLimit(`session:${ip}`, 5, 60_000);
 }
 
 // ── HMAC session ──────────────────────────────────────────────────────────────
@@ -128,24 +135,31 @@ export function verifyAdminPassphrase(passphrase: string): boolean {
  * Tüm API route'larında ortak kullanım için.
  */
 export async function validateAdminFromCookies(): Promise<{ ok: boolean; status: number; error: string }> {
+  const result = await getAdminSessionFromCookies();
+  if (!result) return { ok: false, status: 401, error: "Admin oturumu gerekir." };
+  return { ok: true, status: 200, error: "" };
+}
+
+/**
+ * Cookie'den admin oturumunu okur ve { userId, role } döner.
+ * Geçersiz veya eksik token'da null döner.
+ * PATCH endpoint'lerinde "kendi hesabını değiştirme" kontrolü için kullanılır.
+ */
+export async function getAdminSessionFromCookies(): Promise<{ userId: string; role: string } | null> {
   const { cookies } = await import("next/headers");
-  const cookieStore = await cookies();
+  const cookieStore  = await cookies();
   const isProduction = process.env.NODE_ENV === "production";
 
   const token =
     cookieStore.get(SESSION_COOKIE)?.value ??
     (!isProduction ? cookieStore.get(DEV_COOKIE)?.value : undefined);
 
-  if (!token) {
-    return { ok: false, status: 401, error: "Admin oturumu gerekir." };
-  }
+  if (!token) return null;
 
   const session = verifySession(token);
-  if (!session || session.role !== "admin") {
-    return { ok: false, status: 401, error: "Admin oturumu gerekir." };
-  }
+  if (!session || session.role !== "admin") return null;
 
-  return { ok: true, status: 200, error: "" };
+  return session;
 }
 
 // ── Yardımcılar ───────────────────────────────────────────────────────────────

@@ -1,10 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AdminGate } from "@/components/AdminGate";
-import { AdminSessionMenu } from "@/components/AdminSessionMenu";
-import { BrandLogo } from "@/components/BrandLogo";
+import { AdminShell } from "@/components/admin/AdminShell";
 import { cyberArchiveEvents, type CyberArchiveEvent } from "@/lib/cyberArchive";
 
 type EventWithImage = CyberArchiveEvent & {
@@ -14,39 +12,21 @@ type EventWithImage = CyberArchiveEvent & {
 
 export default function CyberArchiveAdminPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <header className="border-b border-cyan-300/10 bg-slate-950/95">
-        <nav className="mx-auto flex min-h-16 max-w-7xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <BrandLogo subtitle="Siber Arşiv Yönetimi" />
-          <div className="flex flex-wrap items-center gap-2">
-            <Link className="rounded-md border border-cyan-300/15 px-4 py-2 text-sm font-semibold transition hover:bg-cyan-300/10" href="/ops-console">
-              Ops Console
-            </Link>
-            <Link className="rounded-md border border-cyan-300/15 px-4 py-2 text-sm font-semibold transition hover:bg-cyan-300/10" href="/siber-arsiv">
-              Siber Arşiv →
-            </Link>
-            <AdminSessionMenu />
+    <AdminGate>
+      <AdminShell activeItem="cyber-archive">
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-sky-400">Siber Arşiv</p>
+            <h1 className="mt-1 text-2xl font-bold text-slate-100">Görsel Yönetimi</h1>
+            <p className="mt-1 text-sm text-slate-400">
+              Her olay için manuel görsel yükleyebilirsiniz. Admin görseli her zaman AI görseline göre önceliklidir.
+            </p>
           </div>
-        </nav>
-      </header>
-
-      <AdminGate>
-        <section className="px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-5xl">
-            <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold">Siber Arşiv — Görsel Yönetimi</h1>
-                <p className="mt-1 text-sm text-slate-400">
-                  Her olay için manuel görsel yükleyebilirsiniz. Admin görseli her zaman AI görseline göre önceliklidir.
-                </p>
-              </div>
-              <SyncFromNewsButton />
-            </div>
-            <ArchiveImageManager />
-          </div>
-        </section>
-      </AdminGate>
-    </main>
+          <SyncFromNewsButton />
+        </div>
+        <ArchiveImageManager />
+      </AdminShell>
+    </AdminGate>
   );
 }
 
