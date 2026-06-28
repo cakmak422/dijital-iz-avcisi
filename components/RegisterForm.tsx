@@ -43,8 +43,9 @@ export function RegisterForm() {
   const [step, setStep]           = useState<RegisterStep>("form");
   const [otpInput, setOtpInput]   = useState("");
   const [resendLeft, setResendLeft] = useState(0);
-  const [verifying, setVerifying] = useState(false);
-  const [error, setError]         = useState("");
+  const [verifying, setVerifying]     = useState(false);
+  const [consentGiven, setConsentGiven] = useState(false);
+  const [error, setError]             = useState("");
 
   useEffect(() => {
     if (step !== "otp") return;
@@ -83,6 +84,10 @@ export function RegisterForm() {
     }
     if (cleaned.password !== cleaned.passwordRepeat) {
       setError("Şifre ve Şifre tekrar alanları eşleşmiyor.");
+      return;
+    }
+    if (!consentGiven) {
+      setError("Devam etmek için KVKK metnini okuduğunuzu onaylamanız gerekiyor.");
       return;
     }
 
@@ -134,14 +139,15 @@ export function RegisterForm() {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({
-          email:     cleaned.email,
-          code:      otpInput,
-          username:  cleaned.username,
-          firstName: cleaned.firstName,
-          lastName:  cleaned.lastName,
-          birthDate: cleaned.birthDate,
-          phone:     cleaned.phone,
-          password:  cleaned.password,
+          email:        cleaned.email,
+          code:         otpInput,
+          username:     cleaned.username,
+          firstName:    cleaned.firstName,
+          lastName:     cleaned.lastName,
+          birthDate:    cleaned.birthDate,
+          phone:        cleaned.phone,
+          password:     cleaned.password,
+          consentGiven: true, // OTP adımına ulaşıldıysa form adımında onaylandı
         }),
       });
       const data = await res.json() as { ok: boolean; error?: string };
@@ -201,9 +207,34 @@ export function RegisterForm() {
           <Field label="Şifre tekrar" type="password" value={form.passwordRepeat} onChange={v => updateField("passwordRepeat", v)} />
         </div>
 
+        {/* KVKK onay kutusu */}
+        <label className="flex cursor-pointer items-start gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-white/5">
+          <input
+            type="checkbox"
+            checked={consentGiven}
+            onChange={e => setConsentGiven(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-cyan-600"
+          />
+          <span className="text-sm leading-5 text-slate-700 dark:text-slate-300">
+            <a
+              href="/kvkk"
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-cyan-700 underline underline-offset-2 hover:text-cyan-900 dark:text-cyan-300 dark:hover:text-cyan-100"
+            >
+              KVKK Aydınlatma ve Rıza Metni
+            </a>
+            &apos;ni okudum, kişisel verilerimin işlenmesini kabul ediyorum.
+          </span>
+        </label>
+
         {error ? <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p> : null}
 
-        <button className="min-h-11 rounded-md bg-slate-900 px-5 font-semibold text-white transition hover:bg-cyan-700 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100" type="submit">
+        <button
+          className="min-h-11 rounded-md bg-slate-900 px-5 font-semibold text-white transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100"
+          disabled={!consentGiven}
+          type="submit"
+        >
           E-posta Doğrulama Kodu Gönder
         </button>
       </form>

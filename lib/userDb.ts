@@ -127,6 +127,9 @@ export type DbUser = {
   last_login_at:  string | null;
   login_count:    number;
   last_known_ip:  string | null;
+  consent_given:  boolean;
+  consent_at:     string | null;
+  consent_ip:     string | null;
   // password_hash döndürülmez — SELECT sorgularında hariç tutulur
 };
 
@@ -138,6 +141,8 @@ export type CreateUserInput = {
   birthDate:   string;
   phone:       string;
   password:    string; // düz metin — burada hash'lenir
+  consentAt:   string; // ISO timestamp — OTP doğrulandığı an
+  consentIp:   string; // kayıt isteğinin IP'si
 };
 
 // ── OTP Fonksiyonları ─────────────────────────────────────────────────────────
@@ -199,7 +204,7 @@ export async function verifyOtp(email: string, code: string): Promise<boolean> {
 
 // ── Kullanıcı Fonksiyonları ───────────────────────────────────────────────────
 
-const USER_COLUMNS = "id,username,email,first_name,last_name,birth_date,phone,role,status,email_verified,created_at,last_login_at,login_count,last_known_ip";
+const USER_COLUMNS = "id,username,email,first_name,last_name,birth_date,phone,role,status,email_verified,created_at,last_login_at,login_count,last_known_ip,consent_given,consent_at,consent_ip";
 
 /** Yeni kullanıcı oluşturur. Şifreyi burada hash'ler. */
 export async function createUser(
@@ -219,7 +224,10 @@ export async function createUser(
       password_hash:  passwordHash,
       role:           "user",
       status:         "active",
-      email_verified: true, // OTP doğrulandıktan sonra çağrılır
+      email_verified: true,  // OTP doğrulandıktan sonra çağrılır
+      consent_given:  true,
+      consent_at:     input.consentAt,
+      consent_ip:     input.consentIp,
     },
     headers: { "Prefer": "return=representation" },
   });

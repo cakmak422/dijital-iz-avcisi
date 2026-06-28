@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
     birthDate?: string;
     phone?: string;
     password?: string;
+    consentGiven?: boolean;
   };
 
   try {
@@ -58,6 +59,10 @@ export async function POST(request: NextRequest) {
 
   if (!email || !code || !username || !firstName || !lastName || !birthDate || !phone || !password) {
     return NextResponse.json({ ok: false, error: "Tüm alanlar zorunludur." }, { status: 400 });
+  }
+  // KVKK onayı sunucu tarafında da zorunlu — client engeli yeterli değil
+  if (body.consentGiven !== true) {
+    return NextResponse.json({ ok: false, error: "KVKK metnini onaylamanız zorunludur." }, { status: 400 });
   }
   if (!isValidEmail(email)) {
     return NextResponse.json({ ok: false, error: "Geçersiz e-posta adresi." }, { status: 400 });
@@ -101,6 +106,7 @@ export async function POST(request: NextRequest) {
 
   // ── Kullanıcı oluştur (şifre burada hash'lenir) ───────────────────────────────
 
+  const ip = getIp(request);
   const { user, error: createError } = await createUser({
     username,
     email,
@@ -108,7 +114,9 @@ export async function POST(request: NextRequest) {
     lastName,
     birthDate,
     phone,
-    password, // createUser içinde hashPassword() çağrılır
+    password,    // createUser içinde hashPassword() çağrılır
+    consentAt:   new Date().toISOString(),
+    consentIp:   ip,
   });
 
   if (createError || !user) {

@@ -147,6 +147,30 @@ export default function UserDetailPage() {
                 />
               </article>
 
+              {/* KVKK Rızası */}
+              <article className="mt-4 rounded-xl border border-white/10 bg-white/5 p-5">
+                <h2 className="mb-3 text-base font-bold text-slate-100">KVKK Rızası</h2>
+                {user.consent_given ? (
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 text-emerald-400">✓</span>
+                    <div className="text-sm text-slate-200">
+                      <span className="font-semibold text-emerald-300">Onaylandı</span>
+                      {user.consent_at && (
+                        <span className="text-slate-400"> — {formatDateTime(user.consent_at)}</span>
+                      )}
+                      {user.consent_ip && (
+                        <span className="text-slate-500 text-xs ml-2">IP: {user.consent_ip}</span>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-2 text-sm text-amber-400">
+                    <span>⚠</span>
+                    <span>Rıza kaydı bulunamadı (geçiş öncesi kayıt veya onay verilmemiş).</span>
+                  </div>
+                )}
+              </article>
+
               {/* Durum değiştirme */}
               <article className="mt-4 rounded-xl border border-white/10 bg-white/5 p-5">
                 <h2 className="mb-1 text-base font-bold text-slate-100">Hesap Durumu</h2>
