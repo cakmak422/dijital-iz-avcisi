@@ -150,7 +150,21 @@ function SidebarUserCard() {
 }
 
 export function AdminShell({ children, activeItem }: AdminShellProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  // Masaüstünde (≥1024px) açık, mobilde kapalı başlar — SSR flash yok (AdminShell client-only)
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile]       = useState(false);
+
+  useEffect(() => {
+    function check() {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      if (!mobile) setSidebarOpen(true); // masaüstünde her zaman açık
+      // mobilde: ilk açılışta kapalı kalır (useState(false))
+    }
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   return (
     <div
@@ -179,12 +193,29 @@ export function AdminShell({ children, activeItem }: AdminShellProps) {
         }}
       />
 
-      {/* ── SIDEBAR ── */}
+      {/* ── MOBİL BACKDROP — sidebar açıkken karartma ── */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black/50 backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* ── SIDEBAR ──
+          Masaüstü (≥1024px): statik kolon, width animasyonlu
+          Mobil (<1024px): fixed overlay, translate animasyonlu, z-30
+      ── */}
       <aside
-        className="relative z-10 flex h-screen shrink-0 flex-col overflow-hidden transition-all duration-300"
+        className={`flex h-screen shrink-0 flex-col overflow-hidden transition-all duration-300 ${
+          isMobile
+            ? "fixed left-0 top-0 z-30"
+            : "relative z-10"
+        }`}
         style={{
-          width: sidebarOpen ? 240 : 0,
-          minWidth: sidebarOpen ? 240 : 0,
+          width:     isMobile ? 240 : (sidebarOpen ? 240 : 0),
+          minWidth:  isMobile ? 240 : (sidebarOpen ? 240 : 0),
+          transform: isMobile ? (sidebarOpen ? "translateX(0)" : "translateX(-100%)") : "none",
           background: "rgba(5,11,30,0.98)",
           borderRight: "1px solid rgba(56,189,248,0.15)",
         }}

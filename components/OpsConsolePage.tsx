@@ -237,8 +237,8 @@ export function OpsConsolePage() {
           <p className="mt-1 text-sm text-slate-500">Dijital İz Avcısı Operasyon Merkezi</p>
         </div>
 
-        {/* 6 METRİK KARTI */}
-        <div className="mb-4 grid grid-cols-6 gap-2.5">
+        {/* 6 METRİK KARTI — mobil:2, tablet:3, masaüstü:6 */}
+        <div className="mb-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
           {METRICS.map((m, i) => (
             <div key={i} className="flex items-start gap-2.5 rounded-2xl p-3.5 backdrop-blur-md"
               style={{
@@ -275,8 +275,8 @@ export function OpsConsolePage() {
           ))}
         </div>
 
-        {/* ORTA SATIR: Grafik | Harita | Sistem Durumu */}
-        <div className="mb-4 grid gap-2.5" style={{ gridTemplateColumns: "1fr 0.65fr 0.45fr" }}>
+        {/* ORTA SATIR: Grafik | Harita | Sistem Durumu — mobil:tek kolon, masaüstü:3 kolon */}
+        <div className="mb-4 grid grid-cols-1 gap-2.5 lg:grid-cols-[1fr_0.65fr_0.45fr]">
 
           {/* Grafik — PLACEHOLDER */}
           <div className="rounded-2xl p-4 backdrop-blur-md"
@@ -340,8 +340,8 @@ export function OpsConsolePage() {
           </div>
         </div>
 
-        {/* ALT SATIR: Sorgular | Mesajlar | Hızlı İşlemler */}
-        <div className="mb-4 grid gap-2.5" style={{ gridTemplateColumns: "1fr 0.65fr 0.55fr" }}>
+        {/* ALT SATIR: Sorgular | Mesajlar | Hızlı İşlemler — mobil:tek kolon, masaüstü:3 kolon */}
+        <div className="mb-4 grid grid-cols-1 gap-2.5 lg:grid-cols-[1fr_0.65fr_0.55fr]">
 
           {/* Son sorgular — GERÇEK VERİ */}
           <div className="rounded-2xl p-4 backdrop-blur-md"
@@ -350,7 +350,8 @@ export function OpsConsolePage() {
             {recentLogs.length === 0 ? (
               <p className="py-4 text-center text-xs text-slate-500">Henüz sorgu kaydı yok.</p>
             ) : (
-              <table className="w-full border-collapse text-left text-sm">
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[420px] border-collapse text-left text-sm">
                 <thead>
                   <tr>
                     {["SORGULANAN","TÜR","RİSK","TARİH"].map(h => (
@@ -386,6 +387,7 @@ export function OpsConsolePage() {
                   })}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
 
@@ -425,7 +427,7 @@ export function OpsConsolePage() {
           <div className="rounded-2xl p-4 backdrop-blur-md"
             style={{ background: "rgba(8,20,45,0.82)", border: "1px solid rgba(56,189,248,0.18)" }}>
             <div className="mb-3 text-xs font-bold tracking-wide text-slate-100">HIZLI İŞLEMLER</div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {QUICK_ACTIONS.map((a, i) => {
                 const inner = (
                   <>

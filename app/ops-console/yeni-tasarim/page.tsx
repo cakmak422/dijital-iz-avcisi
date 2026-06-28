@@ -435,7 +435,8 @@ export default function YeniTasarimPage() {
             <div className="rounded-2xl p-4 backdrop-blur-md"
               style={{ background:"rgba(8,20,45,0.82)", border:"1px solid rgba(56,189,248,0.18)" }}>
               <div className="mb-3 text-xs font-bold tracking-wide text-slate-100">SON SORGULAR</div>
-              <table className="w-full border-collapse text-left text-sm">
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[420px] border-collapse text-left text-sm">
                 <thead>
                   <tr>
                     {["#","SORGULANAN","TÜR","SONUÇ","TARİH"].map(h => (
@@ -466,6 +467,7 @@ export default function YeniTasarimPage() {
                   })}
                 </tbody>
               </table>
+              </div>
               <div className="mt-3 cursor-pointer text-center text-xs" style={{ color:"#0EA5E9" }}>
                 Tüm sorguları görüntüle → {/* PLACEHOLDER */}
               </div>
