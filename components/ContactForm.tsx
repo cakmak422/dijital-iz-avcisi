@@ -1,52 +1,62 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { saveContactMessage } from "@/lib/contactStore";
 import { checkClientRateLimit } from "@/lib/rateLimit";
 import { isValidEmail, sanitizeMultiline, sanitizeText } from "@/lib/sanitize";
 
 const contactTopics = ["Genel iletişim", "Şüpheli link bildirimi", "Hatalı analiz bildirimi", "İş birliği önerisi"];
 
 export function ContactForm() {
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState("");
+  const [sent, setSent]       = useState(false);
+  const [error, setError]     = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSent(false);
     setError("");
 
-    const rate = checkClientRateLimit("contact-form", 5, 60_000);
+    // Client taraflı rate limit (ilk engel)
+    const rate = checkClientRateLimit("contact-form", 3, 600_000);
     if (!rate.allowed) {
       setError(`Çok fazla mesaj denemesi. Lütfen ${rate.retryAfterSeconds} saniye sonra tekrar deneyin.`);
       return;
     }
 
     const formData = new FormData(event.currentTarget);
-    const name = sanitizeText(String(formData.get("name") ?? ""), 80);
-    const email = sanitizeText(String(formData.get("email") ?? ""), 120).toLowerCase();
-    const topic = sanitizeText(String(formData.get("topic") ?? ""), 80);
-    const message = sanitizeMultiline(String(formData.get("message") ?? ""), 1000);
+    const name     = sanitizeText(String(formData.get("name") ?? ""), 80);
+    const email    = sanitizeText(String(formData.get("email") ?? ""), 120).toLowerCase();
+    const topic    = sanitizeText(String(formData.get("topic") ?? ""), 80);
+    const message  = sanitizeMultiline(String(formData.get("message") ?? ""), 1000);
 
     if (!name || !email || !topic || !message) {
       setError("Lütfen tüm alanları doldurun.");
       return;
     }
-
     if (!isValidEmail(email)) {
       setError("Geçerli bir e-posta adresi girin.");
       return;
     }
 
+    setLoading(true);
     try {
-      saveContactMessage({ name, email, topic, message });
+      const res  = await fetch("/api/contact", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ name, email, topic, message }),
+      });
+      const data = await res.json() as { ok: boolean; error?: string };
+      if (!data.ok) {
+        setError(data.error ?? "Mesaj gönderilemedi. Lütfen tekrar deneyin.");
+        return;
+      }
+      setSent(true);
+      event.currentTarget.reset();
     } catch {
-      setError("Mesaj kaydedilemedi. Lütfen tekrar deneyin.");
-      return;
+      setError("Bağlantı hatası. Lütfen tekrar deneyin.");
+    } finally {
+      setLoading(false);
     }
-
-    setSent(true);
-    event.currentTarget.reset();
   }
 
   return (
@@ -71,8 +81,8 @@ export function ContactForm() {
         defaultValue={contactTopics[0]}
         name="topic"
       >
-        {contactTopics.map((topic) => (
-          <option key={topic}>{topic}</option>
+        {contactTopics.map((t) => (
+          <option key={t}>{t}</option>
         ))}
       </select>
       <textarea
@@ -81,8 +91,8 @@ export function ContactForm() {
         name="message"
         placeholder="Mesajınız"
       />
-      <button className="btn-primary min-h-11" type="submit">
-        Mesajı Gönder
+      <button className="btn-primary min-h-11 disabled:opacity-60" disabled={loading} type="submit">
+        {loading ? "Gönderiliyor…" : "Mesajı Gönder"}
       </button>
       {error ? (
         <p className="rounded-md border border-red-300/30 bg-red-300/10 px-3 py-2 text-sm font-semibold text-red-200">
@@ -91,7 +101,7 @@ export function ContactForm() {
       ) : null}
       {sent ? (
         <p className="rounded-md border border-emerald-300/30 bg-emerald-300/10 px-3 py-2 text-sm font-semibold text-emerald-200">
-          Mesajınız alındı. Gerçek backend bağlandığında kayıt altına alınacaktır.
+          Mesajınız alındı, teşekkür ederiz.
         </p>
       ) : null}
     </form>

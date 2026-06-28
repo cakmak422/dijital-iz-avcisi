@@ -144,6 +144,9 @@ export function OpsConsolePage() {
   const [riskyUrl, setRiskyUrl]         = useState<number | null>(null);
   const [chartData, setChartData]       = useState<DailyCount[]>([]);
   const [recentLogs, setRecentLogs]     = useState<QueryLogRow[]>([]);
+  const [msgTotal, setMsgTotal]         = useState<number | null>(null);
+  const [msgNew, setMsgNew]             = useState<number | null>(null);
+  const [recentMsgs, setRecentMsgs]     = useState<Array<{ id: string; topic: string; name: string; status: string }>>([]);
 
   useEffect(() => {
     const me = getCurrentDemoUser();
@@ -159,6 +162,17 @@ export function OpsConsolePage() {
     fetch("/api/news/latest?limit=1")
       .then(r => r.json())
       .then(d => { if (typeof d.count === "number") setNewsCount(d.count); })
+      .catch(() => {});
+
+    // Gerçek mesaj sayıları ve son mesajlar
+    fetch("/api/admin/contact-messages")
+      .then(r => r.json())
+      .then((d: { ok: boolean; messages?: Array<{ id: string; topic: string; name: string; status: string }> }) => {
+        if (!d.ok || !d.messages) return;
+        setMsgTotal(d.messages.length);
+        setMsgNew(d.messages.filter(m => m.status === "new").length);
+        setRecentMsgs(d.messages.slice(0, 3));
+      })
       .catch(() => {});
 
     // Gerçek sorgu istatistikleri
@@ -195,6 +209,12 @@ export function OpsConsolePage() {
       color: "#EF4444", bg: "rgba(239,68,68,0.12)", icon: "⚠️"
     },
     {
+      label: "GELEN MESAJ",
+      value: msgTotal !== null ? String(msgTotal) : "…",
+      change: "", sub: msgNew !== null ? `${msgNew} yeni mesaj` : "Yeni mesajlar",
+      color: "#A855F7", bg: "rgba(168,85,247,0.12)", icon: "✉️"
+    },
+    {
       label: "HABER SAYISI",
       value: newsCount !== null ? String(newsCount) : "…",
       change: "", sub: "Veritabanındaki haber",
@@ -217,8 +237,8 @@ export function OpsConsolePage() {
           <p className="mt-1 text-sm text-slate-500">Dijital İz Avcısı Operasyon Merkezi</p>
         </div>
 
-        {/* 5 METRİK KARTI — "Gelen İhbar" kaldırıldı */}
-        <div className="mb-4 grid grid-cols-5 gap-2.5">
+        {/* 6 METRİK KARTI */}
+        <div className="mb-4 grid grid-cols-6 gap-2.5">
           {METRICS.map((m, i) => (
             <div key={i} className="flex items-start gap-2.5 rounded-2xl p-3.5 backdrop-blur-md"
               style={{
@@ -320,8 +340,8 @@ export function OpsConsolePage() {
           </div>
         </div>
 
-        {/* ALT SATIR: Sorgular (gerçek) | Hızlı İşlemler */}
-        <div className="mb-4 grid gap-2.5" style={{ gridTemplateColumns: "1fr 0.55fr" }}>
+        {/* ALT SATIR: Sorgular | Mesajlar | Hızlı İşlemler */}
+        <div className="mb-4 grid gap-2.5" style={{ gridTemplateColumns: "1fr 0.65fr 0.55fr" }}>
 
           {/* Son sorgular — GERÇEK VERİ */}
           <div className="rounded-2xl p-4 backdrop-blur-md"
@@ -366,6 +386,38 @@ export function OpsConsolePage() {
                   })}
                 </tbody>
               </table>
+            )}
+          </div>
+
+          {/* Son mesajlar — GERÇEK VERİ */}
+          <div className="rounded-2xl p-4 backdrop-blur-md"
+            style={{ background: "rgba(8,20,45,0.82)", border: "1px solid rgba(56,189,248,0.18)" }}>
+            <div className="mb-3 flex items-center justify-between">
+              <div className="text-xs font-bold tracking-wide text-slate-100">SON MESAJLAR</div>
+              <Link href="/ops-console/messages" className="text-[11px] transition hover:text-sky-300" style={{ color: "#0EA5E9" }}>
+                Tümünü Gör
+              </Link>
+            </div>
+            {recentMsgs.length === 0 ? (
+              <p className="py-4 text-center text-xs text-slate-500">Henüz mesaj yok.</p>
+            ) : (
+              recentMsgs.map((m) => (
+                <div key={m.id} className="flex items-start gap-2 py-2"
+                  style={{ borderBottom: "1px solid rgba(56,189,248,0.07)" }}>
+                  <div className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
+                    style={{ background: m.status === "new" ? "#F59E0B" : "#64748B" }} />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-xs font-medium text-slate-300">{m.topic}</div>
+                    <div className="text-[10px] text-slate-500">{m.name}</div>
+                  </div>
+                  <span className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold"
+                    style={m.status === "new"
+                      ? { background: "rgba(245,158,11,0.15)", color: "#F59E0B" }
+                      : { background: "rgba(100,116,139,0.15)", color: "#94A3B8" }}>
+                    {m.status}
+                  </span>
+                </div>
+              ))
             )}
           </div>
 
