@@ -119,7 +119,7 @@ export function LoginForm() {
       } catch { /* çerez yazılamazsa devam et */ }
 
       setSuccess("Giriş başarılı. Yönlendiriliyorsunuz.");
-      window.location.assign("/kullanici-paneli");
+      window.location.assign(getSafeNextPath() ?? "/kullanici-paneli");
     } catch {
       setError("Bağlantı hatası. Tekrar deneyin.");
     } finally {
@@ -182,10 +182,12 @@ export function LoginForm() {
   );
 }
 
+const SAFE_NEXT_PREFIXES = ["/ops-console", "/sorgu-paneli", "/urun-analizi"];
+
 function getSafeNextPath() {
   if (typeof window === "undefined") return null;
   const next = new URLSearchParams(window.location.search).get("next");
   if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
-  if (!next.startsWith("/ops-console")) return null;
+  if (!SAFE_NEXT_PREFIXES.some(p => next.startsWith(p))) return null;
   return next;
 }

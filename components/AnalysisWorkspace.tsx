@@ -185,6 +185,7 @@ export function AnalysisWorkspace() {
   const [selectedExifFile, setSelectedExifFile] = useState<File | null>(null);
   const [history, setHistory] = useState<AnalysisHistoryItem[]>([]);
   const [error, setError] = useState("");
+  const [showAuthGate, setShowAuthGate] = useState(false);
 
   const currentModule = modules.find((module) => module.id === activeModule) ?? modules[0];
   const canAnalyze = useMemo(() => {
@@ -208,6 +209,12 @@ export function AnalysisWorkspace() {
   async function handleAnalyze(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+
+    // Giriş kontrolü — giriş yapılmamışsa auth gate göster, analizi çalıştırma
+    if (!getCurrentDemoUser()) {
+      setShowAuthGate(true);
+      return;
+    }
 
     const rate = checkClientRateLimit(`analysis-${activeModule}`, 10, 60_000);
     if (!rate.allowed) {
@@ -367,23 +374,27 @@ export function AnalysisWorkspace() {
       </aside>
 
       <div className="grid gap-6">
-        <AnalyzerPanel
-          activeModule={currentModule}
-          canAnalyze={canAnalyze}
-          error={error}
-          isLoading={isLoading}
-          messageResult={messageResult}
-          ipResult={ipResult}
-          exifResult={exifResult}
-          onSubmit={handleAnalyze}
-          phishingResult={phishingResult}
-          siteResult={siteResult}
-          result={result}
-          setUrl={setUrl}
-          selectedExifFile={selectedExifFile}
-          setSelectedExifFile={setSelectedExifFile}
-          url={url}
-        />
+        {showAuthGate ? (
+          <AuthGateCard onDismiss={() => setShowAuthGate(false)} />
+        ) : (
+          <AnalyzerPanel
+            activeModule={currentModule}
+            canAnalyze={canAnalyze}
+            error={error}
+            isLoading={isLoading}
+            messageResult={messageResult}
+            ipResult={ipResult}
+            exifResult={exifResult}
+            onSubmit={handleAnalyze}
+            phishingResult={phishingResult}
+            siteResult={siteResult}
+            result={result}
+            setUrl={setUrl}
+            selectedExifFile={selectedExifFile}
+            setSelectedExifFile={setSelectedExifFile}
+            url={url}
+          />
+        )}
         {history.length ? <HistoryPanel history={history} /> : null}
       </div>
     </section>
@@ -522,8 +533,46 @@ function AnalyzerPanel({
         )}
       </div>
 
-      <ResultPanel activeModule={activeModule} messageResult={messageResult} ipResult={ipResult} exifResult={exifResult} phishingResult={phishingResult} siteResult={siteResult} result={result} isLoading={isLoading} />
+        <ResultPanel activeModule={activeModule} messageResult={messageResult} ipResult={ipResult} exifResult={exifResult} phishingResult={phishingResult} siteResult={siteResult} result={result} isLoading={isLoading} />
     </section>
+  );
+}
+
+function AuthGateCard({ onDismiss }: { onDismiss: () => void }) {
+  // Mevcut sayfayı + query string'i dinamik olarak yakala
+  const nextPath = typeof window !== "undefined"
+    ? encodeURIComponent(window.location.pathname + window.location.search)
+    : encodeURIComponent("/sorgu-paneli");
+
+  return (
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-sky-400/30 bg-sky-400/5 px-6 py-12 text-center">
+      <div className="mb-4 text-4xl">🔒</div>
+      <h2 className="text-xl font-bold text-slate-100">Sorgu yapmak için giriş yapın</h2>
+      <p className="mt-2 max-w-sm text-sm leading-6 text-slate-400">
+        Analiz araçlarını kullanmak için ücretsiz bir hesap oluşturabilir veya mevcut hesabınızla giriş yapabilirsiniz.
+      </p>
+      <div className="mt-6 flex flex-wrap justify-center gap-3">
+        <a
+          href={`/giris-yap?next=${nextPath}`}
+          className="rounded-lg bg-sky-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500"
+        >
+          Giriş Yap
+        </a>
+        <a
+          href="/kayit-ol"
+          className="rounded-lg border border-white/20 bg-white/5 px-6 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-white/10"
+        >
+          Kayıt Ol
+        </a>
+        <button
+          onClick={onDismiss}
+          className="rounded-lg border border-white/10 px-4 py-2.5 text-sm text-slate-400 transition hover:text-slate-200"
+          type="button"
+        >
+          Vazgeç
+        </button>
+      </div>
+    </div>
   );
 }
 
