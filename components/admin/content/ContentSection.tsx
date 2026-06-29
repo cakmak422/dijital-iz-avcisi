@@ -2,25 +2,26 @@
 
 import { useState } from "react";
 import { getCurrentDemoUser } from "@/lib/auth";
-import { resetEditableContent } from "@/lib/contentStore";
 import { ContentEditorCard } from "@/components/admin/content/ContentEditorCard";
 import type { EditableContent, EditableContentGroup } from "@/types/content";
 
 export function ContentSection({
   group,
-  items
+  items,
+  onRefresh,
 }: {
   group: EditableContentGroup;
   items: EditableContent[];
+  onRefresh?: () => void;
 }) {
   const groupItems = group.keys
     .map((key) => items.find((item) => item.key === key))
     .filter((item): item is EditableContent => Boolean(item));
 
-  const [resetKey, setResetKey] = useState(0); // kartları yeniden mount etmek için
+  const [resetKey, setResetKey]   = useState(0);
   const [resetting, setResetting] = useState(false);
 
-  function handleResetAll() {
+  async function handleResetAll() {
     const confirmed = window.confirm(
       `"${group.description}" bölümündeki ${groupItems.length} içeriğin tamamı varsayılan değerlere dönecek. Emin misiniz?`
     );
@@ -28,12 +29,18 @@ export function ContentSection({
 
     setResetting(true);
     try {
-      const admin = getCurrentDemoUser()?.username ?? "admin";
-      for (const item of groupItems) {
-        resetEditableContent(item.key, admin);
-      }
-      // Tüm kartları sıfırlanmış içerikle yeniden render et
+      const updatedBy = getCurrentDemoUser()?.username ?? "admin";
+      await Promise.all(
+        groupItems.map(item =>
+          fetch(`/api/admin/content/${encodeURIComponent(item.key)}`, {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({ updatedBy }),
+          })
+        )
+      );
       setResetKey((k) => k + 1);
+      onRefresh?.(); // sayfadaki items listesini Supabase'den yenile
     } finally {
       setResetting(false);
     }
@@ -59,7 +66,7 @@ export function ContentSection({
       </div>
       <div className="grid gap-4 xl:grid-cols-2">
         {groupItems.map((item) => (
-          <ContentEditorCard item={item} key={`${item.key}-${resetKey}`} />
+          <ContentEditorCard item={item} key={`${item.key}-${resetKey}`} onReset={onRefresh} />
         ))}
       </div>
     </section>

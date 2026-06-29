@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { defaultEditableContent } from "@/lib/defaultContent";
 import { EditableContent, EditableContentKey } from "@/types/content";
+import { useContentValue } from "@/lib/contentContext";
 
 const storageKey = "dijital-iz-avcisi:editable-content:v1";
 const changedEventName = "dijital-iz-avcisi-content-changed";
@@ -74,22 +75,14 @@ export function resetEditableContent(key: EditableContentKey, updatedBy: string)
 }
 
 export function useEditableContent(key: EditableContentKey) {
-  const [item, setItem] = useState<EditableContent>(() => defaultEditableContent.find((content) => content.key === key)!);
+  // Context'ten oku (server-side Supabase fetch ile beslenir, flash yok)
+  const contextValue = useContentValue(key);
+  const fallback = defaultEditableContent.find((item) => item.key === key)!;
 
-  useEffect(() => {
-    const refresh = () => setItem(getEditableContentByKey(key));
+  // Context boşsa (context dışında çağrılırsa) localStorage'a düş
+  const content = contextValue ?? getEditableContentByKey(key).content;
 
-    refresh();
-    window.addEventListener("storage", refresh);
-    window.addEventListener(changedEventName, refresh);
-
-    return () => {
-      window.removeEventListener("storage", refresh);
-      window.removeEventListener(changedEventName, refresh);
-    };
-  }, [key]);
-
-  return item;
+  return { ...fallback, content };
 }
 
 export function useEditableContentItems() {

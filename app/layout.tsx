@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeStyleInjector } from "@/components/ThemeStyleInjector";
+import { getAllContent } from "@/lib/contentDb";
+import { SiteContentProvider } from "@/lib/contentContext";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -70,16 +72,21 @@ export const metadata: Metadata = {
   }
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Server tarafında Supabase'den içerik çek (cache: tag "site-content", 1 saatlik fallback)
+  const content = await getAllContent();
+
   return (
     <html lang="tr">
       <body>
         <ThemeStyleInjector />
-        {children}
+        <SiteContentProvider initialContent={content}>
+          {children}
+        </SiteContentProvider>
       </body>
     </html>
   );

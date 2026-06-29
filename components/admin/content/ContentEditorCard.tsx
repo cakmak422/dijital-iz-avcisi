@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { getCurrentDemoUser } from "@/lib/auth";
-import { resetEditableContent, saveEditableContent } from "@/lib/contentStore";
 import type { EditableContent, EditableContentKey } from "@/types/content";
 
 type SaveState = "idle" | "saving" | "saved" | "reset" | "error";
@@ -33,23 +32,37 @@ export function ContentEditorCard({ item, onReset }: { item: EditableContent; on
     return user?.username ?? "admin";
   }
 
-  function handleSave() {
+  async function handleSave() {
     setStatus("saving");
     try {
-      saveEditableContent(item.key, value.trim(), getAdminName());
-      setStatus("saved");
+      const res  = await fetch(`/api/admin/content/${encodeURIComponent(item.key)}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ content: value.trim(), updatedBy: getAdminName() }),
+      });
+      const data = await res.json() as { ok: boolean; error?: string };
+      setStatus(data.ok ? "saved" : "error");
     } catch {
       setStatus("error");
     }
   }
 
-  function handleReset() {
+  async function handleReset() {
     setStatus("saving");
     try {
-      const resetItem = resetEditableContent(item.key, getAdminName());
-      setValue(resetItem.content);
-      setStatus("reset");
-      onReset?.();
+      const res  = await fetch(`/api/admin/content/${encodeURIComponent(item.key)}`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ updatedBy: getAdminName() }),
+      });
+      const data = await res.json() as { ok: boolean; defaultContent?: string; error?: string };
+      if (data.ok) {
+        setValue(data.defaultContent ?? "");
+        setStatus("reset");
+        onReset?.();
+      } else {
+        setStatus("error");
+      }
     } catch {
       setStatus("error");
     }
