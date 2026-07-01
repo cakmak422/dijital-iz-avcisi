@@ -3,6 +3,8 @@ import "./globals.css";
 import { ThemeStyleInjector } from "@/components/ThemeStyleInjector";
 import { getAllContent } from "@/lib/contentDb";
 import { SiteContentProvider } from "@/lib/contentContext";
+import { getAllPageManagementData } from "@/lib/pageManagementDb";
+import { PageManagementProvider } from "@/lib/pageManagementContext";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -77,15 +79,20 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Server tarafında Supabase'den içerik çek (cache: tag "site-content", 1 saatlik fallback)
-  const content = await getAllContent();
+  // Paralel fetch — içerik + sayfa yönetimi (her ikisi de cached + graceful fallback)
+  const [content, pageManagement] = await Promise.all([
+    getAllContent(),
+    getAllPageManagementData(),
+  ]);
 
   return (
     <html lang="tr">
       <body>
-        <ThemeStyleInjector />
         <SiteContentProvider initialContent={content}>
-          {children}
+          <PageManagementProvider initialState={pageManagement}>
+            <ThemeStyleInjector />
+            {children}
+          </PageManagementProvider>
         </SiteContentProvider>
       </body>
     </html>

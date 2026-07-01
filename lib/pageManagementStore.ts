@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { defaultAwarenessBanners } from "@/lib/awarenessBanners";
+import { usePageManagementContext } from "@/lib/pageManagementContext";
 import type {
   ManagedBanner,
   ManagedCard,
@@ -543,7 +544,17 @@ export function getManagedPageText(slug: string, fallback: ManagedPageTextFallba
 }
 
 export function getManagedPageHero(slug: string, fallback: ManagedPageHeroFallback): ManagedPageHeroContent {
-  const page = getManagedPageBySlug(slug);
+  return getManagedPageHeroFromState(getPageManagementState(), slug, fallback);
+}
+
+export function getManagedPageHeroFromState(
+  state: PageManagementState,
+  slug: string,
+  fallback: ManagedPageHeroFallback
+): ManagedPageHeroContent {
+  const pageKey = resolvePageKey(slug);
+  const page = pageKey ? state.pages.find(p => p.pageKey === pageKey) : null;
+
   if (!page || page.status !== "active") {
     return {
       ...fallback,
@@ -566,45 +577,23 @@ export function getManagedPageHero(slug: string, fallback: ManagedPageHeroFallba
 }
 
 export function usePageManagementState() {
-  const [state, setState] = useState<PageManagementState>(() => getPageManagementState());
+  // Context'ten oku (server-side Supabase fetch ile beslenir, flash yok)
+  const contextState = usePageManagementContext();
 
-  useEffect(() => {
-    const refresh = () => setState(getPageManagementState());
+  // Context yoksa (provider dışında çağrılırsa) localStorage fallback
+  const [localState] = useState<PageManagementState>(() =>
+    contextState ?? getPageManagementState()
+  );
 
-    refresh();
-    window.addEventListener("storage", refresh);
-    window.addEventListener(changedEventName, refresh);
-
-    return () => {
-      window.removeEventListener("storage", refresh);
-      window.removeEventListener(changedEventName, refresh);
-    };
-  }, []);
-
-  return useMemo(() => state, [state]);
+  return contextState ?? localState;
 }
 
 export function useManagedPageHero(slug: string, fallback: ManagedPageHeroFallback) {
-  const [hero, setHero] = useState<ManagedPageHeroContent>(() => ({
-    ...fallback,
-    pageTitle: fallback.title,
-    pageDescription: fallback.description,
-    seoTitle: fallback.title,
-    seoDescription: fallback.description
-  }));
-
-  useEffect(() => {
-    const refresh = () => setHero(getManagedPageHero(slug, fallback));
-
-    refresh();
-    window.addEventListener("storage", refresh);
-    window.addEventListener(changedEventName, refresh);
-
-    return () => {
-      window.removeEventListener("storage", refresh);
-      window.removeEventListener(changedEventName, refresh);
-    };
-  }, [fallback.description, fallback.image, fallback.title, slug]);
-
+  // usePageManagementState artık context'ten okuyor — hero da Supabase verisini alır
+  const state = usePageManagementState();
+  const hero = useMemo(
+    () => getManagedPageHeroFromState(state, slug, fallback),
+    [state, slug, fallback.title, fallback.description, fallback.image]  // eslint-disable-line react-hooks/exhaustive-deps
+  );
   return hero;
 }

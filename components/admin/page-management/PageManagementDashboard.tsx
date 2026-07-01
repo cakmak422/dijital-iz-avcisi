@@ -101,6 +101,10 @@ export function PageManagementDashboard() {
   const [bannerSyncState, setBannerSyncState] = useState<BannerSyncState>("idle");
   const [bannerSyncMessage, setBannerSyncMessage] = useState("");
   const [removedBannerIds, setRemovedBannerIds] = useState<string[]>([]);
+  const [removedBlockIds,  setRemovedBlockIds]  = useState<string[]>([]);
+  const [removedCardIds,   setRemovedCardIds]   = useState<string[]>([]);
+  const [removedGuideIds,  setRemovedGuideIds]  = useState<string[]>([]);
+  const [removedNavIds,    setRemovedNavIds]    = useState<string[]>([]);
 
   useEffect(() => {
     setDraft(storedState);
@@ -153,19 +157,94 @@ export function PageManagementDashboard() {
   async function handleSave() {
     try {
       setBannerSyncState("loading");
+      setBannerSyncMessage("Değişiklikler kaydediliyor...");
+
+      // Tema → Supabase (her zaman; idempotent upsert)
+      const themeRes = await fetch("/api/admin/page-management/theme", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(draft.theme),
+      });
+      if (!themeRes.ok) {
+        const j = await themeRes.json().catch(() => ({})) as { error?: string };
+        throw new Error(j.error ?? "Tema Supabase'e kaydedilemedi.");
+      }
+
+      // Bloklar → Supabase
+      const blocksRes = await fetch("/api/admin/page-management/blocks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blocks: draft.homeBlocks, deletedIds: removedBlockIds }),
+      });
+      if (!blocksRes.ok) {
+        const j = await blocksRes.json().catch(() => ({})) as { error?: string };
+        throw new Error(j.error ?? "Bloklar Supabase'e kaydedilemedi.");
+      }
+
+      // Navigasyon → Supabase
+      const navRes = await fetch("/api/admin/page-management/navigation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: draft.navigation, deletedIds: removedNavIds }),
+      });
+      if (!navRes.ok) {
+        const j = await navRes.json().catch(() => ({})) as { error?: string };
+        throw new Error(j.error ?? "Navigasyon Supabase'e kaydedilemedi.");
+      }
+
+      // Rehberler → Supabase
+      const guidesRes = await fetch("/api/admin/page-management/guides", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ guides: draft.guides, deletedIds: removedGuideIds }),
+      });
+      if (!guidesRes.ok) {
+        const j = await guidesRes.json().catch(() => ({})) as { error?: string };
+        throw new Error(j.error ?? "Rehberler Supabase'e kaydedilemedi.");
+      }
+
+      // Kartlar → Supabase
+      const cardsRes = await fetch("/api/admin/page-management/cards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cards: draft.cards, deletedIds: removedCardIds }),
+      });
+      if (!cardsRes.ok) {
+        const j = await cardsRes.json().catch(() => ({})) as { error?: string };
+        throw new Error(j.error ?? "Kartlar Supabase'e kaydedilemedi.");
+      }
+
+      // Sayfa ayarları → Supabase (seo alanları saklanır, metadata'ya bağlanmaz)
+      const pagesRes = await fetch("/api/admin/page-management/pages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pages: draft.pages }),
+      });
+      if (!pagesRes.ok) {
+        const j = await pagesRes.json().catch(() => ({})) as { error?: string };
+        throw new Error(j.error ?? "Sayfa ayarları Supabase'e kaydedilemedi.");
+      }
+
+      // Afişler → Supabase
       setBannerSyncMessage("Afiş değişiklikleri Supabase ortak veritabanına yazılıyor...");
       const syncedBanners = await syncBannersToApi(draft.banners, removedBannerIds);
+
+      // Geri kalan state → localStorage (Faz 6-8'de her biri Supabase'e taşınacak)
       const saved = savePageManagementState({ ...draft, banners: syncedBanners });
       setDraft(saved);
       setRemovedBannerIds([]);
+      setRemovedBlockIds([]);
+      setRemovedCardIds([]);
+      setRemovedGuideIds([]);
+      setRemovedNavIds([]);
       setStatus("saved");
       setBannerSyncState("success");
-      setBannerSyncMessage("Afişler Supabase ortak veritabanına kaydedildi.");
+      setBannerSyncMessage("Değişiklikler kaydedildi.");
       window.dispatchEvent(new Event(awarenessBannersChangedEventName));
     } catch (error) {
       setStatus("error");
       setBannerSyncState("error");
-      setBannerSyncMessage(error instanceof Error ? error.message : "Afişler Supabase'e kaydedilemedi.");
+      setBannerSyncMessage(error instanceof Error ? error.message : "Kaydedilemedi.");
     }
   }
 
@@ -191,6 +270,7 @@ export function PageManagementDashboard() {
 
   function removeHomeBlock(id: string) {
     if (!window.confirm("Bu ana sayfa bloğu silinsin mi?")) return;
+    if (isUuid(id)) setRemovedBlockIds((cur) => (cur.includes(id) ? cur : [...cur, id]));
     setDirty({ ...draft, homeBlocks: draft.homeBlocks.filter((block) => block.id !== id) });
   }
 
@@ -204,6 +284,7 @@ export function PageManagementDashboard() {
 
   function removeCard(id: string) {
     if (!window.confirm("Bu kart silinsin mi?")) return;
+    if (isUuid(id)) setRemovedCardIds((cur) => (cur.includes(id) ? cur : [...cur, id]));
     setDirty({ ...draft, cards: draft.cards.filter((card) => card.id !== id) });
   }
 
@@ -231,6 +312,7 @@ export function PageManagementDashboard() {
 
   function removeGuide(id: string) {
     if (!window.confirm("Bu rehber silinsin mi?")) return;
+    if (isUuid(id)) setRemovedGuideIds((cur) => (cur.includes(id) ? cur : [...cur, id]));
     setDirty({ ...draft, guides: draft.guides.filter((guide) => guide.id !== id) });
   }
 
@@ -244,6 +326,7 @@ export function PageManagementDashboard() {
 
   function removeNavigationItem(id: string) {
     if (!window.confirm("Bu menü öğesi silinsin mi?")) return;
+    if (isUuid(id)) setRemovedNavIds((cur) => (cur.includes(id) ? cur : [...cur, id]));
     setDirty({ ...draft, navigation: draft.navigation.filter((item) => item.id !== id) });
   }
 
@@ -290,7 +373,7 @@ export function PageManagementDashboard() {
               <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-cyan-200">Admin CMS</p>
               <h1 className="mt-2 text-3xl font-black">Sayfa Yönetim Sistemi</h1>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
-                Ana sayfa blokları, kartlar, afişler, rehberler, menü, tema ve sayfa hero ayarları localStorage tabanlı MVP olarak yönetilir.
+                Ana sayfa blokları, kartlar, afişler, rehberler, menü, tema ve sayfa hero ayarları Supabase tabanlı olarak yönetilir — tüm cihazlardan erişilebilir.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -303,9 +386,9 @@ export function PageManagementDashboard() {
             </div>
           </div>
 
-          {status === "saved" ? <StatusMessage tone="success" text="Değişiklikler local CMS store içine kaydedildi." /> : null}
+          {status === "saved" ? <StatusMessage tone="success" text="Değişiklikler Supabase'e kaydedildi." /> : null}
           {status === "reset" ? <StatusMessage tone="warning" text="Sayfa yönetimi varsayılan değerlere döndürüldü." /> : null}
-          {status === "error" ? <StatusMessage tone="danger" text="Kayıt sırasında hata oluştu. LocalStorage erişimini kontrol edin." /> : null}
+          {status === "error" ? <StatusMessage tone="danger" text="Kayıt sırasında hata oluştu. Detay için yukarıdaki mesajı kontrol edin." /> : null}
         </div>
 
         {bannerSyncMessage ? (
@@ -434,7 +517,7 @@ export function PageManagementDashboard() {
               <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-cyan-200">Önizleme</p>
               <h2 className="mt-1 text-lg font-black">Kaydetmeden önce kontrol</h2>
             </div>
-            <span className="rounded-md border border-cyan-300/20 bg-cyan-300/10 px-2 py-1 text-xs font-bold text-cyan-100">Local MVP</span>
+            <span className="rounded-md border border-cyan-300/20 bg-cyan-300/10 px-2 py-1 text-xs font-bold text-cyan-100">Supabase</span>
           </div>
 
           <div className="mt-4 grid grid-cols-3 gap-2">

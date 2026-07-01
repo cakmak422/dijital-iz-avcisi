@@ -13,6 +13,7 @@ import { CyberPageShell } from "@/components/CyberPageShell";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { EditableContent } from "@/components/admin/content/EditableContent";
 import { useEditableContent } from "@/lib/contentStore";
+import { usePageManagementState } from "@/lib/pageManagementStore";
 import { getTodayCyberEvent, type CyberArchiveEvent } from "@/lib/cyberArchive";
 import { getCurrentDemoUser, logoutDemoUser } from "@/lib/auth";
 import type { User } from "@/lib/users";
@@ -62,14 +63,20 @@ function Navbar({
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
-  const navItems = [
-    { href: "/hakkimizda", label: "Hakkımızda" },
-    { href: "/siber-arsiv", label: "Siber Arşiv" },
-    { href: "/haberler", label: "Haberler" },
-    { href: "/bilinclendirme", label: "Bilinçlendirme" },
-    { href: "/sorgu-paneli", label: "Sorgu Paneli" },
-    { href: "/dijital-arac-merkezi", label: "Dijital Araç Merkezi" }
-  ];
+  const pageState = usePageManagementState();
+  const managedNavItems = pageState.navigation
+    .filter((n) => n.status === "active")
+    .sort((a, b) => a.order - b.order);
+  const navItems = managedNavItems.length > 0
+    ? managedNavItems
+    : [
+        { href: "/hakkimizda", label: "Hakkımızda" },
+        { href: "/siber-arsiv", label: "Siber Arşiv" },
+        { href: "/haberler", label: "Haberler" },
+        { href: "/bilinclendirme", label: "Bilinçlendirme" },
+        { href: "/sorgu-paneli", label: "Sorgu Paneli" },
+        { href: "/dijital-arac-merkezi", label: "Dijital Araç Merkezi" },
+      ];
   const authItems = [
     { href: "/giris-yap", label: "Giriş Yap", variant: "secondary" },
     { href: "/kayit-ol", label: "Kayıt Ol", variant: "primary" }
@@ -180,9 +187,6 @@ function Navbar({
               </Link>
             );
           })}
-          <Link className="focus-ring flex min-h-11 items-center rounded-md border border-cyan-900/12 bg-white px-3 py-2 shadow-sm transition hover:border-cyan-500/45 hover:bg-cyan-50 hover:text-cyan-950 dark:border-cyan-300/15 dark:bg-cyan-300/5 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50 lg:shrink-0" href="/rehberler" onClick={() => setMenuOpen(false)}>
-            Rehberler
-          </Link>
           <div className="grid gap-2 border-t border-slate-200 pt-2 dark:border-white/10 lg:hidden">
             {isAdmin ? (
               <AdminSessionMenu
