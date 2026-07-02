@@ -1,10 +1,8 @@
 name: Fetch Cyber News
-
 on:
   schedule:
     - cron: "00 06,12,18,23 * * *"
   workflow_dispatch:
-
 jobs:
   fetch-news:
     name: Trigger news fetch endpoint
@@ -15,9 +13,16 @@ jobs:
           NEWS_FETCH_SECRET: ${{ secrets.NEWS_FETCH_SECRET }}
         run: |
           if [ -z "$NEWS_FETCH_SECRET" ]; then
-            echo "NEWS_FETCH_SECRET GitHub Actions secret is not configured."
+            echo "NEWS_FETCH_SECRET is not configured."
             exit 1
           fi
-
-          curl --fail --show-error --silent \
-            "https://dijitalizavcisi.com/api/news/fetch?secret=${NEWS_FETCH_SECRET}"
+          echo "Secret length: ${#NEWS_FETCH_SECRET}"
+          RESPONSE=$(curl --silent --show-error --write-out "\nHTTP_STATUS:%{http_code}" \
+            -H "Authorization: Bearer ${NEWS_FETCH_SECRET}" \
+            "https://dijitalizavcisi.com/api/news/fetch")
+          echo "$RESPONSE"
+          HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS:" | cut -d: -f2)
+          echo "HTTP Status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" != "200" ]; then
+            exit 1
+          fi
