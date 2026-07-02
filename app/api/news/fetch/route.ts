@@ -43,8 +43,17 @@ async function handleNewsFetch(request: Request) {
   }
 
   try {
+    const t0 = Date.now();
+    console.log("news_fetch_timing", { step: "handler_start", ts: t0 });
+
     const result = await fetchLatestCyberNews();
+    const t1 = Date.now();
+    console.log("news_fetch_timing", { step: "after_fetch_sources", elapsed_ms: t1 - t0, found: result.found });
+
     const dbWrite = await upsertNewsItems(result.fetchedItems ?? []);
+    const t2 = Date.now();
+    console.log("news_fetch_timing", { step: "after_db_write", elapsed_ms: t2 - t0, db_inserted: dbWrite.inserted });
+
     const dbDebug = getNewsDbDebugState();
     const runtimeCacheCountAfterWrite = (await getCachedRuntimeNewsItems()).length;
 

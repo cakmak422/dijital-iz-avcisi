@@ -39,7 +39,16 @@ export async function translateNewsWithAi(input: NewsAiTranslationInput): Promis
   const apiKey = (process.env.GEMINI_API_KEY ?? "").trim();
   if (!apiKey) return { ok: false, reason: "GEMINI_API_KEY tanimli degil." };
 
-  return enqueueGeminiCall(() => callGeminiTranslator(apiKey, input));
+  const tStart = Date.now();
+  const shortTitle = input.originalTitle.slice(0, 60);
+  const result = await enqueueGeminiCall(() => callGeminiTranslator(apiKey, input));
+  console.log("gemini_translation_timing", {
+    elapsed_ms: Date.now() - tStart,
+    ok: result.ok,
+    reason: result.ok ? undefined : (result as { reason: string }).reason,
+    title: shortTitle,
+  });
+  return result;
 }
 
 async function enqueueGeminiCall<T>(task: () => Promise<T>) {
