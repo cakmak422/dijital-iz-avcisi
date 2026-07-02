@@ -373,7 +373,7 @@ export function PageManagementDashboard() {
               <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-cyan-200">Admin CMS</p>
               <h1 className="mt-2 text-3xl font-black">Sayfa Yönetim Sistemi</h1>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
-                Ana sayfa blokları, kartlar, afişler, rehberler, menü, tema ve sayfa hero ayarları Supabase tabanlı olarak yönetilir — tüm cihazlardan erişilebilir.
+                Ana sayfa blokları, kartlar, afişler, rehberler, menü, tema ve sayfa hero ayarları Supabase tabanlı, tüm cihazlardan erişilebilir yönetim sistemi ile yönetilir.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">

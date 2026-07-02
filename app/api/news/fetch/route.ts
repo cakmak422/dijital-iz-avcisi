@@ -141,7 +141,7 @@ async function validateNewsFetchAccess(request: Request) {
   return {
     allowed: false,
     status: 401,
-    body: { ok: false, error: "Yetkisiz istek." }
+    body: { ok: false, error: "Yetkisiz istek.", expectedLength: process.env.NEWS_FETCH_SECRET?.length ?? 0 }
   };
 }
 
