@@ -46,11 +46,23 @@ async function handleNewsFetch(request: Request) {
     const t0 = Date.now();
     console.log("news_fetch_timing", { step: "handler_start", ts: t0 });
 
-    const result = await fetchLatestCyberNews();
+    let result;
+    try {
+      result = await fetchLatestCyberNews();
+    } catch (fetchErr) {
+      console.error("news_fetch_timing_error", { step: "fetch_sources_crashed", elapsed_ms: Date.now() - t0, error: fetchErr instanceof Error ? fetchErr.stack : String(fetchErr) });
+      throw fetchErr;
+    }
     const t1 = Date.now();
     console.log("news_fetch_timing", { step: "after_fetch_sources", elapsed_ms: t1 - t0, found: result.found });
 
-    const dbWrite = await upsertNewsItems(result.fetchedItems ?? []);
+    let dbWrite;
+    try {
+      dbWrite = await upsertNewsItems(result.fetchedItems ?? []);
+    } catch (dbErr) {
+      console.error("news_fetch_timing_error", { step: "db_write_crashed", elapsed_ms: Date.now() - t0, error: dbErr instanceof Error ? dbErr.stack : String(dbErr) });
+      throw dbErr;
+    }
     const t2 = Date.now();
     console.log("news_fetch_timing", { step: "after_db_write", elapsed_ms: t2 - t0, db_inserted: dbWrite.inserted });
 
