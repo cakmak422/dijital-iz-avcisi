@@ -47,6 +47,7 @@ async function handleNewsFetch(request: Request) {
     const dbWrite = await upsertNewsItems(result.fetchedItems ?? []);
     const dbDebug = getNewsDbDebugState();
     const runtimeCacheCountAfterWrite = (await getCachedRuntimeNewsItems()).length;
+
     if (process.env.NODE_ENV === "production") {
       lastProductionFetchAt = Date.now();
     }
@@ -141,7 +142,7 @@ async function validateNewsFetchAccess(request: Request) {
   return {
     allowed: false,
     status: 401,
-    body: { ok: false, error: "Yetkisiz istek.", expectedLength: process.env.NEWS_FETCH_SECRET?.length ?? 0 }
+    body: { ok: false, error: "Yetkisiz istek." }
   };
 }
 
