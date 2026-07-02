@@ -16,6 +16,10 @@ const MAX_ITEMS_PER_SOURCE = 10;
 const MAX_TOTAL_ITEMS = 30;
 const MAX_IMAGE_URL_LENGTH = 2000;
 const IMAGE_FETCH_TIMEOUT_MS = 3500;
+// İngilizce kaynaklardan Gemini'ye giden maksimum item sayısı (bellek + süre limiti)
+const MAX_ENGLISH_ITEMS_PER_FETCH = Number(process.env.MAX_ENGLISH_ITEMS_PER_FETCH ?? "5");
+// Görsel çözümleme concurrent worker sayısı — bellek spike'ını sınırlar
+const IMAGE_RESOLVE_CONCURRENCY = 2;
 
 export type NewsSourceFetchReport = {
   sourceId: string;
@@ -73,9 +77,12 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
       const xml = await response.text();
       const parsed = response.ok ? parseRssItems(xml, source) : [];
       const accepted = filterRssItemsByKeywords(parsed, source.keywords).filter((item) => isRecentNews(item.publishedAt));
-      const acceptedForProcessing = accepted.slice(0, Math.min(MAX_ITEMS_PER_SOURCE, remainingCapacity));
+      const sourceLimit = source.language === "en"
+        ? Math.min(MAX_ITEMS_PER_SOURCE, MAX_ENGLISH_ITEMS_PER_FETCH, remainingCapacity)
+        : Math.min(MAX_ITEMS_PER_SOURCE, remainingCapacity);
+      const acceptedForProcessing = accepted.slice(0, sourceLimit);
       const mappableItems = acceptedForProcessing.filter((item) => isValidExternalUrl(item.sourceUrl));
-      const mapped = await mapWithConcurrency(mappableItems, 4, async (item) => {
+      const mapped = await mapWithConcurrency(mappableItems, IMAGE_RESOLVE_CONCURRENCY, async (item) => {
         const image = await resolveNewsImageWithArticleSource(item.imageUrl, item.sourceUrl);
         imageStats[image.source] += 1;
         return mapRawNewsToCyberNewsForFetch({
