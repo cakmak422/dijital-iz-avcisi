@@ -156,6 +156,7 @@ export function isUsableTurkishDisplayText(value: string) {
   if (hasBrokenMojibake(cleaned)) return false;
   if (hasBlockedEnglishPattern(cleaned)) return false;
   if (hasTooMuchEnglishResidue(cleaned)) return false;
+  if (hasGenericTemplateSentence(cleaned)) return false;
   return hasTurkishSignals(cleaned);
 }
 
@@ -282,6 +283,10 @@ function hasTooMuchEnglishResidue(value: string) {
   ]);
   const residueCount = words.filter((word) => englishResidueWords.has(word)).length;
   return residueCount >= 2 && residueCount / words.length > 0.22;
+}
+
+function hasGenericTemplateSentence(value: string) {
+  return value.includes("Haber kaynağı korunarak");
 }
 
 function hasBlockedEnglishPattern(value: string) {
