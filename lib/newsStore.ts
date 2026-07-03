@@ -242,7 +242,7 @@ export function getNewsLongSummary(item: CyberNewsItem) {
 }
 
 export function getNewsWhyItMatters(item: CyberNewsItem) {
-  return item.whyItMattersTr || item.riskNote;
+  return item.whyItMattersTr && isUsableTurkishDisplayText(item.whyItMattersTr) ? item.whyItMattersTr : item.riskNote;
 }
 
 export function getNewsRecommendations(item: CyberNewsItem) {

@@ -286,7 +286,7 @@ function hasTooMuchEnglishResidue(value: string) {
 }
 
 function hasGenericTemplateSentence(value: string) {
-  return value.includes("Haber kaynağı korunarak");
+  return value.includes("Haber kaynağı korunarak") || value.includes("Benzer başlıklar vatandaşları");
 }
 
 function hasBlockedEnglishPattern(value: string) {

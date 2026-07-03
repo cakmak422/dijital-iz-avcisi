@@ -30,7 +30,8 @@ export function summarizeCyberNews(
 > {
   // TODO: OpenAI entegrasyonu ile haber metnini kopyalamadan kısa özet, risk notu ve vatandaş önerileri üret.
   // Üretim ortamında kaynak metnin tamamı saklanmamalı; kısa alıntı ve kaynak linki yeterli olmalı.
-  const safeSnippet = cleanNewsText(raw.textSnippet) || "Kaynak haber siber güvenlik gündemiyle ilişkili bir başlık içeriyor.";
+  const cleanedSnippet = stripTrailingSourceName(cleanNewsText(raw.textSnippet), raw.sourceName);
+  const safeSnippet = cleanedSnippet || "Kaynak haber siber güvenlik gündemiyle ilişkili bir başlık içeriyor.";
   const summary = trimToSentence(safeSnippet, 260);
 
   return {
@@ -54,6 +55,22 @@ export function summarizeCyberNews(
     ],
     riskLevel: "Orta"
   };
+}
+
+// Google News gibi kaynaklar description sonuna yayın adını iliştiriyor
+// (ör: "...başlık metni. Mersin Haber"). Sadece cümle sonu noktalamasından
+// hemen sonra, metnin en sonunda birebir kaynak adı geçiyorsa kırp — emin
+// olunamayan durumda metne dokunma.
+function stripTrailingSourceName(value: string, sourceName: string) {
+  const trimmedSource = sourceName?.trim();
+  if (!trimmedSource || trimmedSource.length < 2) return value;
+
+  const escapedSource = trimmedSource.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const trailingPattern = new RegExp(`([.!?])\\s+${escapedSource}\\s*$`, "i");
+  const match = value.match(trailingPattern);
+  if (!match || match.index === undefined) return value;
+
+  return value.slice(0, match.index + match[1].length).trim();
 }
 
 function trimToSentence(value: string, maxLength: number) {
