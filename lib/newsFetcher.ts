@@ -325,9 +325,44 @@ function extractLeadParagraphs(html: string, maxParagraphs = 3, maxLength = 1200
   return `${joined.slice(0, maxLength).replace(/\s+\S*$/, "")}...`;
 }
 
+// Lead-paragraph fetch'i i\u00e7in sert bellek tavan\u0131 \u2014 response.text() t\u00fcm body'yi
+// belle\u011fe al\u0131p SONRA k\u0131rpar, bu y\u00fczden burada stream'den okuyup limite
+// ula\u015f\u0131nca durduran ayr\u0131 bir okuyucu kullan\u0131l\u0131yor (ger\u00e7ek peak bellek s\u0131n\u0131r\u0131).
+const LEAD_FETCH_MAX_BYTES = 120_000;
+
+// Pure olmayan yard\u0131mc\u0131: response body'sini stream'den okuyup maxBytes'a
+// ula\u015f\u0131nca durur, geri kalan body'yi indirmez/belle\u011fe almaz.
+async function readBoundedResponseText(response: Response, maxBytes: number): Promise<string> {
+  const reader = response.body?.getReader();
+  if (!reader) return (await response.text()).slice(0, maxBytes);
+
+  const decoder = new TextDecoder("utf-8");
+  let receivedBytes = 0;
+  let text = "";
+
+  try {
+    while (receivedBytes < maxBytes) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      receivedBytes += value.byteLength;
+      text += decoder.decode(value, { stream: true });
+    }
+  } finally {
+    try {
+      await reader.cancel();
+    } catch {
+      // ba\u011flant\u0131 zaten kapanm\u0131\u015f olabilir, yok say
+    }
+  }
+
+  return text.slice(0, maxBytes);
+}
+
 // T\u00fcrk\u00e7e haberlerde RSS description \u00e7ok k\u0131sa oldu\u011funda kaynak sayfadan
 // ilk paragraflar\u0131 \u00e7eker. resolveNewsImageWithArticleSource()'tan ba\u011f\u0131ms\u0131z,
-// ayr\u0131 bir fetch \u2014 g\u00f6rsel \u00e7\u00f6z\u00fcmleme mant\u0131\u011f\u0131na dokunmaz.
+// ayr\u0131 bir fetch \u2014 g\u00f6rsel \u00e7\u00f6z\u00fcmleme mant\u0131\u011f\u0131na dokunmaz. Gemini AI b\u00fct\u00e7esi
+// (MAX_TR_ITEMS_PER_FETCH) zaten bu fonksiyonun fetch ba\u015f\u0131na en fazla ka\u00e7
+// kez \u00e7a\u011fr\u0131laca\u011f\u0131n\u0131 s\u0131n\u0131rlar; burada tekrar bir kilit gerekmiyor.
 async function fetchArticleLeadParagraphs(sourceUrl: string): Promise<string> {
   if (!isValidExternalUrl(sourceUrl) || isBlockedInternalHost(sourceUrl)) return "";
 
@@ -346,7 +381,7 @@ async function fetchArticleLeadParagraphs(sourceUrl: string): Promise<string> {
     const contentType = response.headers.get("content-type") ?? "";
     if (!contentType.toLocaleLowerCase("en-US").includes("text/html")) return "";
 
-    const html = (await response.text()).slice(0, 260_000);
+    const html = await readBoundedResponseText(response, LEAD_FETCH_MAX_BYTES);
     return extractLeadParagraphs(html);
   } catch (error) {
     console.warn("news_lead_paragraph_fetch_failed", {
@@ -428,6 +463,8 @@ async function resolveArticleSourceUrl(sourceUrl: string): Promise<{ url?: strin
     });
 
     if (!response.ok) return { reason: `Google News gerçek kaynak çözümü ${response.status} döndü.` };
+    // TODO(adim-3): readBoundedResponseText() ile değiştir — .slice() burada
+    // sadece sonucu kırpıyor, tüm body zaten belleğe alınmış oluyor.
     const html = (await response.text()).slice(0, 700_000);
     const id = extractAttribute(html, "data-n-a-id") || extractGoogleNewsArticleId(sourceUrl);
     const timestamp = extractAttribute(html, "data-n-a-ts");
@@ -503,6 +540,8 @@ async function fetchMetaImageFromSource(sourceUrl: string): Promise<MetaImageRes
     }
 
     const finalUrl = response.url || sourceUrl;
+    // TODO(adim-3): readBoundedResponseText() ile değiştir — .slice() burada
+    // sadece sonucu kırpıyor, tüm body zaten belleğe alınmış oluyor.
     const html = (await response.text()).slice(0, 260_000);
 
     const ogImage = extractMetaImage(html, ["og:image", "og:image:url", "og:image:secure_url"]);
