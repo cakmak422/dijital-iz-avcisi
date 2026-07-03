@@ -16,6 +16,12 @@ const MAX_ITEMS_PER_SOURCE = 10;
 const MAX_TOTAL_ITEMS = 30;
 const MAX_IMAGE_URL_LENGTH = 2000;
 const IMAGE_FETCH_TIMEOUT_MS = 3500;
+// Fetch başına Gemini'ye giden toplam item sayısı (dil bazında, tüm kaynaklar toplamı)
+const MAX_ENGLISH_ITEMS_PER_FETCH = Number(process.env.MAX_ENGLISH_ITEMS_PER_FETCH ?? "3");
+const MAX_TR_ITEMS_PER_FETCH = Number(process.env.MAX_TR_ITEMS_PER_FETCH ?? "3");
+// RSS description bu uzunluğun altındaysa kaynak sayfadan paragraf çekilir;
+// üzerindeyse RSS snippet'i doğrudan kullanılır (ekstra fetch atlanır, süre kazanılır).
+const LEAD_PARAGRAPH_MIN_SNIPPET_LENGTH = 200;
 
 export type NewsSourceFetchReport = {
   sourceId: string;
@@ -56,6 +62,10 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
   const sourceReports: NewsSourceFetchReport[] = [];
   const imageStats: Record<CyberNewsImageSource, number> = { rss: 0, og: 0, twitter: 0, jsonld: 0, article: 0, fallback: 0 };
   let remainingCapacity = MAX_TOTAL_ITEMS;
+  // Gemini'ye giden item sayısı tüm kaynaklar toplamında bu bütçeyle sınırlı (dil başına)
+  let englishAiBudget = MAX_ENGLISH_ITEMS_PER_FETCH;
+  let turkishAiBudget = MAX_TR_ITEMS_PER_FETCH;
+  let totalAiElapsedMs = 0;
 
   for (const source of rssSources.filter((item) => item.enabled)) {
     if (remainingCapacity <= 0) break;
@@ -75,21 +85,42 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
       const accepted = filterRssItemsByKeywords(parsed, source.keywords).filter((item) => isRecentNews(item.publishedAt));
       const acceptedForProcessing = accepted.slice(0, Math.min(MAX_ITEMS_PER_SOURCE, remainingCapacity));
       const mappableItems = acceptedForProcessing.filter((item) => isValidExternalUrl(item.sourceUrl));
-      const mapped = await mapWithConcurrency(mappableItems, 4, async (item) => {
+      // Gemini uygunluğu senkron olarak, önceden belirlenir — mapWithConcurrency içindeki
+      // eşzamanlı worker'lar arasında bütçe sayacı yarış durumuna düşmesin diye.
+      const aiEligibility = mappableItems.map(() => {
+        if (source.language === "en") {
+          if (englishAiBudget > 0) {
+            englishAiBudget -= 1;
+            return true;
+          }
+          return false;
+        }
+        if (turkishAiBudget > 0) {
+          turkishAiBudget -= 1;
+          return true;
+        }
+        return false;
+      });
+      const mapped = await mapWithConcurrency(mappableItems, 4, async (item, index) => {
         const image = await resolveNewsImageWithArticleSource(item.imageUrl, item.sourceUrl);
         imageStats[image.source] += 1;
-        return mapRawNewsToCyberNewsForFetch({
-          title: item.title,
-          language: source.language,
-          sourceName: item.sourceName,
-          sourceUrl: image.resolvedSourceUrl || item.sourceUrl,
-          imageUrl: image.url,
-          imageSource: image.source,
-          imageCheckedAt: image.checkedAt,
-          fetchImageFailureReason: image.failureReason,
-          publishedAt: item.publishedAt,
-          textSnippet: item.textSnippet
-        });
+        const result = await mapRawNewsToCyberNewsForFetch(
+          {
+            title: item.title,
+            language: source.language,
+            sourceName: item.sourceName,
+            sourceUrl: image.resolvedSourceUrl || item.sourceUrl,
+            imageUrl: image.url,
+            imageSource: image.source,
+            imageCheckedAt: image.checkedAt,
+            fetchImageFailureReason: image.failureReason,
+            publishedAt: item.publishedAt,
+            textSnippet: item.textSnippet
+          },
+          aiEligibility[index]
+        );
+        totalAiElapsedMs += result.aiMs;
+        return result.item;
       });
 
       fetchedItems.push(...mapped.filter((item): item is CyberNewsItem => Boolean(item)));
@@ -119,6 +150,13 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
       });
     }
   }
+
+  console.log("news_fetch_timing", {
+    step: "after_ai_translation",
+    elapsed_ms: totalAiElapsedMs,
+    en_ai_used: MAX_ENGLISH_ITEMS_PER_FETCH - englishAiBudget,
+    tr_ai_used: MAX_TR_ITEMS_PER_FETCH - turkishAiBudget
+  });
 
   const uniqueFetched = upsertUniqueNewsItems(fetchedItems).filter((item) => isRelevantCyberNews(`${item.title} ${item.summary} ${item.category}`));
   const cacheResult = await persistRuntimeNewsItems(uniqueFetched);
@@ -212,44 +250,111 @@ export function mapRawNewsToCyberNews(raw: RawCyberNews): CyberNewsItem {
   };
 }
 
-async function mapRawNewsToCyberNewsForFetch(raw: RawCyberNews): Promise<CyberNewsItem | null> {
+type FetchMapResult = { item: CyberNewsItem | null; aiMs: number };
+
+async function mapRawNewsToCyberNewsForFetch(raw: RawCyberNews, useAi: boolean): Promise<FetchMapResult> {
   const deterministicItem = mapRawNewsToCyberNews(raw);
-  if (!isNewsAiTranslatorConfigured() || raw.language !== "en") return deterministicItem;
+  if (!useAi || !isNewsAiTranslatorConfigured()) return { item: deterministicItem, aiMs: 0 };
+
+  const sourceLanguage: "tr" | "en" = raw.language === "en" ? "en" : "tr";
+  let originalSummary = raw.textSnippet;
+
+  const tStart = Date.now();
+
+  if (sourceLanguage === "tr" && cleanNewsText(originalSummary).length < LEAD_PARAGRAPH_MIN_SNIPPET_LENGTH) {
+    const leadText = await fetchArticleLeadParagraphs(raw.sourceUrl);
+    if (leadText) originalSummary = leadText;
+  }
 
   const translation = await translateNewsWithAi({
     category: deterministicItem.category,
     originalTitle: deterministicItem.originalTitle || raw.title,
-    originalSummary: raw.textSnippet,
+    originalSummary,
     sourceName: raw.sourceName,
-    sourceUrl: raw.sourceUrl
+    sourceUrl: raw.sourceUrl,
+    sourceLanguage
   });
+  const aiMs = Date.now() - tStart;
+  console.log("news_fetch_timing", { step: sourceLanguage === "tr" ? "gemini_tr_item" : "gemini_en_item", elapsed_ms: aiMs });
 
   if (!translation.ok) {
     console.warn("news_ai_translation_failed", {
       reason: translation.reason,
       sourceName: raw.sourceName,
-      sourceUrl: raw.sourceUrl
+      sourceUrl: raw.sourceUrl,
+      language: sourceLanguage
     });
-    return null;
+    // Fail-soft: T\u00fcrk\u00e7e haberde Gemini ba\u015far\u0131s\u0131z olsa da ak\u0131\u015f k\u0131r\u0131lmas\u0131n,
+    // deterministic (\u015fablon) s\u00fcr\u00fcm kullan\u0131ls\u0131n \u2014 Ad\u0131m 1.5 filtresi zaten
+    // ziyaret\u00e7iye \u015fablon metni g\u00f6stermez. \u0130ngilizce davran\u0131\u015f\u0131 de\u011fi\u015fmedi (item atlan\u0131r).
+    return { item: sourceLanguage === "tr" ? deterministicItem : null, aiMs };
   }
 
   const translated = translation.data;
   return {
-    ...deterministicItem,
-    title: translated.title_tr,
-    titleTr: translated.title_tr,
-    slug: slugify(translated.title_tr),
-    summary: translated.summary_short_tr,
-    summaryShortTr: translated.summary_short_tr,
-    summaryLongTr: translated.summary_long_tr,
-    riskNote: translated.summary_short_tr,
-    whyItMattersTr: translated.why_it_matters_tr,
-    publicAdvice: translated.public_advice,
-    affectedGroupsTr: translated.affected_groups_tr,
-    recommendationsTr: translated.recommendations_tr,
-    imageAltTr: `${translated.title_tr} haber g\u00f6rseli`,
-    tags: Array.from(new Set([...(deterministicItem.tags ?? []), "ai-ceviri"]))
+    item: {
+      ...deterministicItem,
+      title: translated.title_tr,
+      titleTr: translated.title_tr,
+      slug: slugify(translated.title_tr),
+      summary: translated.summary_short_tr,
+      summaryShortTr: translated.summary_short_tr,
+      summaryLongTr: translated.summary_long_tr,
+      riskNote: translated.summary_short_tr,
+      whyItMattersTr: translated.why_it_matters_tr,
+      riskLevel: translated.risk_level,
+      severity: translated.risk_level,
+      publicAdvice: translated.public_advice,
+      affectedGroupsTr: translated.affected_groups_tr,
+      recommendationsTr: translated.recommendations_tr,
+      imageAltTr: `${translated.title_tr} haber g\u00f6rseli`,
+      tags: Array.from(new Set([...(deterministicItem.tags ?? []), "ai-ceviri"]))
+    },
+    aiMs
   };
+}
+
+// Pure: HTML -> ilk 2-3 anlaml\u0131 <p> paragraf\u0131n\u0131n temizlenmi\u015f metni.
+function extractLeadParagraphs(html: string, maxParagraphs = 3, maxLength = 1200): string {
+  const paragraphs = Array.from(html.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi), (match) => cleanNewsText(match[1]))
+    .filter((text) => text.length > 40);
+
+  const joined = paragraphs.slice(0, maxParagraphs).join(" ");
+  if (!joined) return "";
+  if (joined.length <= maxLength) return joined;
+  return `${joined.slice(0, maxLength).replace(/\s+\S*$/, "")}...`;
+}
+
+// T\u00fcrk\u00e7e haberlerde RSS description \u00e7ok k\u0131sa oldu\u011funda kaynak sayfadan
+// ilk paragraflar\u0131 \u00e7eker. resolveNewsImageWithArticleSource()'tan ba\u011f\u0131ms\u0131z,
+// ayr\u0131 bir fetch \u2014 g\u00f6rsel \u00e7\u00f6z\u00fcmleme mant\u0131\u011f\u0131na dokunmaz.
+async function fetchArticleLeadParagraphs(sourceUrl: string): Promise<string> {
+  if (!isValidExternalUrl(sourceUrl) || isBlockedInternalHost(sourceUrl)) return "";
+
+  try {
+    const response = await fetch(sourceUrl, {
+      cache: "no-store",
+      redirect: "follow",
+      signal: AbortSignal.timeout(IMAGE_FETCH_TIMEOUT_MS),
+      headers: {
+        Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.6",
+        "User-Agent": "Dijital-Iz-Avcisi-NewsImageFetcher/1.0"
+      }
+    });
+    if (!response.ok) return "";
+
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.toLocaleLowerCase("en-US").includes("text/html")) return "";
+
+    const html = (await response.text()).slice(0, 260_000);
+    return extractLeadParagraphs(html);
+  } catch (error) {
+    console.warn("news_lead_paragraph_fetch_failed", {
+      sourceUrl,
+      error: error instanceof Error ? error.message : "Bilinmeyen hata"
+    });
+    return "";
+  }
 }
 
 type ResolvedNewsImage = {
@@ -547,7 +652,7 @@ function hasKnownImageExtension(url: string) {
   }
 }
 
-async function mapWithConcurrency<T, R>(items: T[], limit: number, mapper: (item: T) => Promise<R>) {
+async function mapWithConcurrency<T, R>(items: T[], limit: number, mapper: (item: T, index: number) => Promise<R>) {
   const results: R[] = [];
   let nextIndex = 0;
 
@@ -555,7 +660,7 @@ async function mapWithConcurrency<T, R>(items: T[], limit: number, mapper: (item
     while (nextIndex < items.length) {
       const currentIndex = nextIndex;
       nextIndex += 1;
-      results[currentIndex] = await mapper(items[currentIndex]);
+      results[currentIndex] = await mapper(items[currentIndex], currentIndex);
     }
   }
 

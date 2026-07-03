@@ -6,13 +6,17 @@ export type NewsAiTranslationInput = {
   sourceName: string;
   category: string;
   sourceUrl: string;
+  sourceLanguage: "tr" | "en";
 };
+
+export type NewsAiRiskLevel = "Düşük" | "Orta" | "Yüksek";
 
 export type NewsAiTranslationOutput = {
   title_tr: string;
   summary_short_tr: string;
   summary_long_tr: string;
   why_it_matters_tr: string;
+  risk_level: NewsAiRiskLevel;
   public_advice: string[];
   affected_groups_tr: string[];
   recommendations_tr: string[];
@@ -24,7 +28,7 @@ export type NewsAiTranslationResult =
 
 const GEMINI_MODEL = "gemini-2.0-flash";
 const GEMINI_TIMEOUT_MS = 9000;
-const GEMINI_MIN_INTERVAL_MS = 3000;
+const GEMINI_MIN_INTERVAL_MS = Number(process.env.GEMINI_MIN_INTERVAL_MS ?? "1500");
 const GEMINI_RATE_LIMIT_RETRY_MS = 5000;
 const GEMINI_MAX_INPUT_LENGTH = 1800;
 
@@ -45,6 +49,7 @@ export async function translateNewsWithAi(input: NewsAiTranslationInput): Promis
   console.log("gemini_translation_timing", {
     elapsed_ms: Date.now() - tStart,
     ok: result.ok,
+    language: input.sourceLanguage,
     reason: result.ok ? undefined : (result as { reason: string }).reason,
     title: shortTitle,
   });
@@ -135,13 +140,23 @@ function buildPrompt(input: NewsAiTranslationInput) {
   const category = clampText(input.category, 140);
   const sourceUrl = clampText(input.sourceUrl, 300);
 
+  const languageInstructions = input.sourceLanguage === "tr"
+    ? [
+        "Kaynak metin zaten Turkce yazilmis, cevirme.",
+        "Metni oldugu gibi kopyalama; sade, oz ve vatandas odakli bir ozet ve risk degerlendirmesi uret."
+      ]
+    : [
+        "Asagidaki siber guvenlik haberini Turkce, sade ve vatandas odakli dile cevir.",
+        "Metni birebir kopyalama; anlamini koruyarak temiz Turkce ozet uret.",
+        "Ingilizce baslik veya yarim ceviri birakma."
+      ];
+
   return [
-    "Asagidaki siber guvenlik haberini Turkce, sade ve vatandas odakli dile cevir.",
-    "Metni birebir kopyalama; anlamini koruyarak temiz Turkce ozet uret.",
-    "Ingilizce baslik veya yarim ceviri birakma.",
+    ...languageInstructions,
     "summary_short_tr tam olarak 2 cumlelik kisa kart ozeti olsun.",
     "summary_long_tr 2-3 paragraf halinde ayrintili ama sade aciklama olsun.",
     "why_it_matters_tr bu haber neden onemli sorusuna tek paragrafla cevap versin.",
+    "risk_level alani haberin siber guvenlik ciddiyetine gore Dusuk, Orta veya Yuksek degerlerinden tam olarak biriyle doldurulsun.",
     "public_advice vatandasin ne yapmasi gerektigini anlatan uygulanabilir maddeler olsun.",
     "Abartili kesin hukum kullanma.",
     "Sadece gecerli JSON dondur.",
@@ -152,6 +167,7 @@ function buildPrompt(input: NewsAiTranslationInput) {
     '  "summary_short_tr": "string",',
     '  "summary_long_tr": "string",',
     '  "why_it_matters_tr": "string",',
+    '  "risk_level": "Dusuk" | "Orta" | "Yuksek",',
     '  "public_advice": ["string", "string", "string"],',
     '  "affected_groups_tr": ["string", "string"],',
     '  "recommendations_tr": ["string", "string", "string"]',
@@ -182,6 +198,7 @@ function parseTranslationPayload(value: string): NewsAiTranslationResult {
     summary_short_tr: cleanField(record.summary_short_tr),
     summary_long_tr: cleanField(record.summary_long_tr),
     why_it_matters_tr: cleanField(record.why_it_matters_tr),
+    risk_level: cleanRiskLevel(record.risk_level),
     public_advice: cleanArray(record.public_advice),
     affected_groups_tr: cleanArray(record.affected_groups_tr),
     recommendations_tr: cleanArray(record.recommendations_tr)
@@ -195,6 +212,17 @@ function parseTranslationPayload(value: string): NewsAiTranslationResult {
   }
 
   return { ok: true, data };
+}
+
+// Gemini "Dusuk"/"Yuksek" gibi diyakritiksiz ya da "High"/"Low" gibi
+// İngilizce varyasyonlar döndürebilir — sıkı eşleşme yerine anahtar kelime
+// tanır, tanımadığı durumda güvenli varsayılan "Orta"ya düşer (parse'ı
+// başarısız saymaz, çeviri akışı kırılmaz).
+function cleanRiskLevel(value: unknown): NewsAiRiskLevel {
+  const text = typeof value === "string" ? cleanNewsDisplayText(value).toLocaleLowerCase("tr-TR") : "";
+  if (/yuksek|y[üu]ksek|high|kritik|critical/.test(text)) return "Yüksek";
+  if (/dusuk|d[üu][şs][üu]k|low/.test(text)) return "Düşük";
+  return "Orta";
 }
 
 function cleanField(value: unknown) {
