@@ -26,7 +26,7 @@ export type NewsAiTranslationResult =
   | { ok: true; data: NewsAiTranslationOutput }
   | { ok: false; reason: string };
 
-const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
 const GEMINI_TIMEOUT_MS = 9000;
 const GEMINI_MIN_INTERVAL_MS = Number(process.env.GEMINI_MIN_INTERVAL_MS ?? "1500");
 const GEMINI_RATE_LIMIT_RETRY_MS = 5000;
@@ -167,11 +167,12 @@ function buildPrompt(input: NewsAiTranslationInput) {
     '  "summary_short_tr": "string",',
     '  "summary_long_tr": "string",',
     '  "why_it_matters_tr": "string",',
-    '  "risk_level": "Dusuk" | "Orta" | "Yuksek",',
+    '  "risk_level": "Dusuk",',
     '  "public_advice": ["string", "string", "string"],',
     '  "affected_groups_tr": ["string", "string"],',
     '  "recommendations_tr": ["string", "string", "string"]',
     "}",
+    "risk_level alani su uc degerden biri olmali: Dusuk, Orta, Yuksek.",
     "",
     `Kaynak: ${sourceName}`,
     `Kategori: ${category}`,
