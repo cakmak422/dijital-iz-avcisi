@@ -27,7 +27,7 @@ export type NewsAiTranslationResult =
   | { ok: false; reason: string };
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
-const GEMINI_TIMEOUT_MS = 9000;
+const GEMINI_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS ?? "12000");
 const GEMINI_MIN_INTERVAL_MS = Number(process.env.GEMINI_MIN_INTERVAL_MS ?? "1500");
 const GEMINI_RATE_LIMIT_RETRY_MS = 5000;
 const GEMINI_MAX_INPUT_LENGTH = 1800;
@@ -99,7 +99,8 @@ async function requestGeminiTranslation(
         generationConfig: {
           temperature: 0.2,
           maxOutputTokens: 900,
-          responseMimeType: "application/json"
+          responseMimeType: "application/json",
+          thinkingConfig: { thinkingBudget: 0 }
         }
       })
     });
