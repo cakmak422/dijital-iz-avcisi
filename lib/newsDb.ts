@@ -147,10 +147,27 @@ export async function upsertNewsItems(items: CyberNewsItem[]): Promise<NewsDbWri
   }
 
   try {
-    const batches = chunkItems(items, 10);
+    // DB'ye karşı slug dedup — aynı slug DB'de FARKLI bir source_url ile
+    // zaten varsa (ör. Google News yönlendirme URL'si değişmiş, başlık
+    // aynı kalmış) bu item'ı hiç yazma listesine sokmadan ele; aksi halde
+    // slug unique constraint'i (23505) ile tüm batch düşer.
+    const existingSlugMap = await fetchExistingSlugSourceMap(items.map((item) => item.slug));
+    let dedupBySlugCount = 0;
+    const itemsToWrite = items.filter((item) => {
+      const existingSourceUrl = existingSlugMap.get(item.slug);
+      if (existingSourceUrl && existingSourceUrl !== item.sourceUrl) {
+        dedupBySlugCount += 1;
+        return false;
+      }
+      return true;
+    });
+
+    console.log("news_db_upsert_dedup", { dedup_by_slug: dedupBySlugCount, checked: items.length });
+
+    const batches = chunkItems(itemsToWrite, 10);
     const insertedItems: CyberNewsItem[] = [];
     const errors: string[] = [];
-    let skipped = 0;
+    let skipped = dedupBySlugCount;
     let failed = 0;
 
     for (const batch of batches) {
@@ -180,6 +197,91 @@ export async function upsertNewsItems(items: CyberNewsItem[]): Promise<NewsDbWri
   }
 }
 
+async function fetchExistingSlugSourceMap(slugs: string[]): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  const uniqueSlugs = Array.from(new Set(slugs)).filter(Boolean);
+  if (!uniqueSlugs.length || !isSupabaseConfigured()) return map;
+
+  try {
+    const query = `slug=in.(${uniqueSlugs.map((slug) => encodeURIComponent(slug)).join(",")})&select=slug,source_url`;
+    const response = await fetch(`${getSupabaseBaseUrl()}/rest/v1/cyber_news?${query}`, {
+      headers: getSupabaseHeaders(),
+      cache: "no-store",
+      signal: AbortSignal.timeout(5000)
+    });
+    if (!response.ok) return map;
+
+    const rows = (await response.json()) as Array<{ slug: string; source_url: string }>;
+    for (const row of rows) map.set(row.slug, row.source_url);
+    return map;
+  } catch (error) {
+    // Sorgu başarısız olursa dedup katmanı atlanır (fail-open) — akış kırılmasın,
+    // en kötü ihtimalle eski davranış (batch izolasyonu yine devrede) geçerli olur.
+    console.warn("supabase_cyber_news_slug_lookup_failed", {
+      error: error instanceof Error ? error.message : "Bilinmeyen hata"
+    });
+    return map;
+  }
+}
+
+function isDuplicateKeyError(errorMessage: string) {
+  const normalized = errorMessage.toLocaleLowerCase("en-US");
+  return normalized.includes("23505") || normalized.includes("duplicate key value violates unique constraint");
+}
+
+async function upsertNewsItemsIndividually(items: CyberNewsItem[]): Promise<NewsDbWriteResult> {
+  const insertedItems: CyberNewsItem[] = [];
+  const errors: string[] = [];
+  let failed = 0;
+
+  for (const item of items) {
+    try {
+      const response = await fetch(`${getSupabaseBaseUrl()}/rest/v1/cyber_news?on_conflict=source_url`, {
+        method: "POST",
+        headers: getSupabaseHeaders("resolution=merge-duplicates,return=representation"),
+        body: JSON.stringify([toDbRow(item, true)]),
+        cache: "no-store",
+        signal: AbortSignal.timeout(8000)
+      });
+
+      if (!response.ok) {
+        const errorMessage = await readSupabaseError(response);
+        failed += 1;
+        errors.push(errorMessage);
+        console.error("supabase_cyber_news_item_upsert_failed", {
+          slug: item.slug,
+          sourceUrl: item.sourceUrl,
+          status: response.status,
+          error: errorMessage
+        });
+        continue;
+      }
+
+      const insertedRows = (await response.json()) as CyberNewsDbRow[];
+      insertedItems.push(...insertedRows.map(fromDbRow));
+    } catch (error) {
+      failed += 1;
+      const errorMessage = error instanceof Error ? error.message : "Bilinmeyen Supabase tekil insert hatası";
+      errors.push(errorMessage);
+      console.error("supabase_cyber_news_item_upsert_exception", {
+        slug: item.slug,
+        sourceUrl: item.sourceUrl,
+        error: errorMessage
+      });
+    }
+  }
+
+  setDbWriteDebug(failed === 0, null, failed > 0 ? (errors[0] ?? null) : null);
+  return {
+    inserted: insertedItems.length,
+    skipped: 0,
+    failed,
+    items: insertedItems,
+    usingDatabase: true,
+    errors: errors.slice(0, 5)
+  };
+}
+
 async function upsertNewsBatch(items: CyberNewsItem[]): Promise<NewsDbWriteResult> {
   try {
     const payload = items.map((item) => toDbRow(item, true));
@@ -199,6 +301,16 @@ async function upsertNewsBatch(items: CyberNewsItem[]): Promise<NewsDbWriteResul
           itemCount: items.length
         });
         return upsertNewsBatchWithLegacyPayload(items, errorMessage);
+      }
+
+      if (isDuplicateKeyError(errorMessage)) {
+        // Batch tek POST'la atomik yazıldığı için tek çakışma tüm batch'i
+        // düşürür — item item tekrar deneyerek masum kayıtları kurtarıyoruz.
+        console.warn("supabase_cyber_news_batch_duplicate_key_isolate", {
+          error: errorMessage,
+          itemCount: items.length
+        });
+        return upsertNewsItemsIndividually(items);
       }
 
       setDbWriteDebug(false, response.status, errorMessage);

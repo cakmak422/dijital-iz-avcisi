@@ -357,11 +357,17 @@ export function isRelevantCyberNews(text: string) {
 }
 
 export function upsertUniqueNewsItems(items: CyberNewsItem[]) {
-  const seen = new Set<string>();
+  const seenUrls = new Set<string>();
+  const seenSlugs = new Set<string>();
   return items.filter((item) => {
     if (!hasValidNewsSource(item)) return false;
-    if (seen.has(item.sourceUrl)) return false;
-    seen.add(item.sourceUrl);
+    if (seenUrls.has(item.sourceUrl)) return false;
+    // Aynı fetch içinde iki farklı source_url aynı slug'ı üretebilir
+    // (ör. Google News yönlendirmesi farklı, başlık aynı) — DB'de
+    // slug unique olduğundan bu ikinci kaydı burada eleriz.
+    if (seenSlugs.has(item.slug)) return false;
+    seenUrls.add(item.sourceUrl);
+    seenSlugs.add(item.slug);
     return true;
   });
 }
