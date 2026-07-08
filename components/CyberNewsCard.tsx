@@ -3,8 +3,8 @@ import Link from "next/link";
 import { CyberNewsImage } from "@/components/CyberNewsImage";
 import { normalizeNewsItem } from "@/lib/newsNormalizer";
 import {
-  getNewsImageFallbackSource,
   getNewsImageSource,
+  getNewsPlaceholderPath,
   getNewsSeverity,
   getNewsShortSummary,
   getNewsTitle,
@@ -111,9 +111,12 @@ export function CyberNewsCard({ item, compact = false }: { item: CyberNewsItem; 
 export function CyberNewsVisual({ item, className = "" }: { item: CyberNewsItem; className?: string }) {
   const normalizedItem = normalizeNewsItem(item);
   const title = normalizedItem.imageAltTr || getNewsTitle(normalizedItem);
-  const visual = visualStyles[getNewsVisualType(normalizedItem)];
+  const visualType = getNewsVisualType(normalizedItem);
+  const visual = visualStyles[visualType];
   const imageSource = getNewsImageSource(normalizedItem);
-  const fallbackSource = getNewsImageFallbackSource();
+  // Havuz görseli Storage'da yoksa (404) CyberNewsImage'ın onError'ı bu
+  // kategoriye özel SVG'ye düşer — jenerik default-cyber.svg değil.
+  const fallbackSource = getNewsPlaceholderPath(visualType);
 
   return (
     <div className={`relative aspect-[16/9] min-h-48 overflow-hidden border-b border-cyan-300/15 bg-gradient-to-br ${visual.gradient} ${className}`}>

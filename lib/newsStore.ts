@@ -1,4 +1,5 @@
 import { buildTurkishNewsDisplay, isUsableTurkishDisplayText } from "@/lib/newsTranslation";
+import { getCategoryPoolImageUrl } from "@/lib/newsVisualPool";
 
 export type CyberNewsRiskLevel = "D\u00fc\u015f\u00fck" | "Orta" | "Y\u00fcksek";
 
@@ -326,7 +327,9 @@ export function inferNewsVisualType(text: string): CyberNewsVisualType {
 
 export function getNewsImageSource(item: CyberNewsItem) {
   if (hasRealNewsImage(item)) return item.imageUrl as string;
-  return getNewsPlaceholderPath(getNewsVisualType(item));
+  const visualType = getNewsVisualType(item);
+  const poolImage = getCategoryPoolImageUrl(visualType, item.slug);
+  return poolImage ?? getNewsPlaceholderPath(visualType);
 }
 
 export function getNewsImageFallbackSource() {
