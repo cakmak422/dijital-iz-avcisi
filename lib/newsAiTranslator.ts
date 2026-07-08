@@ -30,6 +30,9 @@ const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
 const GEMINI_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS ?? "12000");
 const GEMINI_MIN_INTERVAL_MS = Number(process.env.GEMINI_MIN_INTERVAL_MS ?? "1500");
 const GEMINI_RATE_LIMIT_RETRY_MS = 5000;
+// Model asiri yuklendiginde (503) tek seferlik retry oncesi bekleme
+const GEMINI_OVERLOAD_RETRY_MS = Number(process.env.GEMINI_OVERLOAD_RETRY_MS ?? "4000");
+const GEMINI_MAX_OUTPUT_TOKENS = Number(process.env.GEMINI_MAX_OUTPUT_TOKENS ?? "2048");
 const GEMINI_MAX_INPUT_LENGTH = 1800;
 
 let translationQueue = Promise.resolve();
@@ -39,15 +42,22 @@ export function isNewsAiTranslatorConfigured() {
   return Boolean((process.env.GEMINI_API_KEY ?? "").trim());
 }
 
-export async function translateNewsWithAi(input: NewsAiTranslationInput): Promise<NewsAiTranslationResult> {
+export async function translateNewsWithAi(
+  input: NewsAiTranslationInput,
+  options?: { allowRetry?: boolean }
+): Promise<NewsAiTranslationResult> {
   const apiKey = (process.env.GEMINI_API_KEY ?? "").trim();
   if (!apiKey) return { ok: false, reason: "GEMINI_API_KEY tanimli degil." };
 
+  const allowRetry = options?.allowRetry ?? true;
   const tStart = Date.now();
   const shortTitle = input.originalTitle.slice(0, 60);
-  const result = await enqueueGeminiCall(() => callGeminiTranslator(apiKey, input));
+  const { result, queueWaitMs } = await enqueueGeminiCall(() => callGeminiTranslator(apiKey, input, allowRetry));
+  const elapsedMs = Date.now() - tStart;
   console.log("gemini_translation_timing", {
-    elapsed_ms: Date.now() - tStart,
+    elapsed_ms: elapsedMs,
+    queue_wait_ms: queueWaitMs,
+    api_elapsed_ms: elapsedMs - queueWaitMs,
     ok: result.ok,
     language: input.sourceLanguage,
     reason: result.ok ? undefined : (result as { reason: string }).reason,
@@ -56,23 +66,35 @@ export async function translateNewsWithAi(input: NewsAiTranslationInput): Promis
   return result;
 }
 
-async function enqueueGeminiCall<T>(task: () => Promise<T>) {
+async function enqueueGeminiCall<T>(task: () => Promise<T>): Promise<{ result: T; queueWaitMs: number }> {
   const queuedTask = translationQueue.then(async () => {
     const waitMs = Math.max(0, GEMINI_MIN_INTERVAL_MS - (Date.now() - lastGeminiCallAt));
     if (waitMs > 0) await new Promise((resolve) => setTimeout(resolve, waitMs));
     lastGeminiCallAt = Date.now();
-    return task();
+    const result = await task();
+    return { result, queueWaitMs: waitMs };
   });
 
   translationQueue = queuedTask.catch(() => undefined).then(() => undefined);
   return queuedTask;
 }
 
-async function callGeminiTranslator(apiKey: string, input: NewsAiTranslationInput): Promise<NewsAiTranslationResult> {
+async function callGeminiTranslator(
+  apiKey: string,
+  input: NewsAiTranslationInput,
+  allowRetry: boolean
+): Promise<NewsAiTranslationResult> {
   const firstAttempt = await requestGeminiTranslation(apiKey, input);
-  if (firstAttempt.ok || firstAttempt.status !== 429) return firstAttempt.result;
+  if (firstAttempt.ok || !allowRetry) return firstAttempt.result;
 
-  await sleep(GEMINI_RATE_LIMIT_RETRY_MS);
+  if (firstAttempt.status === 429) {
+    await sleep(GEMINI_RATE_LIMIT_RETRY_MS);
+  } else if (firstAttempt.status === 503) {
+    await sleep(GEMINI_OVERLOAD_RETRY_MS);
+  } else {
+    return firstAttempt.result;
+  }
+
   const retryAttempt = await requestGeminiTranslation(apiKey, input);
   return retryAttempt.result;
 }
@@ -98,7 +120,7 @@ async function requestGeminiTranslation(
         ],
         generationConfig: {
           temperature: 0.2,
-          maxOutputTokens: 900,
+          maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS,
           responseMimeType: "application/json",
           thinkingConfig: { thinkingBudget: 0 }
         }
@@ -114,17 +136,20 @@ async function requestGeminiTranslation(
       };
     }
 
-    const parsed = JSON.parse(rawBody) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+    const parsed = JSON.parse(rawBody) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> }; finishReason?: string }>;
+    };
+    const finishReason = parsed.candidates?.[0]?.finishReason;
     const text = parsed.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("").trim() ?? "";
     if (!text) {
       return {
         ok: false,
         status: response.status,
-        result: { ok: false, reason: "Gemini bos cevap dondurdu." }
+        result: { ok: false, reason: `Gemini bos cevap dondurdu. finishReason=${finishReason ?? "bilinmiyor"}` }
       };
     }
 
-    const result = parseTranslationPayload(text);
+    const result = parseTranslationPayload(text, finishReason);
     return { ok: result.ok, status: response.status, result };
   } catch (error) {
     return {
@@ -183,14 +208,14 @@ function buildPrompt(input: NewsAiTranslationInput) {
   ].join("\n");
 }
 
-function parseTranslationPayload(value: string): NewsAiTranslationResult {
+function parseTranslationPayload(value: string, finishReason?: string): NewsAiTranslationResult {
   const cleaned = value.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, "").trim();
   let parsed: unknown;
 
   try {
     parsed = JSON.parse(cleaned);
   } catch {
-    return { ok: false, reason: "Gemini JSON formatinda cevap vermedi." };
+    return { ok: false, reason: `Gemini JSON formatinda cevap vermedi. finishReason=${finishReason ?? "bilinmiyor"}` };
   }
 
   if (!parsed || typeof parsed !== "object") return { ok: false, reason: "Gemini cevabi nesne formatinda degil." };

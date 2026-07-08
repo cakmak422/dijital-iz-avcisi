@@ -22,6 +22,9 @@ const MAX_TR_ITEMS_PER_FETCH = Number(process.env.MAX_TR_ITEMS_PER_FETCH ?? "3")
 // RSS description bu uzunluğun altındaysa kaynak sayfadan paragraf çekilir;
 // üzerindeyse RSS snippet'i doğrudan kullanılır (ekstra fetch atlanır, süre kazanılır).
 const LEAD_PARAGRAPH_MIN_SNIPPET_LENGTH = 200;
+// Fetch başına toplam Gemini süresi bu tavanı aşarsa kalan çağrılar
+// retry'sız tek deneme yapar (item düşürülmez, sadece retry hakkı kaybedilir).
+const AI_TOTAL_BUDGET_MS = Number(process.env.AI_TOTAL_BUDGET_MS ?? "45000");
 
 export type NewsSourceFetchReport = {
   sourceId: string;
@@ -104,6 +107,9 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
       const mapped = await mapWithConcurrency(mappableItems, 4, async (item, index) => {
         const image = await resolveNewsImageWithArticleSource(item.imageUrl, item.sourceUrl);
         imageStats[image.source] += 1;
+        // Bütçe çağrı başında kontrol edilir (kaba taneli) — kümülatif AI süresi
+        // tavanı aşmışsa bu çağrı retry hakkını kaybeder, item yine de denenir.
+        const allowRetry = totalAiElapsedMs < AI_TOTAL_BUDGET_MS;
         const result = await mapRawNewsToCyberNewsForFetch(
           {
             title: item.title,
@@ -117,7 +123,8 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
             publishedAt: item.publishedAt,
             textSnippet: item.textSnippet
           },
-          aiEligibility[index]
+          aiEligibility[index],
+          allowRetry
         );
         totalAiElapsedMs += result.aiMs;
         return result.item;
@@ -252,7 +259,7 @@ export function mapRawNewsToCyberNews(raw: RawCyberNews): CyberNewsItem {
 
 type FetchMapResult = { item: CyberNewsItem | null; aiMs: number };
 
-async function mapRawNewsToCyberNewsForFetch(raw: RawCyberNews, useAi: boolean): Promise<FetchMapResult> {
+async function mapRawNewsToCyberNewsForFetch(raw: RawCyberNews, useAi: boolean, allowRetry: boolean): Promise<FetchMapResult> {
   const deterministicItem = mapRawNewsToCyberNews(raw);
   if (!useAi || !isNewsAiTranslatorConfigured()) return { item: deterministicItem, aiMs: 0 };
 
@@ -273,7 +280,7 @@ async function mapRawNewsToCyberNewsForFetch(raw: RawCyberNews, useAi: boolean):
     sourceName: raw.sourceName,
     sourceUrl: raw.sourceUrl,
     sourceLanguage
-  });
+  }, { allowRetry });
   const aiMs = Date.now() - tStart;
   console.log("news_fetch_timing", { step: sourceLanguage === "tr" ? "gemini_tr_item" : "gemini_en_item", elapsed_ms: aiMs });
 
