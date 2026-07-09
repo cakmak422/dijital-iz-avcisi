@@ -221,14 +221,14 @@ function parseTranslationPayload(value: string, finishReason?: string): NewsAiTr
   if (!parsed || typeof parsed !== "object") return { ok: false, reason: "Gemini cevabi nesne formatinda degil." };
   const record = parsed as Record<string, unknown>;
   const data: NewsAiTranslationOutput = {
-    title_tr: cleanField(record.title_tr),
-    summary_short_tr: cleanField(record.summary_short_tr),
-    summary_long_tr: cleanField(record.summary_long_tr),
-    why_it_matters_tr: cleanField(record.why_it_matters_tr),
+    title_tr: cleanField(record.title_tr, 300, "title_tr"),
+    summary_short_tr: cleanField(record.summary_short_tr, 500, "summary_short_tr"),
+    summary_long_tr: cleanField(record.summary_long_tr, 3000, "summary_long_tr"),
+    why_it_matters_tr: cleanField(record.why_it_matters_tr, 3000, "why_it_matters_tr"),
     risk_level: cleanRiskLevel(record.risk_level),
-    public_advice: cleanArray(record.public_advice),
-    affected_groups_tr: cleanArray(record.affected_groups_tr),
-    recommendations_tr: cleanArray(record.recommendations_tr)
+    public_advice: cleanArray(record.public_advice, 500, "public_advice"),
+    affected_groups_tr: cleanArray(record.affected_groups_tr, 500, "affected_groups_tr"),
+    recommendations_tr: cleanArray(record.recommendations_tr, 500, "recommendations_tr")
   };
 
   if (!data.title_tr || !data.summary_short_tr || !data.summary_long_tr || !data.why_it_matters_tr) {
@@ -252,13 +252,24 @@ function cleanRiskLevel(value: unknown): NewsAiRiskLevel {
   return "Orta";
 }
 
-function cleanField(value: unknown) {
-  return typeof value === "string" ? cleanNewsDisplayText(value).slice(0, 900) : "";
+// Sert slice() cümle ortasında kesebiliyordu (ör. "...hesaplarını duzenli olarak k").
+// Aşımda son yarım kelimeyi atıp "..." ekliyoruz; ayrıca aşım gerçekten
+// oluşursa (maxLength bile yetmiyorsa) sessiz kalmayıp loglanıyor.
+function cleanField(value: unknown, maxLength: number, fieldName: string): string {
+  if (typeof value !== "string") return "";
+  const cleaned = cleanNewsDisplayText(value);
+  if (cleaned.length <= maxLength) return cleaned;
+
+  console.warn("news_ai_field_truncated", { field: fieldName, originalLength: cleaned.length, maxLength });
+  return `${cleaned.slice(0, maxLength).replace(/\s+\S*$/, "")}...`;
 }
 
-function cleanArray(value: unknown) {
+function cleanArray(value: unknown, maxLength: number, fieldName: string): string[] {
   if (!Array.isArray(value)) return [];
-  return value.map(cleanField).filter((item) => item.length > 0).slice(0, 5);
+  return value
+    .map((item) => cleanField(item, maxLength, fieldName))
+    .filter((item) => item.length > 0)
+    .slice(0, 5);
 }
 
 function clampText(value: string, limit = GEMINI_MAX_INPUT_LENGTH) {
