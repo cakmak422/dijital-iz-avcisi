@@ -22,13 +22,6 @@ type Theme = "light" | "dark";
 
 const HOME_CONTAINER = "mx-auto w-full max-w-[1560px] px-4 sm:px-6 lg:px-10 xl:px-12";
 
-const platformStats = [
-  { label: "Analiz edilen link", value: "12.480", detail: "demo veri" },
-  { label: "Riskli sinyal yakalandı", value: "1.936", detail: "site ve satıcı" },
-  { label: "Günlük analiz", value: "420", detail: "ortalama demo" }
-];
-
-
 export default function Home() {
   const [theme, setTheme] = useState<Theme>("light");
 
@@ -39,7 +32,6 @@ export default function Home() {
         <Hero />
         <AnnouncementBanner />
         <AwarenessSlider backgroundImage="/awareness/afistema.png" />
-        <StatsBand />
         <CyberNewsCenter />
         <TodayCyberEvent />
         <FeedbackForm />
@@ -274,22 +266,6 @@ function AnnouncementBanner() {
       <div className={`${HOME_CONTAINER} flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between`}>
         <p className="text-sm font-semibold uppercase tracking-[0.12em] text-cyan-800 dark:text-cyan-100">Duyuru</p>
         <EditableContent as="p" className="text-sm leading-6 text-slate-700 dark:text-cyan-50 sm:text-right" contentKey="home.announcement.banner" />
-      </div>
-    </section>
-  );
-}
-
-function StatsBand() {
-  return (
-    <section className="cyber-section cyber-pattern-dots border-b border-cyan-300/12 py-5">
-      <div className={`${HOME_CONTAINER} grid gap-3 sm:grid-cols-3`}>
-        {platformStats.map((stat) => (
-          <article className="stat-card premium-card p-5" key={stat.label}>
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">{stat.label}</p>
-            <p className="mt-2 text-3xl font-bold text-white">{stat.value}</p>
-            <p className="mt-1 text-xs text-slate-500">{stat.detail}</p>
-          </article>
-        ))}
       </div>
     </section>
   );
