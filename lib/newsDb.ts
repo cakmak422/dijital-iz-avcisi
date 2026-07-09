@@ -113,6 +113,60 @@ export async function getAllNewsFromDb(): Promise<NewsDbReadResult> {
   };
 }
 
+export type NewsDbPagedReadResult = {
+  items: CyberNewsItem[];
+  usingDatabase: boolean;
+  totalCount: number;
+};
+
+export async function getPagedNewsFromDb(limit: number, offset: number): Promise<NewsDbPagedReadResult> {
+  if (!isSupabaseConfigured()) {
+    setDbReadDebug(false, null, getSupabaseConfigurationError());
+    return { items: [], usingDatabase: false, totalCount: 0 };
+  }
+
+  try {
+    const response = await fetch(
+      `${getSupabaseBaseUrl()}/rest/v1/cyber_news?select=*&order=published_at.desc.nullslast,fetched_at.desc&limit=${limit}&offset=${offset}`,
+      {
+        headers: getSupabaseHeaders("count=exact"),
+        cache: "no-store",
+        signal: AbortSignal.timeout(5000)
+      }
+    );
+
+    if (!response.ok) {
+      const errorMessage = await readSupabaseError(response);
+      setDbReadDebug(false, response.status, errorMessage);
+      return { items: [], usingDatabase: false, totalCount: 0 };
+    }
+
+    const data = (await response.json()) as unknown;
+    if (!Array.isArray(data)) {
+      setDbReadDebug(false, response.status, "Supabase response array formatinda degil.");
+      return { items: [], usingDatabase: false, totalCount: 0 };
+    }
+
+    // PostgREST count=exact ile toplam kayit sayisi Content-Range header'inda doner
+    // (orn. "0-11/268") — ayri bir COUNT sorgusu gerekmez.
+    const contentRange = response.headers.get("content-range");
+    const totalFromRange = contentRange ? Number(contentRange.split("/")[1]) : NaN;
+    const totalCount = Number.isFinite(totalFromRange) ? totalFromRange : data.length;
+
+    setDbReadDebug(true, response.status, null);
+    return {
+      items: (data as CyberNewsDbRow[]).map(fromDbRow),
+      usingDatabase: true,
+      totalCount
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Bilinmeyen Supabase sayfalama hatasi";
+    setDbReadDebug(false, null, errorMessage);
+    console.error("supabase_cyber_news_paged_read_failed", { error: errorMessage });
+    return { items: [], usingDatabase: false, totalCount: 0 };
+  }
+}
+
 export async function getNewsBySlug(slug: string): Promise<CyberNewsItem | undefined> {
   const rows = await fetchRows(`select=*&slug=eq.${encodeURIComponent(slug)}&limit=1`);
   if (!rows) return getCyberNewsBySlug(slug);

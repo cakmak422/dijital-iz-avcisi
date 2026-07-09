@@ -12,12 +12,42 @@ export const metadata: Metadata = {
 import { CyberPageShell } from "@/components/CyberPageShell";
 import { ManagedPageHero } from "@/components/ManagedPageHero";
 import { SiteFooter } from "@/components/SiteFooter";
-import { getAllNewsForPublic } from "@/lib/newsReadService";
+import { getPagedNewsForPublic } from "@/lib/newsReadService";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewsPage() {
-  const { items: news } = await getAllNewsForPublic();
+const PAGE_SIZE = 12;
+
+function parsePageParam(raw: string | string[] | undefined): number {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  const parsed = Number.parseInt(value ?? "1", 10);
+  if (!Number.isFinite(parsed) || parsed < 1) return 1;
+  return parsed;
+}
+
+export default async function NewsPage({
+  searchParams
+}: {
+  searchParams: Promise<{ page?: string | string[] }>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const requestedPage = parsePageParam(resolvedSearchParams.page);
+
+  let { items: news, totalCount } = await getPagedNewsForPublic(requestedPage, PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
+  // Gecersiz/asiri page degeri icin 404 atmak yerine en yakin gecerli
+  // sayfaya sessizce dus — URL degismez, sadece icerik duzeltilir.
+  let currentPage = requestedPage;
+  if (requestedPage > totalPages) {
+    currentPage = totalPages;
+    const clamped = await getPagedNewsForPublic(currentPage, PAGE_SIZE);
+    news = clamped.items;
+    totalCount = clamped.totalCount;
+  }
+
+  const hasPrev = currentPage > 1;
+  const hasNext = currentPage < totalPages;
 
   return (
     <CyberPageShell className="news-reference-page" variant="news">
@@ -39,18 +69,65 @@ export default async function NewsPage() {
               <p className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-200">Kaynaklı akış</p>
               <h2 className="mt-2 text-2xl font-extrabold text-white">Son güvenlik başlıkları</h2>
             </div>
-            <p className="text-sm text-slate-400">{news.length} kaynaklı içerik</p>
+            <p className="text-sm text-slate-400">{totalCount} kaynaklı içerik</p>
           </div>
         </div>
-        <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {news.map((item) => (
-            <CyberNewsCard item={item} key={item.id} />
-          ))}
-        </div>
+
+        {news.length > 0 ? (
+          <>
+            <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {news.map((item) => (
+                <CyberNewsCard item={item} key={item.id} />
+              ))}
+            </div>
+            <NewsPagination currentPage={currentPage} hasNext={hasNext} hasPrev={hasPrev} totalPages={totalPages} />
+          </>
+        ) : (
+          <div className="mx-auto max-w-7xl rounded-xl border border-cyan-300/20 bg-slate-950/60 p-8 text-center">
+            <p className="text-sm text-slate-300">Bu sayfada haber yok.</p>
+            <Link className="btn-secondary mt-4 inline-flex px-4 py-2" href="/haberler">
+              İlk sayfaya dön
+            </Link>
+          </div>
+        )}
       </section>
 
       <SiteFooter />
     </CyberPageShell>
+  );
+}
+
+function NewsPagination({
+  currentPage,
+  hasNext,
+  hasPrev,
+  totalPages
+}: {
+  currentPage: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+  totalPages: number;
+}) {
+  return (
+    <div className="mx-auto mt-8 flex max-w-7xl items-center justify-center gap-4">
+      {hasPrev ? (
+        <Link className="btn-secondary px-4 py-2" href={`/haberler?page=${currentPage - 1}`}>
+          {"‹ Önceki Sayfa"}
+        </Link>
+      ) : (
+        <span className="btn-secondary cursor-not-allowed px-4 py-2 opacity-40">{"‹ Önceki Sayfa"}</span>
+      )}
+      <p className="text-sm font-semibold text-slate-400">
+        Sayfa {currentPage} · {totalPages}
+      </p>
+      {hasNext ? (
+        <Link className="btn-secondary px-4 py-2" href={`/haberler?page=${currentPage + 1}`}>
+          {"Sonraki Sayfa ›"}
+        </Link>
+      ) : (
+        <span className="btn-secondary cursor-not-allowed px-4 py-2 opacity-40">{"Sonraki Sayfa ›"}</span>
+      )}
+    </div>
   );
 }
 

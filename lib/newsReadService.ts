@@ -1,4 +1,4 @@
-import { getAllNewsFromDb, getNewsBySlugFromDb } from "@/lib/newsDb";
+import { getAllNewsFromDb, getNewsBySlugFromDb, getPagedNewsFromDb } from "@/lib/newsDb";
 import { normalizeNewsItem } from "@/lib/newsNormalizer";
 import { getCachedRuntimeNewsBySlug, getCachedRuntimeNewsItems } from "@/lib/newsRuntimeStore";
 import { getCyberNewsBySlug, getCyberNewsItems, hasPublicNewsDisplay, type CyberNewsItem } from "@/lib/newsStore";
@@ -35,6 +35,33 @@ export async function getLatestNewsForPublic(limit = 30): Promise<NewsReadResult
 
 export async function getAllNewsForPublic(): Promise<NewsReadResult> {
   return getMergedNewsForPublic();
+}
+
+export type NewsPagedReadResult = {
+  items: CyberNewsItem[];
+  totalCount: number;
+  dbEnabled: boolean;
+};
+
+// page 1-tabanli. DB erisilebiliyorsa gercek veri-seviyesi sayfalama
+// (limit/offset) kullanilir. DB erisilemezse kucuk fallback setine
+// (runtime cache + seed, tipik olarak <15 kayit) duser ve onu dilimler
+// — bu senaryoda 260+ kayitlik hacim zaten soz konusu degil.
+export async function getPagedNewsForPublic(page: number, pageSize: number): Promise<NewsPagedReadResult> {
+  const offset = (page - 1) * pageSize;
+  const dbResult = await getPagedNewsFromDb(pageSize, offset);
+
+  if (dbResult.usingDatabase) {
+    const items = dbResult.items.map(normalizeNewsItem).filter(hasPublicNewsDisplay);
+    return { items, totalCount: dbResult.totalCount, dbEnabled: true };
+  }
+
+  const fallback = await getMergedNewsForPublic();
+  return {
+    items: fallback.items.slice(offset, offset + pageSize),
+    totalCount: fallback.items.length,
+    dbEnabled: false
+  };
 }
 
 async function getMergedNewsForPublic(): Promise<NewsReadResult> {
