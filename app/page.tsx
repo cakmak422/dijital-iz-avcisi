@@ -271,21 +271,26 @@ function AnnouncementBanner() {
   );
 }
 
+const CAROUSEL_AUTOPLAY_INTERVAL_MS = 10_000;
+const CAROUSEL_MANUAL_PAUSE_MS = 30_000;
+
 function TodayCyberEvent() {
   const [events, setEvents] = useState<CyberArchiveEvent[]>([getTodayCyberEvent()]);
   const [activeIdx, setActiveIdx] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const autoplayPausedUntilRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadTimelineEvents() {
       try {
-        // Tüm listeyi çek — slider için ilk 5 olay
+        // Tüm listeyi çek — slider için ilk 8 olay (en yeni tarih önce)
         const response = await fetch("/api/cyber-timeline/events", { cache: "no-store" });
         if (!response.ok) return;
         const data = (await response.json()) as { events?: CyberArchiveEvent[] };
         if (!cancelled && Array.isArray(data.events) && data.events.length > 0) {
-          setEvents(data.events.slice(0, 5));
+          setEvents(data.events.slice(0, 8));
           setActiveIdx(0);
         }
       } catch {
@@ -300,11 +305,38 @@ function TodayCyberEvent() {
   const event = events[activeIdx] ?? events[0];
   const hasMultiple = events.length > 1;
 
-  function prev() { setActiveIdx((i) => (i - 1 + events.length) % events.length); }
-  function next() { setActiveIdx((i) => (i + 1) % events.length); }
+  function pauseAutoplay() {
+    autoplayPausedUntilRef.current = Date.now() + CAROUSEL_MANUAL_PAUSE_MS;
+  }
+
+  function prev() { setActiveIdx((i) => (i - 1 + events.length) % events.length); pauseAutoplay(); }
+  function next() { setActiveIdx((i) => (i + 1) % events.length); pauseAutoplay(); }
+  function goTo(i: number) { setActiveIdx(i); pauseAutoplay(); }
+
+  // Otomatik kaydırma: 10sn'de bir sonraki olay. Elle gezinme sonrası 30sn
+  // durur, mouse hover'da ve sekme arka plandayken de durur.
+  // prefers-reduced-motion açıksa hiç başlamaz.
+  useEffect(() => {
+    if (!hasMultiple) return;
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const interval = setInterval(() => {
+      if (isHovered) return;
+      if (Date.now() < autoplayPausedUntilRef.current) return;
+      if (document.visibilityState !== "visible") return;
+      setActiveIdx((i) => (i + 1) % events.length);
+    }, CAROUSEL_AUTOPLAY_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [hasMultiple, isHovered, events.length]);
 
   return (
-    <section className="cyber-section cyber-pattern-section border-b border-cyan-300/12 py-10">
+    <section
+      className="cyber-section cyber-pattern-section border-b border-cyan-300/12 py-10"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <div className={`${HOME_CONTAINER} grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center`}>
 
         {/* Sol: görsel — imageUrl varsa gerçek görsel, yoksa CyberEventVisual fallback */}
@@ -374,7 +406,7 @@ function TodayCyberEvent() {
                     i === activeIdx ? "w-5 bg-cyan-400" : "w-1.5 bg-slate-600 hover:bg-slate-400"
                   }`}
                   key={i}
-                  onClick={() => setActiveIdx(i)}
+                  onClick={() => goTo(i)}
                   type="button"
                 />
               ))}

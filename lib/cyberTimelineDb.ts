@@ -81,8 +81,11 @@ async function fetchTimelineRows(): Promise<CyberTimelineEventRow[] | null> {
   if (!isSupabaseConfigured()) return null;
 
   try {
+    // event_date her satırda dolu (seed ve haber-kaynaklı) — gerçek
+    // kronolojik sıralama için birincil anahtar bu olmalı. sort_order
+    // sadece event_date eşit/eksik olduğunda ikincil kırılım.
     const response = await fetch(
-      `${getSupabaseBaseUrl()}/rest/v1/cyber_timeline_events?select=*&status=eq.active&order=sort_order.asc,year.desc,month_day.asc`,
+      `${getSupabaseBaseUrl()}/rest/v1/cyber_timeline_events?select=*&status=eq.active&order=event_date.desc.nullslast,sort_order.asc`,
       {
         headers: getSupabaseHeaders(),
         cache: "no-store",
