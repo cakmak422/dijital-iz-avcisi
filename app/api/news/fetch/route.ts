@@ -1,9 +1,11 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { fetchLatestCyberNews } from "@/lib/newsFetcher";
-import { getNewsDbDebugState, upsertNewsItems } from "@/lib/newsDb";
+import { fetchLatestCyberNews, type NewsFetchReport } from "@/lib/newsFetcher";
+import { getNewsDbDebugState, upsertNewsItems, type NewsDbWriteResult } from "@/lib/newsDb";
 import { getLatestNewsForPublic } from "@/lib/newsReadService";
 import { getCachedRuntimeNewsItems } from "@/lib/newsRuntimeStore";
+import { checkNewsFetchAlertThrottle, recordNewsFetchAlertSent } from "@/lib/newsFetchAlertDb";
+import { sendNewsFetchAlertEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -68,6 +70,16 @@ async function handleNewsFetch(request: Request) {
 
     const dbDebug = getNewsDbDebugState();
     const runtimeCacheCountAfterWrite = (await getCachedRuntimeNewsItems()).length;
+
+    // İzleme/uyarı mekanizması — izleyici izlediği sistemi asla bozmamalı,
+    // bu yüzden tamamen ayrı bir try/catch içinde, ana response'u etkilemez.
+    try {
+      await evaluateAndSendNewsFetchAlert(result, dbWrite);
+    } catch (alertErr) {
+      console.error("news_fetch_alert_evaluation_failed", {
+        error: alertErr instanceof Error ? alertErr.message : String(alertErr)
+      });
+    }
 
     if (process.env.NODE_ENV === "production") {
       lastProductionFetchAt = Date.now();
@@ -172,5 +184,42 @@ function getProvidedSecret(request: Request) {
     return new URL(request.url).searchParams.get("secret")?.trim() ?? "";
   } catch {
     return "";
+  }
+}
+
+async function evaluateAndSendNewsFetchAlert(result: NewsFetchReport, dbWrite: NewsDbWriteResult) {
+  const reasons: string[] = [];
+
+  if (dbWrite.failed > 0) reasons.push(`DB yazım hatası (failed: ${dbWrite.failed})`);
+  if (result.found > 0 && dbWrite.inserted + dbWrite.skipped === 0) reasons.push("Bulunan haberlerden hiçbiri DB'ye yazılamadı");
+  if (result.aiStats.attempted > 0 && result.aiStats.ok === 0) reasons.push(`AI çağrılarının tamamı başarısız (0/${result.aiStats.attempted})`);
+  if (result.truncationCount > 0) reasons.push(`Alan kırpma uyarısı (${result.truncationCount} kez)`);
+  if (result.found === 0) reasons.push("Hiçbir kaynaktan haber bulunamadı");
+
+  if (!reasons.length) return;
+
+  const throttle = await checkNewsFetchAlertThrottle();
+  if (!throttle.shouldSend) {
+    console.warn("news_fetch_alert_suppressed", { reasons, lastSentAt: throttle.lastSentAt });
+    return;
+  }
+
+  const sampleErrors = [...dbWrite.errors, ...result.errors].filter(Boolean).slice(0, 3);
+  const emailResult = await sendNewsFetchAlertEmail({
+    reasons,
+    found: result.found,
+    inserted: dbWrite.inserted,
+    skipped: dbWrite.skipped,
+    failed: dbWrite.failed,
+    aiAttempted: result.aiStats.attempted,
+    aiOk: result.aiStats.ok,
+    truncationCount: result.truncationCount,
+    sampleErrors
+  });
+
+  if (emailResult.delivered) {
+    await recordNewsFetchAlertSent(reasons);
+  } else {
+    console.warn("news_fetch_alert_email_not_delivered", { reasons, error: emailResult.error });
   }
 }

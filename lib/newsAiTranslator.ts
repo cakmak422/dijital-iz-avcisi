@@ -38,6 +38,23 @@ const GEMINI_MAX_INPUT_LENGTH = 1800;
 let translationQueue = Promise.resolve();
 let lastGeminiCallAt = 0;
 
+// Fetch başına AI başarı/kırpma istatistiği — izleme/uyarı mekanizması
+// için. resetAiStats() her fetchLatestCyberNews() başında çağrılır,
+// getAiStats() sonunda okunur.
+let aiCallCount = 0;
+let aiOkCount = 0;
+let truncationCount = 0;
+
+export function resetAiStats() {
+  aiCallCount = 0;
+  aiOkCount = 0;
+  truncationCount = 0;
+}
+
+export function getAiStats() {
+  return { attempted: aiCallCount, ok: aiOkCount, truncationCount };
+}
+
 export function isNewsAiTranslatorConfigured() {
   return Boolean((process.env.GEMINI_API_KEY ?? "").trim());
 }
@@ -54,6 +71,8 @@ export async function translateNewsWithAi(
   const shortTitle = input.originalTitle.slice(0, 60);
   const { result, queueWaitMs } = await enqueueGeminiCall(() => callGeminiTranslator(apiKey, input, allowRetry));
   const elapsedMs = Date.now() - tStart;
+  aiCallCount += 1;
+  if (result.ok) aiOkCount += 1;
   console.log("gemini_translation_timing", {
     elapsed_ms: elapsedMs,
     queue_wait_ms: queueWaitMs,
@@ -260,6 +279,7 @@ function cleanField(value: unknown, maxLength: number, fieldName: string): strin
   const cleaned = cleanNewsDisplayText(value);
   if (cleaned.length <= maxLength) return cleaned;
 
+  truncationCount += 1;
   console.warn("news_ai_field_truncated", { field: fieldName, originalLength: cleaned.length, maxLength });
   return `${cleaned.slice(0, maxLength).replace(/\s+\S*$/, "")}...`;
 }

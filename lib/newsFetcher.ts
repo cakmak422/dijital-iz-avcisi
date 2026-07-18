@@ -10,7 +10,7 @@ import {
 import { persistRuntimeNewsItems } from "@/lib/newsRuntimeStore";
 import { summarizeCyberNews, type RawCyberNews } from "@/lib/newsSummarizer";
 import { localizeCyberNewsText } from "@/lib/newsTranslation";
-import { isNewsAiTranslatorConfigured, translateNewsWithAi } from "@/lib/newsAiTranslator";
+import { getAiStats, isNewsAiTranslatorConfigured, resetAiStats, translateNewsWithAi } from "@/lib/newsAiTranslator";
 
 const MAX_ITEMS_PER_SOURCE = 10;
 const MAX_TOTAL_ITEMS = 30;
@@ -58,9 +58,12 @@ export type NewsFetchReport = {
     enabled: boolean;
   };
   imageStats?: Record<CyberNewsImageSource, number>;
+  aiStats: { attempted: number; ok: number };
+  truncationCount: number;
 };
 
 export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
+  resetAiStats();
   const fetchedItems: CyberNewsItem[] = [];
   const sourceReports: NewsSourceFetchReport[] = [];
   const imageStats: Record<CyberNewsImageSource, number> = { rss: 0, og: 0, twitter: 0, jsonld: 0, article: 0, fallback: 0 };
@@ -167,6 +170,7 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
 
   const uniqueFetched = upsertUniqueNewsItems(fetchedItems).filter((item) => isRelevantCyberNews(`${item.title} ${item.summary} ${item.category}`));
   const cacheResult = await persistRuntimeNewsItems(uniqueFetched);
+  const aiStats = getAiStats();
   return {
     found: uniqueFetched.length,
     processedLimit: {
@@ -185,7 +189,9 @@ export async function fetchLatestCyberNews(): Promise<NewsFetchReport> {
       persisted: cacheResult.persisted,
       enabled: cacheResult.usingRuntimeCache
     },
-    imageStats
+    imageStats,
+    aiStats: { attempted: aiStats.attempted, ok: aiStats.ok },
+    truncationCount: aiStats.truncationCount
   };
 }
 
